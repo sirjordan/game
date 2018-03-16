@@ -5,6 +5,7 @@
   c. Mobile
   
 2. Single or multiplayer
+  a. Multiplayer server
 
 3. Technology desigions
 
@@ -20,6 +21,9 @@
 6. Animations
   
 7. Story and world generation
+  a. Age (ancient, moderate, post-modern)
+  b. Land based
+  c. Mystical and fantasy elements
 
 8. Game type
   a. Turn strategy
@@ -27,4 +31,9 @@
   b. Role playing
   
 9. Computer player
-a. AI
+  a. AI
+
+10. Game name
+
+11. Sounds and Music
+
