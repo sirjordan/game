@@ -1,1 +1,30 @@
+1. Platforms single or multi-platform
+  a. Web browser
+  b. Desktop
+    - Middleware or custom graphic engine (unity, mono game)
+  c. Mobile
+  
+2. Single or multiplayer
 
+3. Technology desigions
+
+4. Architecture
+  a. Style
+  b. Infrastructure
+  
+5. Art
+  a. Menues and overall look
+  b. Characters
+  c. World
+  
+6. Animations
+  
+7. Story and world generation
+
+8. Game type
+  a. Turn strategy
+  b. Realtime strategy
+  b. Role playing
+  
+9. Computer player
+a. AI
