@@ -22,6 +22,8 @@
   
 7. Story and world generation
   a. Age (ancient, moderate, post-modern)
+    - Modern/Post modern
+    - SynthWave
   b. Land based
   c. Mystical and fantasy elements
 
