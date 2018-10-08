@@ -17,6 +17,7 @@
   a. Menues and overall look
   b. Characters
   c. World
+  d. www.deviantart.com
   
 6. Animations
   
@@ -25,6 +26,7 @@
     - Modern/Post modern
     - SynthWave
     - MadMax
+	- Cyberpunk
   b. Land based
   c. Mystical and fantasy elements
 
@@ -37,6 +39,12 @@
   a. AI
 
 10. Game name
+	- SynthWave
 
 11. Sounds and Music
+
+12. Graphics
+	- Isometric
+	- Height elements - a unit can go to higher and lower ground
+		* Calculated zoom
 
