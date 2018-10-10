@@ -1,0 +1,16 @@
+1. World/Terrain generation
+	a. random
+	b. predefined terrain
+2. Realtime online multiplayer
+	a. playerds can see other moves and actions
+3. Delayed time multiplayer
+	a. user can continue his move after 2 hours and on different machine
+	b. the game state is saved in DB and restored after join again
+4. Units animation by the terrain
+	a. the animation speed is setting
+	b. in online multiplayer mode, the animation is fixed by the host game
+5. Terrain's height
+	a. 2,3 or 4 levels only
+	b. every object zooms depending on the height
+6. AI
+	a. player playes agains a "computer AI"
