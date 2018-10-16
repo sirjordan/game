@@ -1,0 +1,3 @@
+1. Render a lot of object in Canvas
+2. Moving camera
+3. Buffering

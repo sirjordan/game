@@ -14,3 +14,13 @@
 	b. every object zooms depending on the height
 6. AI
 	a. player playes agains a "computer AI"
+7. Idle detection for player
+	a. Hide the player from others visibility after some amounth of time
+	b. Show the "potential" idle player message that he/she is going to be invisible after amounth of time
+8. Start page
+	a. menu
+	b. settings
+	c. login
+	d. profile editing
+	e. animated backgrounds
+	
