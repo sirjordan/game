@@ -1,8 +1,10 @@
 class GameEngine {
     private selectableObjects: Array<ISelectable>;
+    private selection: ISelectable;
 
     constructor() {
         this.selectableObjects = new Array<ISelectable>();
+        this.selection = null;
     }
 
     init(canvasId: string) {
@@ -25,19 +27,30 @@ class GameEngine {
 
             that.selectableObjects.forEach(obj => {
                 if (obj.isPointInside(p)) {
-                    obj.select();
+                    if (!obj.selected) {
+                        obj.select();
+                    }
+                } else {
+                    if (obj.selected) {
+                        obj.unSelect();
+                    }
                 }
             });
         };
     };
 }
 
+interface IMovable {
+    moveTo(to: Point2d);
+}
+
 interface ISelectable extends IShape {
+    selected: boolean;
     select(): void;
     unSelect(): void;
 }
 
-interface IShape{
+interface IShape {
     draw(): void;
     isPointInside(point: Point2d): boolean;
 }
@@ -74,6 +87,8 @@ abstract class Shape {
 }
 
 class Rect extends Shape implements ISelectable {
+    private originalStroke: string;
+    selected: boolean
     width: number;
     height: number;
     fill: string;
@@ -87,6 +102,7 @@ class Rect extends Shape implements ISelectable {
         this.fill = fill;
         this.stroke = stroke;
         this.strokewidth = strokewidth;
+        this.selected = false;
     }
 
     draw(): void {
@@ -110,12 +126,16 @@ class Rect extends Shape implements ISelectable {
     }
 
     select(): void {
+        this.originalStroke = this.stroke;
         this.stroke = 'orange';
         this.draw();
+        this.selected = true;
     }
 
     unSelect(): void {
-        throw new Error("Method not implemented.");
+        this.stroke = this.originalStroke;
+        this.draw();
+        this.selected = false;
     }
 }
 

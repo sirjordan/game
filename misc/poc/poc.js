@@ -14,6 +14,7 @@ var __extends = (this && this.__extends) || (function () {
 var GameEngine = /** @class */ (function () {
     function GameEngine() {
         this.selectableObjects = new Array();
+        this.selection = null;
     }
     GameEngine.prototype.init = function (canvasId) {
         var canvas = document.getElementById(canvasId);
@@ -30,7 +31,14 @@ var GameEngine = /** @class */ (function () {
             var p = new Point2d(args.clientX, args.clientY);
             that.selectableObjects.forEach(function (obj) {
                 if (obj.isPointInside(p)) {
-                    obj.select();
+                    if (!obj.selected) {
+                        obj.select();
+                    }
+                }
+                else {
+                    if (obj.selected) {
+                        obj.unSelect();
+                    }
                 }
             });
         };
@@ -67,6 +75,7 @@ var Rect = /** @class */ (function (_super) {
         _this.fill = fill;
         _this.stroke = stroke;
         _this.strokewidth = strokewidth;
+        _this.selected = false;
         return _this;
     }
     Rect.prototype.draw = function () {
@@ -87,11 +96,15 @@ var Rect = /** @class */ (function (_super) {
             point.y <= this.y + this.height);
     };
     Rect.prototype.select = function () {
+        this.originalStroke = this.stroke;
         this.stroke = 'orange';
         this.draw();
+        this.selected = true;
     };
     Rect.prototype.unSelect = function () {
-        throw new Error("Method not implemented.");
+        this.stroke = this.originalStroke;
+        this.draw();
+        this.selected = false;
     };
     return Rect;
 }(Shape));
