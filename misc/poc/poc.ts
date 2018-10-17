@@ -1,9 +1,11 @@
 class GameEngine {
     private selectableObjects: Array<ISelectable>;
+    private movableObjects: Array<IMovable>;
     private selection: ISelectable;
 
     constructor() {
         this.selectableObjects = new Array<ISelectable>();
+        this.movableObjects = new Array<IMovable>();
         this.selection = null;
     }
 
@@ -15,9 +17,9 @@ class GameEngine {
         canvas.height = 500;    // TODO: Take the window height - offset
 
         let ctx = canvas.getContext("2d");
-        let shapes = new ShapeFactory(ctx, this.selectableObjects);
+        let shapes = new ObjectFactory(ctx, this.selectableObjects, this.movableObjects);
 
-        let r = shapes.getRect(20, 20, 25, 25, "blue", "red", 2);
+        let r = shapes.getUnit(20, 20, 25, 25, "blue", "red", 2);
         r.draw();
 
         // Attach click event
@@ -32,7 +34,11 @@ class GameEngine {
                     }
                 } else {
                     if (obj.selected) {
+                        // TODO: Move if selected or leave if not movable
                         obj.unSelect();
+
+                        // TODO: Remove this
+                        that.movableObjects[0].moveTo(new Point2d(1, 2));
                     }
                 }
             });
@@ -41,7 +47,8 @@ class GameEngine {
 }
 
 interface IMovable {
-    moveTo(to: Point2d);
+    speed: number;
+    moveTo(point: Point2d);
 }
 
 interface ISelectable extends IShape {
@@ -55,19 +62,28 @@ interface IShape {
     isPointInside(point: Point2d): boolean;
 }
 
-class ShapeFactory {
+class ObjectFactory {
     private ctx: CanvasRenderingContext2D;
     private selectableObjects: Array<ISelectable>;
+    private movableObjects: Array<IMovable>;
 
-    constructor(ctx: CanvasRenderingContext2D, selectableObjects: Array<ISelectable>) {
+    constructor(ctx: CanvasRenderingContext2D, selectableObjects: Array<ISelectable>, movableObjects: Array<IMovable>) {
         this.ctx = ctx;
         this.selectableObjects = selectableObjects;
+        this.movableObjects = movableObjects;
     }
 
     getRect(x: number, y: number, width: number, height: number, fill: string, stroke: string, strokewidth: number): Shape {
         let r = new Rect(this.ctx, x, y, width, height, fill, stroke, strokewidth);
         this.selectableObjects.push(r);
         return r;
+    }
+
+    getUnit(x: number, y: number, width: number, height: number, fill: string, stroke: string, strokewidth: number){
+        let u = new Unit(this.ctx, x, y, width, height, fill, stroke, strokewidth);
+        this.selectableObjects.push(u);
+        this.movableObjects.push(u);
+        return u;
     }
 }
 
@@ -136,6 +152,27 @@ class Rect extends Shape implements ISelectable {
         this.stroke = this.originalStroke;
         this.draw();
         this.selected = false;
+    }
+}
+
+class Unit extends Rect implements IMovable {
+    speed: number;
+
+    constructor(ctx: CanvasRenderingContext2D, x: number, y: number, width: number, height: number, fill: string, stroke: string, strokewidth: number) {
+        super(ctx, x, y, width, height, fill, stroke, strokewidth);
+        this.speed = 5;
+    }
+
+    moveTo(point: Point2d) {
+        // TODO: Use linear interpolation
+        this.updateMoving();
+    }
+
+    private updateMoving(){
+        this.x += this.speed;
+        this.y += this.speed;
+        super.draw();
+        requestAnimationFrame(this.updateMoving);
     }
 }
 
