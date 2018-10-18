@@ -147,6 +147,8 @@ var Unit = /** @class */ (function (_super) {
         // The first path step must be the current
         var startPoint = path.shift().clone();
         var endPoint = path.shift().clone();
+        var dX = Utils.lerp(startPoint.x, endPoint.x, that.speed * 0.01) - startPoint.x;
+        var dY = Utils.lerp(startPoint.y, endPoint.y, that.speed * 0.01) - startPoint.y;
         function update() {
             // Step over
             if (that.isPointInside(endPoint)) {
@@ -156,9 +158,9 @@ var Unit = /** @class */ (function (_super) {
                 }
                 startPoint = endPoint;
                 endPoint = path.shift().clone();
+                dX = Utils.lerp(startPoint.x, endPoint.x, that.speed * 0.01) - startPoint.x;
+                dY = Utils.lerp(startPoint.y, endPoint.y, that.speed * 0.01) - startPoint.y;
             }
-            var dX = startPoint.x !== endPoint.x ? Utils.lerp(startPoint.x, endPoint.x, that.speed * 0.01) : 0;
-            var dY = startPoint.y !== endPoint.y ? Utils.lerp(startPoint.y, endPoint.y, that.speed * 0.01) : 0;
             that.position.x += dX;
             that.position.y += dY;
             that.draw();

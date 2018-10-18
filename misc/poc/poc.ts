@@ -1,3 +1,7 @@
+class Settings{
+    static animationSpeed  = 0.01;
+}
+
 class Utils {
     static lerp(v0: number, v1: number, t: number): number {
         return v0 + t * (v1 - v0);
@@ -7,12 +11,10 @@ class Utils {
 class GameEngine {
     private selectableObjects: Array<ISelectable>;
     private movableObjects: Array<IMovable>;
-    private selection: ISelectable;
 
     constructor() {
         this.selectableObjects = new Array<ISelectable>();
         this.movableObjects = new Array<IMovable>();
-        this.selection = null;
     }
 
     init(canvasId: string) {
@@ -190,6 +192,10 @@ class Unit extends Rect implements IMovable {
         let startPoint = path.shift().clone();
         let endPoint = path.shift().clone();
 
+        let delta = that.speed * Settings.animationSpeed;
+        let dX = Utils.lerp(startPoint.x, endPoint.x, delta) - startPoint.x;
+        let dY = Utils.lerp(startPoint.y, endPoint.y, delta) - startPoint.y;
+
         function update() {
             // Step over
             if (that.isPointInside(endPoint)) {
@@ -200,10 +206,10 @@ class Unit extends Rect implements IMovable {
 
                 startPoint = endPoint;
                 endPoint = path.shift().clone();
-            }
 
-            let dX = startPoint.x !== endPoint.x ? Utils.lerp(startPoint.x, endPoint.x, that.speed * 0.01) : 0;
-            let dY = startPoint.y !== endPoint.y ? Utils.lerp(startPoint.y, endPoint.y, that.speed * 0.01) : 0;
+                dX = Utils.lerp(startPoint.x, endPoint.x, delta) - startPoint.x;
+                dY = Utils.lerp(startPoint.y, endPoint.y, delta) - startPoint.y;
+            }
 
             that.position.x += dX;
             that.position.y += dY;
