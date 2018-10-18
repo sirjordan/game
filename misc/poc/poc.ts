@@ -74,18 +74,21 @@ class GameEngine {
                     }
                 }
             }
+        };
 
-            // Move selected
+        canvas.oncontextmenu = function (args) {
+            args.preventDefault();
+
+            // Move selected objects
+            let mousePosition = new Point2d(args.clientX, args.clientY)
+
             if (that.selected.length > 0) {
                 that.selected.forEach(el => {
+                    // TODO: Get the selectable, which map in movable 
                     let path = that.getPath(that.movable[0].position, mousePosition);
                     that.movable[0].move(path);
                 });
             }
-        };
-
-        canvas.oncontextmenu = function(args){
-            args.preventDefault();
         };
     };
 
@@ -193,9 +196,9 @@ class Rect extends Shape implements ISelectable {
 
     clear(): void {
         this.ctx.clearRect(
-            this.position.x - this.strokewidth, 
-            this.position.y - this.strokewidth, 
-            this.position.x + this.width + this.strokewidth, 
+            this.position.x - this.strokewidth,
+            this.position.y - this.strokewidth,
+            this.position.x + this.width + this.strokewidth,
             this.position.y + this.height + this.strokewidth);
     }
 

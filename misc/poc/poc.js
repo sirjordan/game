@@ -79,16 +79,18 @@ var GameEngine = /** @class */ (function () {
                     }
                 }
             }
-            // Move selected
+        };
+        canvas.oncontextmenu = function (args) {
+            args.preventDefault();
+            // Move selected objects
+            var mousePosition = new Point2d(args.clientX, args.clientY);
             if (that.selected.length > 0) {
                 that.selected.forEach(function (el) {
+                    // TODO: Get the selectable, which map in movable 
                     var path = that.getPath(that.movable[0].position, mousePosition);
                     that.movable[0].move(path);
                 });
             }
-        };
-        canvas.oncontextmenu = function (args) {
-            args.preventDefault();
         };
     };
     ;
