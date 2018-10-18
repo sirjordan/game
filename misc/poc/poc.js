@@ -11,6 +11,14 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
+var Utils = /** @class */ (function () {
+    function Utils() {
+    }
+    Utils.lerp = function (v0, v1, t) {
+        return v0 + t * (v1 - v0);
+    };
+    return Utils;
+}());
 var GameEngine = /** @class */ (function () {
     function GameEngine() {
         this.selectableObjects = new Array();
@@ -24,14 +32,14 @@ var GameEngine = /** @class */ (function () {
         canvas.height = 500; // TODO: Take the window height - offset
         var ctx = canvas.getContext("2d");
         var shapes = new ObjectFactory(ctx, this.selectableObjects, this.movableObjects);
-        var r = shapes.getUnit(20, 20, 25, 25, "blue", "red", 2);
+        var r = shapes.getUnit(new Point2d(20, 20), 25, 25, "blue", "red", 2);
         r.draw();
         // Attach click event
         var that = this;
         canvas.onclick = function (args) {
-            var p = new Point2d(args.clientX, args.clientY);
+            var mousePosition = new Point2d(args.clientX, args.clientY);
             that.selectableObjects.forEach(function (obj) {
-                if (obj.isPointInside(p)) {
+                if (obj.isPointInside(mousePosition)) {
                     if (!obj.selected) {
                         obj.select();
                     }
@@ -41,13 +49,22 @@ var GameEngine = /** @class */ (function () {
                         // TODO: Move if selected or leave if not movable
                         obj.unSelect();
                         // TODO: Remove this
-                        that.movableObjects[0].moveTo(new Point2d(1, 2));
+                        var path = that.getPath(that.movableObjects[0].position, mousePosition);
+                        that.movableObjects[0].move(path);
                     }
                 }
             });
         };
     };
     ;
+    GameEngine.prototype.getPath = function (from, to) {
+        var path = new Array();
+        // TODO: Make req to the server and get the path
+        path.push(from);
+        path.push(new Point2d(to.x, from.y));
+        path.push(to);
+        return path;
+    };
     return GameEngine;
 }());
 var ObjectFactory = /** @class */ (function () {
@@ -56,13 +73,13 @@ var ObjectFactory = /** @class */ (function () {
         this.selectableObjects = selectableObjects;
         this.movableObjects = movableObjects;
     }
-    ObjectFactory.prototype.getRect = function (x, y, width, height, fill, stroke, strokewidth) {
-        var r = new Rect(this.ctx, x, y, width, height, fill, stroke, strokewidth);
+    ObjectFactory.prototype.getRect = function (position, width, height, fill, stroke, strokewidth) {
+        var r = new Rect(this.ctx, position, width, height, fill, stroke, strokewidth);
         this.selectableObjects.push(r);
         return r;
     };
-    ObjectFactory.prototype.getUnit = function (x, y, width, height, fill, stroke, strokewidth) {
-        var u = new Unit(this.ctx, x, y, width, height, fill, stroke, strokewidth);
+    ObjectFactory.prototype.getUnit = function (position, width, height, fill, stroke, strokewidth) {
+        var u = new Unit(this.ctx, position, width, height, fill, stroke, strokewidth);
         this.selectableObjects.push(u);
         this.movableObjects.push(u);
         return u;
@@ -70,17 +87,16 @@ var ObjectFactory = /** @class */ (function () {
     return ObjectFactory;
 }());
 var Shape = /** @class */ (function () {
-    function Shape(ctx, x, y) {
+    function Shape(ctx, position) {
         this.ctx = ctx;
-        this.x = x;
-        this.y = y;
+        this.position = position;
     }
     return Shape;
 }());
 var Rect = /** @class */ (function (_super) {
     __extends(Rect, _super);
-    function Rect(ctx, x, y, width, height, fill, stroke, strokewidth) {
-        var _this = _super.call(this, ctx, x, y) || this;
+    function Rect(ctx, topLeft, width, height, fill, stroke, strokewidth) {
+        var _this = _super.call(this, ctx, topLeft) || this;
         _this.width = width;
         _this.height = height;
         _this.fill = fill;
@@ -95,16 +111,16 @@ var Rect = /** @class */ (function (_super) {
         this.ctx.fillStyle = this.fill;
         this.ctx.strokeStyle = this.stroke;
         this.ctx.lineWidth = this.strokewidth;
-        this.ctx.rect(this.x, this.y, this.width, this.height);
+        this.ctx.rect(this.position.x, this.position.y, this.width, this.height);
         this.ctx.stroke();
         this.ctx.fill();
         this.ctx.restore();
     };
     Rect.prototype.isPointInside = function (point) {
-        return (point.x >= this.x &&
-            point.x <= this.x + this.width &&
-            point.y >= this.y &&
-            point.y <= this.y + this.height);
+        return (point.x >= this.position.x &&
+            point.x <= this.position.x + this.width &&
+            point.y >= this.position.y &&
+            point.y <= this.position.y + this.height);
     };
     Rect.prototype.select = function () {
         this.originalStroke = this.stroke;
@@ -121,20 +137,34 @@ var Rect = /** @class */ (function (_super) {
 }(Shape));
 var Unit = /** @class */ (function (_super) {
     __extends(Unit, _super);
-    function Unit(ctx, x, y, width, height, fill, stroke, strokewidth) {
-        var _this = _super.call(this, ctx, x, y, width, height, fill, stroke, strokewidth) || this;
-        _this.speed = 5;
+    function Unit(ctx, position, width, height, fill, stroke, strokewidth) {
+        var _this = _super.call(this, ctx, position, width, height, fill, stroke, strokewidth) || this;
+        _this.speed = 1;
         return _this;
     }
-    Unit.prototype.moveTo = function (point) {
-        // TODO: Use linear interpolation
-        this.updateMoving();
-    };
-    Unit.prototype.updateMoving = function () {
-        this.x += this.speed;
-        this.y += this.speed;
-        _super.prototype.draw.call(this);
-        requestAnimationFrame(this.updateMoving);
+    Unit.prototype.move = function (path) {
+        var that = this;
+        // The first path step must be the current
+        var startPoint = path.shift().clone();
+        var endPoint = path.shift().clone();
+        function update() {
+            // Step over
+            if (that.isPointInside(endPoint)) {
+                // Path over
+                if (path.length === 0) {
+                    return;
+                }
+                startPoint = endPoint;
+                endPoint = path.shift().clone();
+            }
+            var dX = startPoint.x !== endPoint.x ? Utils.lerp(startPoint.x, endPoint.x, that.speed * 0.01) : 0;
+            var dY = startPoint.y !== endPoint.y ? Utils.lerp(startPoint.y, endPoint.y, that.speed * 0.01) : 0;
+            that.position.x += dX;
+            that.position.y += dY;
+            that.draw();
+            requestAnimationFrame(update);
+        }
+        update();
     };
     return Unit;
 }(Rect));
@@ -143,6 +173,9 @@ var Point2d = /** @class */ (function () {
         this.x = x;
         this.y = y;
     }
+    Point2d.prototype.clone = function () {
+        return new Point2d(this.x, this.y);
+    };
     return Point2d;
 }());
 //# sourceMappingURL=poc.js.map
