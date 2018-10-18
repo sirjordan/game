@@ -1,60 +1,95 @@
-class Settings{
-    static animationSpeed  = 0.01;
+class Settings {
+    static animationSpeed = 0.01;
 }
 
 class Utils {
     static lerp(v0: number, v1: number, t: number): number {
         return v0 + t * (v1 - v0);
     }
+
+    static calcCanvasSize(): Size {
+        // TODO: Take the window width/height of the window
+        return new Size(900, 500);
+    }
+}
+
+class State {
+    static canvasSize: Size;
 }
 
 class GameEngine {
-    private selectableObjects: Array<ISelectable>;
-    private movableObjects: Array<IMovable>;
+    private selectable: Array<ISelectable>;
+    private movable: Array<IMovable>;
+    private selected: Array<ISelectable>;
 
     constructor() {
-        this.selectableObjects = new Array<ISelectable>();
-        this.movableObjects = new Array<IMovable>();
+        this.selectable = new Array<ISelectable>();
+        this.movable = new Array<IMovable>();
+        this.selected = new Array<ISelectable>();
     }
 
-    init(canvasId: string) {
+    public init(canvasId: string) {
+        let canvasSize = Utils.calcCanvasSize();
+        State.canvasSize = canvasSize;
+
         let canvas = <HTMLCanvasElement>document.getElementById(canvasId);
 
         // Style the canvas
-        canvas.width = 900;    // TODO: Take the window width - offset
-        canvas.height = 500;    // TODO: Take the window height - offset
+        canvas.width = canvasSize.width;
+        canvas.height = canvasSize.height;
 
         let ctx = canvas.getContext("2d");
-        let shapes = new ObjectFactory(ctx, this.selectableObjects, this.movableObjects);
+        let shapes = new ObjectFactory(ctx, this.selectable, this.movable);
 
-        let r = shapes.getUnit(new Point2d(20, 20), 25, 25, "blue", "red", 2);
-        r.draw();
+        let u_1 = shapes.createUnit(new Point2d(20, 20), 25, 25, "blue", "red", 2);
+        u_1.draw();
+
+        let u_2 = shapes.createUnit(new Point2d(20, 80), 25, 25, "green", "yellow", 2);
+        u_2.draw();
 
         // Attach click event
         let that = this;
         canvas.onclick = function (args) {
-            let mousePosition = new Point2d(args.clientX, args.clientY);
+            let mousePosition = new Point2d(args.clientX, args.clientY)
 
-            that.selectableObjects.forEach(obj => {
+            // Check if any selectable object is at the mouse click position
+            for (const obj of that.selectable) {
                 if (obj.isPointInside(mousePosition)) {
                     if (!obj.selected) {
+                        // Unselect all other objects and reset the selection
+                        that.selected.forEach(el => {
+                            el.unSelect();
+                        });
+                        that.selected = [];
+
+                        // Select the only clicked obj
+                        that.selected.push(obj);
                         obj.select();
+
+                        break;
                     }
                 } else {
                     if (obj.selected) {
-                        // TODO: Move if selected or leave if not movable
                         obj.unSelect();
-
-                        // TODO: Remove this
-                        let path = that.getPath(that.movableObjects[0].position, mousePosition);
-                        that.movableObjects[0].move(path);
                     }
                 }
-            });
+            }
+
+            // Move selected
+            if (that.selected.length > 0) {
+                that.selected.forEach(el => {
+                    let path = that.getPath(that.movable[0].position, mousePosition);
+                    that.movable[0].move(path);
+                });
+            }
+        };
+
+        canvas.oncontextmenu = function(args){
+            args.preventDefault();
         };
     };
 
-    getPath(from: Point2d, to: Point2d): Array<Point2d> {
+    private getPath(from: Point2d, to: Point2d): Array<Point2d> {
         let path = new Array<Point2d>();
 
         // TODO: Make req to the server and get the path
@@ -97,13 +132,13 @@ class ObjectFactory {
         this.movableObjects = movableObjects;
     }
 
-    getRect(position: Point2d, width: number, height: number, fill: string, stroke: string, strokewidth: number): Shape {
+    createRect(position: Point2d, width: number, height: number, fill: string, stroke: string, strokewidth: number): Shape {
         let r = new Rect(this.ctx, position, width, height, fill, stroke, strokewidth);
         this.selectableObjects.push(r);
         return r;
     }
 
-    getUnit(position: Point2d, width: number, height: number, fill: string, stroke: string, strokewidth: number) {
+    createUnit(position: Point2d, width: number, height: number, fill: string, stroke: string, strokewidth: number) {
         let u = new Unit(this.ctx, position, width, height, fill, stroke, strokewidth);
         this.selectableObjects.push(u);
         this.movableObjects.push(u);
@@ -121,6 +156,7 @@ abstract class Shape {
     }
 
     abstract draw(): void;
+    abstract clear(): void;
     abstract isPointInside(point: Point2d): boolean;
 }
 
@@ -153,6 +189,14 @@ class Rect extends Shape implements ISelectable {
         this.ctx.stroke();
         this.ctx.fill();
         this.ctx.restore();
+    }
+
+    clear(): void {
+        this.ctx.clearRect(
+            this.position.x - this.strokewidth, 
+            this.position.y - this.strokewidth, 
+            this.position.x + this.width + this.strokewidth, 
+            this.position.y + this.height + this.strokewidth);
     }
 
     isPointInside(point: Point2d): boolean {
@@ -211,6 +255,8 @@ class Unit extends Rect implements IMovable {
                 dY = Utils.lerp(startPoint.y, endPoint.y, delta) - startPoint.y;
             }
 
+            that.clear();
+
             that.position.x += dX;
             that.position.y += dY;
 
@@ -233,5 +279,15 @@ class Point2d {
 
     clone(): Point2d {
         return new Point2d(this.x, this.y);
+    }
+}
+
+class Size {
+    public width: number;
+    public height: number;
+
+    constructor(width: number, height: number) {
+        this.width = width;
+        this.height = height;
     }
 }
