@@ -7,9 +7,23 @@ class Utils {
         return v0 + t * (v1 - v0);
     }
 
-    static calcCanvasSize(): Size {
-        // TODO: Take the window width/height of the window
-        return new Size(900, 500);
+    static calcCanvasSize(rightPanel: HTMLElement, bottomPanel: HTMLElement): Size {
+        let rightPanelOffset = this.calcOffset(rightPanel);
+        let bottomPanelOffset = this.calcOffset(bottomPanel);
+        return new Size(rightPanelOffset.left, bottomPanelOffset.top);
+    }
+
+    static calcOffset(el) {
+        // Calculates the TopLeft of Html element
+        var _x = 0;
+        var _y = 0;
+        while (el && !isNaN(el.offsetLeft) && !isNaN(el.offsetTop)) {
+            _x += el.offsetLeft - el.scrollLeft;
+            _y += el.offsetTop - el.scrollTop;
+            el = el.offsetParent;
+        }
+
+        return { top: _y, left: _x };
     }
 }
 
@@ -19,23 +33,29 @@ class State {
 
 class GameEngine {
     private objects: ObjectPool;
+    private gameLayer: HTMLCanvasElement;
+    private bgLayer: HTMLCanvasElement;
+    private rightPanel: HTMLElement;
+    private bottomPanel: HTMLElement;
 
-    constructor() {
+    constructor(gameLayerId: string, bgLayerId: string, rightPanelId: string, bottomPanelId: string) {
+        if (!gameLayerId) throw new Error('Missing argument: gameLayerId');
+        if (!rightPanelId) throw new Error('Missing argument: rightPanelId');
+        if (!rightPanelId) throw new Error('Missing argument: rightPanelId');
+        if (!bottomPanelId) throw new Error('Missing argument: bottomPanelId');
+
         this.objects = new ObjectPool();
+        this.gameLayer = <HTMLCanvasElement>document.getElementById(gameLayerId);
+        this.bgLayer = <HTMLCanvasElement>document.getElementById(bgLayerId);
+        this.rightPanel = document.getElementById(rightPanelId);
+        this.bottomPanel = document.getElementById(bottomPanelId);
+
+        this.setStageSize();
     }
 
-    public init(canvasId: string) {
-        let canvasSize = Utils.calcCanvasSize();
-        State.canvasSize = canvasSize;
-
-        let canvas = <HTMLCanvasElement>document.getElementById(canvasId);
-
-        // Style the canvas
-        canvas.width = canvasSize.width;
-        canvas.height = canvasSize.height;
-
-        let ctx = canvas.getContext("2d");
-        let factory = new ObjectFactory(ctx, this.objects);
+    public init() {
+        let gameCtx = this.gameLayer.getContext("2d");
+        let factory = new ObjectFactory(gameCtx, this.objects);
 
         let u_1 = factory.createUnit(new Point2d(20, 20), 25, 25, "blue", "red", 2);
         u_1.draw();
@@ -45,8 +65,8 @@ class GameEngine {
 
         // Attach click event
         let that = this;
-        canvas.onclick = function (args) {
-            let mousePosition = new Point2d(args.clientX, args.clientY)
+        this.gameLayer.onclick = function (args) {
+            let mousePosition = new Point2d(args.clientX, args.clientY);
 
             // Check if any selectable object is at the mouse click position
             for (const obj of that.objects.selectable) {
@@ -70,7 +90,7 @@ class GameEngine {
             }
         };
 
-        canvas.oncontextmenu = function (args) {
+        this.gameLayer.oncontextmenu = function (args) {
             args.preventDefault();
 
             // Move selected objects
@@ -93,6 +113,15 @@ class GameEngine {
         path.push(to);
 
         return path;
+    }
+
+    private setStageSize() {
+        let canvasSize = Utils.calcCanvasSize(this.rightPanel, this.bottomPanel);
+        State.canvasSize = canvasSize
+        this.gameLayer.width = canvasSize.width;
+        this.gameLayer.height = canvasSize.height;
+        this.bgLayer.width = canvasSize.width;
+        this.bgLayer.height = canvasSize.height;
     }
 }
 

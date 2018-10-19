@@ -23,9 +23,21 @@ var Utils = /** @class */ (function () {
     Utils.lerp = function (v0, v1, t) {
         return v0 + t * (v1 - v0);
     };
-    Utils.calcCanvasSize = function () {
-        // TODO: Take the window width/height of the window
-        return new Size(900, 500);
+    Utils.calcCanvasSize = function (rightPanel, bottomPanel) {
+        var rightPanelOffset = this.calcOffset(rightPanel);
+        var bottomPanelOffset = this.calcOffset(bottomPanel);
+        return new Size(rightPanelOffset.left, bottomPanelOffset.top);
+    };
+    Utils.calcOffset = function (el) {
+        // Calculates the TopLeft of Html element
+        var _x = 0;
+        var _y = 0;
+        while (el && !isNaN(el.offsetLeft) && !isNaN(el.offsetTop)) {
+            _x += el.offsetLeft - el.scrollLeft;
+            _y += el.offsetTop - el.scrollTop;
+            el = el.offsetParent;
+        }
+        return { top: _y, left: _x };
     };
     return Utils;
 }());
@@ -35,25 +47,32 @@ var State = /** @class */ (function () {
     return State;
 }());
 var GameEngine = /** @class */ (function () {
-    function GameEngine() {
+    function GameEngine(gameLayerId, bgLayerId, rightPanelId, bottomPanelId) {
+        if (!gameLayerId)
+            throw new Error('Missing argument: gameLayerId');
+        if (!rightPanelId)
+            throw new Error('Missing argument: rightPanelId');
+        if (!rightPanelId)
+            throw new Error('Missing argument: rightPanelId');
+        if (!bottomPanelId)
+            throw new Error('Missing argument: bottomPanelId');
         this.objects = new ObjectPool();
+        this.gameLayer = document.getElementById(gameLayerId);
+        this.bgLayer = document.getElementById(bgLayerId);
+        this.rightPanel = document.getElementById(rightPanelId);
+        this.bottomPanel = document.getElementById(bottomPanelId);
     }
-    GameEngine.prototype.init = function (canvasId) {
-        var canvasSize = Utils.calcCanvasSize();
-        State.canvasSize = canvasSize;
-        var canvas = document.getElementById(canvasId);
-        // Style the canvas
-        canvas.width = canvasSize.width;
-        canvas.height = canvasSize.height;
-        var ctx = canvas.getContext("2d");
-        var factory = new ObjectFactory(ctx, this.objects);
+    GameEngine.prototype.init = function () {
+        this.setStageSize();
+        var gameCtx = this.gameLayer.getContext("2d");
+        var factory = new ObjectFactory(gameCtx, this.objects);
         var u_1 = factory.createUnit(new Point2d(20, 20), 25, 25, "blue", "red", 2);
         u_1.draw();
         var u_2 = factory.createUnit(new Point2d(20, 80), 25, 25, "green", "yellow", 2);
         u_2.draw();
         // Attach click event
         var that = this;
-        canvas.onclick = function (args) {
+        this.gameLayer.onclick = function (args) {
             var mousePosition = new Point2d(args.clientX, args.clientY);
             // Check if any selectable object is at the mouse click position
             for (var _i = 0, _a = that.objects.selectable; _i < _a.length; _i++) {
@@ -76,7 +95,7 @@ var GameEngine = /** @class */ (function () {
                 }
             }
         };
-        canvas.oncontextmenu = function (args) {
+        this.gameLayer.oncontextmenu = function (args) {
             args.preventDefault();
             // Move selected objects
             var mousePosition = new Point2d(args.clientX, args.clientY);
@@ -89,6 +108,10 @@ var GameEngine = /** @class */ (function () {
         };
     };
     ;
+    GameEngine.prototype.onLeftClick = function () {
+    };
+    GameEngine.prototype.onRightClick = function () {
+    };
     GameEngine.prototype.getPath = function (from, to) {
         var path = new Array();
         // TODO: Make req to the server and get the path
@@ -96,6 +119,14 @@ var GameEngine = /** @class */ (function () {
         path.push(new Point2d(to.x, from.y));
         path.push(to);
         return path;
+    };
+    GameEngine.prototype.setStageSize = function () {
+        var canvasSize = Utils.calcCanvasSize(this.rightPanel, this.bottomPanel);
+        State.canvasSize = canvasSize;
+        this.gameLayer.width = canvasSize.width;
+        this.gameLayer.height = canvasSize.height;
+        this.bgLayer.width = canvasSize.width;
+        this.bgLayer.height = canvasSize.height;
     };
     return GameEngine;
 }());

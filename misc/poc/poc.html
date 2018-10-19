@@ -1,17 +1,74 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=900, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>POC</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+
+        canvas {
+            position: absolute;
+        }
+
+        #top-panel {
+            z-index: 4;
+            width: 100%;
+            height: 20px;
+            position: fixed;
+            top: 0;
+            border-bottom: 1px solid;   
+        }
+
+        #right-panel {
+            z-index: 3;
+            width: 225px;
+            height: 100%;
+            position: fixed;
+            right: 0;
+            border-left: 1px solid;
+        }
+
+        #bottom-panel {
+            z-index: 3;
+            height: 150px;
+            width: 100%;
+            position: fixed;
+            bottom: 0;
+            border-top: 1px solid;
+        }
+
+        #game-layer {
+            z-index: 2;
+        }
+
+        #background-layer {
+            z-index: 1;
+        }
+
+        .panel {
+            background-color: #336600;
+        }
+    </style>
 </head>
+
 <body>
-    <canvas id="canvas" style="border:1px solid gray;"></canvas>
+    <div id="top-panel" class="panel"></div>
+    <div id="right-panel" class="panel"></div>
+    <div id="bottom-panel" class="panel"></div>
+    <canvas id="game-layer"></canvas>
+    <canvas id="background-layer"></canvas>
+
     <script src="poc.js"></script>
     <script>
-        var game = new GameEngine();
-        game.init('canvas');
+        var game = new GameEngine('game-layer', 'background-layer', 'right-panel', 'bottom-panel');
+        game.init();
     </script>
 </body>
+
 </html>
