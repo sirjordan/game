@@ -36,7 +36,7 @@ var State = /** @class */ (function () {
 }());
 var GameEngine = /** @class */ (function () {
     function GameEngine() {
-        this.objectPool = new ObjectPool();
+        this.objects = new ObjectPool();
     }
     GameEngine.prototype.init = function (canvasId) {
         var canvasSize = Utils.calcCanvasSize();
@@ -46,7 +46,7 @@ var GameEngine = /** @class */ (function () {
         canvas.width = canvasSize.width;
         canvas.height = canvasSize.height;
         var ctx = canvas.getContext("2d");
-        var factory = new ObjectFactory(ctx, this.objectPool);
+        var factory = new ObjectFactory(ctx, this.objects);
         var u_1 = factory.createUnit(new Point2d(20, 20), 25, 25, "blue", "red", 2);
         u_1.draw();
         var u_2 = factory.createUnit(new Point2d(20, 80), 25, 25, "green", "yellow", 2);
@@ -56,12 +56,12 @@ var GameEngine = /** @class */ (function () {
         canvas.onclick = function (args) {
             var mousePosition = new Point2d(args.clientX, args.clientY);
             // Check if any selectable object is at the mouse click position
-            for (var _i = 0, _a = that.objectPool.selectable; _i < _a.length; _i++) {
+            for (var _i = 0, _a = that.objects.selectable; _i < _a.length; _i++) {
                 var obj = _a[_i];
                 if (obj.isPointInside(mousePosition)) {
                     if (!obj.selected) {
                         // Unselect all other objects and reset the selection
-                        that.objectPool.selectable.forEach(function (el) {
+                        that.objects.selectable.forEach(function (el) {
                             el.unSelect();
                         });
                         // Select the only clicked obj
@@ -80,7 +80,7 @@ var GameEngine = /** @class */ (function () {
             args.preventDefault();
             // Move selected objects
             var mousePosition = new Point2d(args.clientX, args.clientY);
-            that.objectPool.units.forEach(function (u) {
+            that.objects.units.forEach(function (u) {
                 if (u.selected) {
                     var path = that.getPath(u.position, mousePosition);
                     u.move(path);
@@ -96,8 +96,6 @@ var GameEngine = /** @class */ (function () {
         path.push(new Point2d(to.x, from.y));
         path.push(to);
         return path;
-    };
-    GameEngine.prototype.getMovable = function () {
     };
     return GameEngine;
 }());
@@ -218,6 +216,9 @@ var Unit = /** @class */ (function (_super) {
             requestAnimationFrame(update);
         }
         update();
+    };
+    Unit.prototype.stop = function () {
+        // Implement
     };
     return Unit;
 }(Rect));

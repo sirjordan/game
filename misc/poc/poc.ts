@@ -18,10 +18,10 @@ class State {
 }
 
 class GameEngine {
-    private objectPool: ObjectPool;
+    private objects: ObjectPool;
 
     constructor() {
-        this.objectPool = new ObjectPool();
+        this.objects = new ObjectPool();
     }
 
     public init(canvasId: string) {
@@ -35,7 +35,7 @@ class GameEngine {
         canvas.height = canvasSize.height;
 
         let ctx = canvas.getContext("2d");
-        let factory = new ObjectFactory(ctx, this.objectPool);
+        let factory = new ObjectFactory(ctx, this.objects);
 
         let u_1 = factory.createUnit(new Point2d(20, 20), 25, 25, "blue", "red", 2);
         u_1.draw();
@@ -49,11 +49,11 @@ class GameEngine {
             let mousePosition = new Point2d(args.clientX, args.clientY)
 
             // Check if any selectable object is at the mouse click position
-            for (const obj of that.objectPool.selectable) {
+            for (const obj of that.objects.selectable) {
                 if (obj.isPointInside(mousePosition)) {
                     if (!obj.selected) {
                         // Unselect all other objects and reset the selection
-                        that.objectPool.selectable.forEach(el => {
+                        that.objects.selectable.forEach(el => {
                             el.unSelect();
                         });
 
@@ -75,7 +75,7 @@ class GameEngine {
 
             // Move selected objects
             let mousePosition = new Point2d(args.clientX, args.clientY)
-            that.objectPool.units.forEach(u => {
+            that.objects.units.forEach(u => {
                 if (u.selected) {
                     let path = that.getPath(u.position, mousePosition);
                     u.move(path);
@@ -94,10 +94,6 @@ class GameEngine {
 
         return path;
     }
-
-    private getMovable() {
-
-    }
 }
 
 interface IGameObject {
@@ -107,8 +103,7 @@ interface IGameObject {
 interface IMovable extends IGameObject {
     speed: number;
     move(path: Array<Point2d>);
-    // stop()
-    // isMoving
+    stop(): void;
 }
 
 interface ISelectable extends IGameObject, IShape {
@@ -124,7 +119,7 @@ interface IShape {
     isPointInside(point: Point2d): boolean;
 }
 
-class ObjectPool{
+class ObjectPool {
     public selectable: Array<ISelectable>;
     public units: Array<IUnit>;
 
@@ -133,11 +128,11 @@ class ObjectPool{
         this.units = new Array<Unit>();
     }
 
-    addSelectable(obj: ISelectable){
+    addSelectable(obj: ISelectable) {
         this.selectable.push(obj);
     }
 
-    addUnit(obj: IUnit){
+    addUnit(obj: IUnit) {
         this.units.push(obj);
         this.addSelectable(obj);
     }
@@ -275,15 +270,17 @@ class Unit extends Rect implements IMovable {
             }
 
             that.clear();
-
             that.position.x += dX;
             that.position.y += dY;
-
             that.draw();
+
             requestAnimationFrame(update);
         }
-
         update();
+    }
+
+    stop() {
+        // Implement
     }
 }
 
