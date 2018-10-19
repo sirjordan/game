@@ -36,9 +36,7 @@ var State = /** @class */ (function () {
 }());
 var GameEngine = /** @class */ (function () {
     function GameEngine() {
-        this.selectable = new Array();
-        this.movable = new Array();
-        this.selected = new Array();
+        this.objectPool = new ObjectPool();
     }
     GameEngine.prototype.init = function (canvasId) {
         var canvasSize = Utils.calcCanvasSize();
@@ -48,27 +46,25 @@ var GameEngine = /** @class */ (function () {
         canvas.width = canvasSize.width;
         canvas.height = canvasSize.height;
         var ctx = canvas.getContext("2d");
-        var shapes = new ObjectFactory(ctx, this.selectable, this.movable);
-        var u_1 = shapes.createUnit(new Point2d(20, 20), 25, 25, "blue", "red", 2);
+        var factory = new ObjectFactory(ctx, this.objectPool);
+        var u_1 = factory.createUnit(new Point2d(20, 20), 25, 25, "blue", "red", 2);
         u_1.draw();
-        var u_2 = shapes.createUnit(new Point2d(20, 80), 25, 25, "green", "yellow", 2);
+        var u_2 = factory.createUnit(new Point2d(20, 80), 25, 25, "green", "yellow", 2);
         u_2.draw();
         // Attach click event
         var that = this;
         canvas.onclick = function (args) {
             var mousePosition = new Point2d(args.clientX, args.clientY);
             // Check if any selectable object is at the mouse click position
-            for (var _i = 0, _a = that.selectable; _i < _a.length; _i++) {
+            for (var _i = 0, _a = that.objectPool.selectable; _i < _a.length; _i++) {
                 var obj = _a[_i];
                 if (obj.isPointInside(mousePosition)) {
                     if (!obj.selected) {
                         // Unselect all other objects and reset the selection
-                        that.selected.forEach(function (el) {
+                        that.objectPool.selectable.forEach(function (el) {
                             el.unSelect();
                         });
-                        that.selected = [];
                         // Select the only clicked obj
-                        that.selected.push(obj);
                         obj.select();
                         break;
                     }
@@ -84,13 +80,12 @@ var GameEngine = /** @class */ (function () {
             args.preventDefault();
             // Move selected objects
             var mousePosition = new Point2d(args.clientX, args.clientY);
-            if (that.selected.length > 0) {
-                that.selected.forEach(function (el) {
-                    // TODO: Get the selectable, which map in movable 
-                    var path = that.getPath(that.movable[0].position, mousePosition);
-                    that.movable[0].move(path);
-                });
-            }
+            that.objectPool.units.forEach(function (u) {
+                if (u.selected) {
+                    var path = that.getPath(u.position, mousePosition);
+                    u.move(path);
+                }
+            });
         };
     };
     ;
@@ -102,23 +97,37 @@ var GameEngine = /** @class */ (function () {
         path.push(to);
         return path;
     };
+    GameEngine.prototype.getMovable = function () {
+    };
     return GameEngine;
 }());
+var ObjectPool = /** @class */ (function () {
+    function ObjectPool() {
+        this.selectable = new Array();
+        this.units = new Array();
+    }
+    ObjectPool.prototype.addSelectable = function (obj) {
+        this.selectable.push(obj);
+    };
+    ObjectPool.prototype.addUnit = function (obj) {
+        this.units.push(obj);
+        this.addSelectable(obj);
+    };
+    return ObjectPool;
+}());
 var ObjectFactory = /** @class */ (function () {
-    function ObjectFactory(ctx, selectableObjects, movableObjects) {
+    function ObjectFactory(ctx, objectPool) {
         this.ctx = ctx;
-        this.selectableObjects = selectableObjects;
-        this.movableObjects = movableObjects;
+        this.objectPool = objectPool;
     }
     ObjectFactory.prototype.createRect = function (position, width, height, fill, stroke, strokewidth) {
         var r = new Rect(this.ctx, position, width, height, fill, stroke, strokewidth);
-        this.selectableObjects.push(r);
+        this.objectPool.addSelectable(r);
         return r;
     };
     ObjectFactory.prototype.createUnit = function (position, width, height, fill, stroke, strokewidth) {
         var u = new Unit(this.ctx, position, width, height, fill, stroke, strokewidth);
-        this.selectableObjects.push(u);
-        this.movableObjects.push(u);
+        this.objectPool.addUnit(u);
         return u;
     };
     return ObjectFactory;

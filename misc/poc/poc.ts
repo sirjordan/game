@@ -18,14 +18,10 @@ class State {
 }
 
 class GameEngine {
-    private selectable: Array<ISelectable>;
-    private movable: Array<IMovable>;
-    private selected: Array<ISelectable>;
+    private objectPool: ObjectPool;
 
     constructor() {
-        this.selectable = new Array<ISelectable>();
-        this.movable = new Array<IMovable>();
-        this.selected = new Array<ISelectable>();
+        this.objectPool = new ObjectPool();
     }
 
     public init(canvasId: string) {
@@ -39,12 +35,12 @@ class GameEngine {
         canvas.height = canvasSize.height;
 
         let ctx = canvas.getContext("2d");
-        let shapes = new ObjectFactory(ctx, this.selectable, this.movable);
+        let factory = new ObjectFactory(ctx, this.objectPool);
 
-        let u_1 = shapes.createUnit(new Point2d(20, 20), 25, 25, "blue", "red", 2);
+        let u_1 = factory.createUnit(new Point2d(20, 20), 25, 25, "blue", "red", 2);
         u_1.draw();
 
-        let u_2 = shapes.createUnit(new Point2d(20, 80), 25, 25, "green", "yellow", 2);
+        let u_2 = factory.createUnit(new Point2d(20, 80), 25, 25, "green", "yellow", 2);
         u_2.draw();
 
         // Attach click event
@@ -53,17 +49,15 @@ class GameEngine {
             let mousePosition = new Point2d(args.clientX, args.clientY)
 
             // Check if any selectable object is at the mouse click position
-            for (const obj of that.selectable) {
+            for (const obj of that.objectPool.selectable) {
                 if (obj.isPointInside(mousePosition)) {
                     if (!obj.selected) {
                         // Unselect all other objects and reset the selection
-                        that.selected.forEach(el => {
+                        that.objectPool.selectable.forEach(el => {
                             el.unSelect();
                         });
-                        that.selected = [];
 
                         // Select the only clicked obj
-                        that.selected.push(obj);
                         obj.select();
 
                         break;
@@ -81,14 +75,12 @@ class GameEngine {
 
             // Move selected objects
             let mousePosition = new Point2d(args.clientX, args.clientY)
-
-            if (that.selected.length > 0) {
-                that.selected.forEach(el => {
-                    // TODO: Get the selectable, which map in movable 
-                    let path = that.getPath(that.movable[0].position, mousePosition);
-                    that.movable[0].move(path);
-                });
-            }
+            that.objectPool.units.forEach(u => {
+                if (u.selected) {
+                    let path = that.getPath(u.position, mousePosition);
+                    u.move(path);
+                }
+            });
         };
     };
 
@@ -102,6 +94,10 @@ class GameEngine {
 
         return path;
     }
+
+    private getMovable() {
+
+    }
 }
 
 interface IGameObject {
@@ -111,6 +107,8 @@ interface IGameObject {
 interface IMovable extends IGameObject {
     speed: number;
     move(path: Array<Point2d>);
+    // stop()
+    // isMoving
 }
 
 interface ISelectable extends IGameObject, IShape {
@@ -119,32 +117,50 @@ interface ISelectable extends IGameObject, IShape {
     unSelect(): void;
 }
 
+interface IUnit extends ISelectable, IMovable { }
+
 interface IShape {
     draw(): void;
     isPointInside(point: Point2d): boolean;
 }
 
-class ObjectFactory {
-    private ctx: CanvasRenderingContext2D;
-    private selectableObjects: Array<ISelectable>;
-    private movableObjects: Array<IMovable>;
+class ObjectPool{
+    public selectable: Array<ISelectable>;
+    public units: Array<IUnit>;
 
-    constructor(ctx: CanvasRenderingContext2D, selectableObjects: Array<ISelectable>, movableObjects: Array<IMovable>) {
-        this.ctx = ctx;
-        this.selectableObjects = selectableObjects;
-        this.movableObjects = movableObjects;
+    constructor() {
+        this.selectable = new Array<ISelectable>();
+        this.units = new Array<Unit>();
     }
 
-    createRect(position: Point2d, width: number, height: number, fill: string, stroke: string, strokewidth: number): Shape {
+    addSelectable(obj: ISelectable){
+        this.selectable.push(obj);
+    }
+
+    addUnit(obj: IUnit){
+        this.units.push(obj);
+        this.addSelectable(obj);
+    }
+}
+
+class ObjectFactory {
+    private ctx: CanvasRenderingContext2D;
+    private objectPool: ObjectPool;
+
+    constructor(ctx: CanvasRenderingContext2D, objectPool: ObjectPool) {
+        this.ctx = ctx;
+        this.objectPool = objectPool;
+    }
+
+    createRect(position: Point2d, width: number, height: number, fill: string, stroke: string, strokewidth: number): IShape {
         let r = new Rect(this.ctx, position, width, height, fill, stroke, strokewidth);
-        this.selectableObjects.push(r);
+        this.objectPool.addSelectable(r);
         return r;
     }
 
-    createUnit(position: Point2d, width: number, height: number, fill: string, stroke: string, strokewidth: number) {
+    createUnit(position: Point2d, width: number, height: number, fill: string, stroke: string, strokewidth: number): IUnit {
         let u = new Unit(this.ctx, position, width, height, fill, stroke, strokewidth);
-        this.selectableObjects.push(u);
-        this.movableObjects.push(u);
+        this.objectPool.addUnit(u);
         return u;
     }
 }
