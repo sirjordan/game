@@ -138,6 +138,7 @@ class GameEngine {
 
               pos.x += offset;
             }
+            
             pos.x = 0;
             pos.y += offset;
         }
