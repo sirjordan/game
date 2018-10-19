@@ -61,9 +61,11 @@ var GameEngine = /** @class */ (function () {
         this.bgLayer = document.getElementById(bgLayerId);
         this.rightPanel = document.getElementById(rightPanelId);
         this.bottomPanel = document.getElementById(bottomPanelId);
+        this.setStageSize();
     }
     GameEngine.prototype.init = function () {
-        this.setStageSize();
+        var bgCtx = this.bgLayer.getContext('2d');
+        this.drawTerrain(bgCtx);
         var gameCtx = this.gameLayer.getContext("2d");
         var factory = new ObjectFactory(gameCtx, this.objects);
         var u_1 = factory.createUnit(new Point2d(20, 20), 25, 25, "blue", "red", 2);
@@ -108,10 +110,6 @@ var GameEngine = /** @class */ (function () {
         };
     };
     ;
-    GameEngine.prototype.onLeftClick = function () {
-    };
-    GameEngine.prototype.onRightClick = function () {
-    };
     GameEngine.prototype.getPath = function (from, to) {
         var path = new Array();
         // TODO: Make req to the server and get the path
@@ -127,6 +125,19 @@ var GameEngine = /** @class */ (function () {
         this.gameLayer.height = canvasSize.height;
         this.bgLayer.width = canvasSize.width;
         this.bgLayer.height = canvasSize.height;
+    };
+    GameEngine.prototype.drawTerrain = function (bgCtx) {
+        var offset = 50;
+        var pos = new Point2d(0, 0);
+        while (pos.y < bgCtx.canvas.height) {
+            while (pos.x < bgCtx.canvas.width) {
+                var r = new Rect(bgCtx, pos, offset, offset, 'green', 'black', 1);
+                r.draw();
+                pos.x += offset;
+            }
+            pos.x = 0;
+            pos.y += offset;
+        }
     };
     return GameEngine;
 }());

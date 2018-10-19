@@ -53,7 +53,10 @@ class GameEngine {
         this.setStageSize();
     }
 
-    public init() {
+    public init(): void {
+        let bgCtx = this.bgLayer.getContext('2d');
+        this.drawTerrain(bgCtx);
+
         let gameCtx = this.gameLayer.getContext("2d");
         let factory = new ObjectFactory(gameCtx, this.objects);
 
@@ -115,13 +118,29 @@ class GameEngine {
         return path;
     }
 
-    private setStageSize() {
+    private setStageSize(): void {
         let canvasSize = Utils.calcCanvasSize(this.rightPanel, this.bottomPanel);
         State.canvasSize = canvasSize
         this.gameLayer.width = canvasSize.width;
         this.gameLayer.height = canvasSize.height;
         this.bgLayer.width = canvasSize.width;
         this.bgLayer.height = canvasSize.height;
+    }
+
+    private drawTerrain(bgCtx: CanvasRenderingContext2D): void {
+        let offset = 50;
+        let pos = new Point2d(0, 0);
+
+        while (pos.y < bgCtx.canvas.height) {
+            while (pos.x < bgCtx.canvas.width) {
+              let r = new Rect(bgCtx, pos, offset, offset, 'green', 'black', 1);
+              r.draw();
+
+              pos.x += offset;
+            }
+            pos.x = 0;
+            pos.y += offset;
+        }
     }
 }
 
