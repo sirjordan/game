@@ -11,12 +11,6 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-var Settings = /** @class */ (function () {
-    function Settings() {
-    }
-    Settings.animationSpeed = 0.01;
-    return Settings;
-}());
 var Utils = /** @class */ (function () {
     function Utils() {
     }
@@ -41,13 +35,8 @@ var Utils = /** @class */ (function () {
     };
     return Utils;
 }());
-var State = /** @class */ (function () {
-    function State() {
-    }
-    return State;
-}());
-var GameEngine = /** @class */ (function () {
-    function GameEngine(gameLayerId, bgLayerId, rightPanelId, bottomPanelId) {
+var Game = /** @class */ (function () {
+    function Game(gameLayerId, bgLayerId, rightPanelId, bottomPanelId) {
         var _this = this;
         if (!gameLayerId)
             throw new Error('Missing argument: gameLayerId');
@@ -67,7 +56,7 @@ var GameEngine = /** @class */ (function () {
         this.gameLayer.onclick = function (args) { return _this.leftClick(args); };
         this.gameLayer.oncontextmenu = function (args) { return _this.rightClick(args); };
     }
-    GameEngine.prototype.init = function () {
+    Game.prototype.start = function () {
         var bgCtx = this.bgLayer.getContext('2d');
         this.drawTerrain(bgCtx);
         var gameCtx = this.gameLayer.getContext("2d");
@@ -78,10 +67,12 @@ var GameEngine = /** @class */ (function () {
         u_2.draw();
     };
     ;
-    GameEngine.prototype.keyPress = function (ev) {
-        console.log(ev);
+    Game.prototype.keyPress = function (ev) {
+        // TODO: Replace the key with some other
+        if (ev.key === 'd') {
+        }
     };
-    GameEngine.prototype.leftClick = function (args) {
+    Game.prototype.leftClick = function (args) {
         var mousePosition = new Point2d(args.clientX, args.clientY);
         // Check if any selectable object is at the mouse click position
         for (var _i = 0, _a = this.objects.selectable; _i < _a.length; _i++) {
@@ -104,7 +95,7 @@ var GameEngine = /** @class */ (function () {
             }
         }
     };
-    GameEngine.prototype.rightClick = function (args) {
+    Game.prototype.rightClick = function (args) {
         var _this = this;
         args.preventDefault();
         // Move selected objects
@@ -116,7 +107,7 @@ var GameEngine = /** @class */ (function () {
             }
         });
     };
-    GameEngine.prototype.getPath = function (from, to) {
+    Game.prototype.getPath = function (from, to) {
         var path = new Array();
         // TODO: Make req to the server and get the path
         path.push(from);
@@ -124,15 +115,14 @@ var GameEngine = /** @class */ (function () {
         path.push(to);
         return path;
     };
-    GameEngine.prototype.setStageSize = function () {
+    Game.prototype.setStageSize = function () {
         var canvasSize = Utils.calcCanvasSize(this.rightPanel, this.bottomPanel);
-        State.canvasSize = canvasSize;
         this.gameLayer.width = canvasSize.width;
         this.gameLayer.height = canvasSize.height;
         this.bgLayer.width = canvasSize.width;
         this.bgLayer.height = canvasSize.height;
     };
-    GameEngine.prototype.drawTerrain = function (bgCtx) {
+    Game.prototype.drawTerrain = function (bgCtx) {
         var offset = 50;
         var pos = new Point2d(0, 0);
         while (pos.y < bgCtx.canvas.height) {
@@ -145,7 +135,7 @@ var GameEngine = /** @class */ (function () {
             pos.y += offset;
         }
     };
-    return GameEngine;
+    return Game;
 }());
 var ObjectPool = /** @class */ (function () {
     function ObjectPool() {

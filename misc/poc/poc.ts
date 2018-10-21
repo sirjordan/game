@@ -1,7 +1,3 @@
-class Settings {
-    static animationSpeed = 0.01;
-}
-
 class Utils {
     static lerp(v0: number, v1: number, t: number): number {
         return v0 + t * (v1 - v0);
@@ -27,11 +23,8 @@ class Utils {
     }
 }
 
-class State {
-    static canvasSize: Size;
-}
 
-class GameEngine {
+class Game {
     private objects: ObjectPool;
     private gameLayer: HTMLCanvasElement;
     private bgLayer: HTMLCanvasElement;
@@ -57,7 +50,7 @@ class GameEngine {
         this.gameLayer.oncontextmenu = (args) => this.rightClick(args);
     }
 
-    public init(): void {
+    public start(): void {
         let bgCtx = this.bgLayer.getContext('2d');
         this.drawTerrain(bgCtx);
 
@@ -129,7 +122,6 @@ class GameEngine {
 
     private setStageSize(): void {
         let canvasSize = Utils.calcCanvasSize(this.rightPanel, this.bottomPanel);
-        State.canvasSize = canvasSize
         this.gameLayer.width = canvasSize.width;
         this.gameLayer.height = canvasSize.height;
         this.bgLayer.width = canvasSize.width;
