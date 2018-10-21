@@ -51,6 +51,10 @@ class GameEngine {
         this.bottomPanel = document.getElementById(bottomPanelId);
 
         this.setStageSize();
+
+        document.onkeypress = (ev) => this.keyPress(ev);
+        this.gameLayer.onclick = (args) => this.leftClick(args);
+        this.gameLayer.oncontextmenu = (args) => this.rightClick(args);
     }
 
     public init(): void {
@@ -65,47 +69,52 @@ class GameEngine {
 
         let u_2 = factory.createUnit(new Point2d(20, 80), 25, 25, "green", "yellow", 2);
         u_2.draw();
+    };
 
-        // Attach click event
-        let that = this;
-        this.gameLayer.onclick = function (args) {
-            let mousePosition = new Point2d(args.clientX, args.clientY);
+    private keyPress(ev: KeyboardEvent): void{
+        // TODO: Replace the key with some other
+        if (ev.key === 'd') {
+            
+        }
+    }
 
-            // Check if any selectable object is at the mouse click position
-            for (const obj of that.objects.selectable) {
-                if (obj.isPointInside(mousePosition)) {
-                    if (!obj.selected) {
-                        // Unselect all other objects and reset the selection
-                        that.objects.selectable.forEach(el => {
-                            el.unSelect();
-                        });
+    private leftClick(args: MouseEvent): void {
+        let mousePosition = new Point2d(args.clientX, args.clientY);
 
-                        // Select the only clicked obj
-                        obj.select();
+        // Check if any selectable object is at the mouse click position
+        for (const obj of this.objects.selectable) {
+            if (obj.isPointInside(mousePosition)) {
+                if (!obj.selected) {
+                    // Unselect all other objects and reset the selection
+                    this.objects.selectable.forEach(el => {
+                        el.unSelect();
+                    });
 
-                        break;
-                    }
-                } else {
-                    if (obj.selected) {
-                        obj.unSelect();
-                    }
+                    // Select the only clicked obj
+                    obj.select();
+
+                    break;
+                }
+            } else {
+                if (obj.selected) {
+                    obj.unSelect();
                 }
             }
-        };
+        }
+    }
 
-        this.gameLayer.oncontextmenu = function (args) {
-            args.preventDefault();
+    private rightClick(args: MouseEvent): void {
+        args.preventDefault();
 
-            // Move selected objects
-            let mousePosition = new Point2d(args.clientX, args.clientY)
-            that.objects.units.forEach(u => {
-                if (u.selected) {
-                    let path = that.getPath(u.position, mousePosition);
-                    u.move(path);
-                }
-            });
-        };
-    };
+        // Move selected objects
+        let mousePosition = new Point2d(args.clientX, args.clientY)
+        this.objects.units.forEach(u => {
+            if (u.selected) {
+                let path = this.getPath(u.position, mousePosition);
+                u.move(path);
+            }
+        });
+    }
 
     private getPath(from: Point2d, to: Point2d): Array<Point2d> {
         let path = new Array<Point2d>();

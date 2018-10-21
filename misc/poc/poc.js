@@ -48,6 +48,7 @@ var State = /** @class */ (function () {
 }());
 var GameEngine = /** @class */ (function () {
     function GameEngine(gameLayerId, bgLayerId, rightPanelId, bottomPanelId) {
+        var _this = this;
         if (!gameLayerId)
             throw new Error('Missing argument: gameLayerId');
         if (!rightPanelId)
@@ -62,6 +63,9 @@ var GameEngine = /** @class */ (function () {
         this.rightPanel = document.getElementById(rightPanelId);
         this.bottomPanel = document.getElementById(bottomPanelId);
         this.setStageSize();
+        document.onkeypress = function (ev) { return _this.keyPress(ev); };
+        this.gameLayer.onclick = function (args) { return _this.leftClick(args); };
+        this.gameLayer.oncontextmenu = function (args) { return _this.rightClick(args); };
     }
     GameEngine.prototype.init = function () {
         var bgCtx = this.bgLayer.getContext('2d');
@@ -72,44 +76,46 @@ var GameEngine = /** @class */ (function () {
         u_1.draw();
         var u_2 = factory.createUnit(new Point2d(20, 80), 25, 25, "green", "yellow", 2);
         u_2.draw();
-        // Attach click event
-        var that = this;
-        this.gameLayer.onclick = function (args) {
-            var mousePosition = new Point2d(args.clientX, args.clientY);
-            // Check if any selectable object is at the mouse click position
-            for (var _i = 0, _a = that.objects.selectable; _i < _a.length; _i++) {
-                var obj = _a[_i];
-                if (obj.isPointInside(mousePosition)) {
-                    if (!obj.selected) {
-                        // Unselect all other objects and reset the selection
-                        that.objects.selectable.forEach(function (el) {
-                            el.unSelect();
-                        });
-                        // Select the only clicked obj
-                        obj.select();
-                        break;
-                    }
-                }
-                else {
-                    if (obj.selected) {
-                        obj.unSelect();
-                    }
-                }
-            }
-        };
-        this.gameLayer.oncontextmenu = function (args) {
-            args.preventDefault();
-            // Move selected objects
-            var mousePosition = new Point2d(args.clientX, args.clientY);
-            that.objects.units.forEach(function (u) {
-                if (u.selected) {
-                    var path = that.getPath(u.position, mousePosition);
-                    u.move(path);
-                }
-            });
-        };
     };
     ;
+    GameEngine.prototype.keyPress = function (ev) {
+        console.log(ev);
+    };
+    GameEngine.prototype.leftClick = function (args) {
+        var mousePosition = new Point2d(args.clientX, args.clientY);
+        // Check if any selectable object is at the mouse click position
+        for (var _i = 0, _a = this.objects.selectable; _i < _a.length; _i++) {
+            var obj = _a[_i];
+            if (obj.isPointInside(mousePosition)) {
+                if (!obj.selected) {
+                    // Unselect all other objects and reset the selection
+                    this.objects.selectable.forEach(function (el) {
+                        el.unSelect();
+                    });
+                    // Select the only clicked obj
+                    obj.select();
+                    break;
+                }
+            }
+            else {
+                if (obj.selected) {
+                    obj.unSelect();
+                }
+            }
+        }
+    };
+    GameEngine.prototype.rightClick = function (args) {
+        var _this = this;
+        args.preventDefault();
+        // Move selected objects
+        var mousePosition = new Point2d(args.clientX, args.clientY);
+        this.objects.units.forEach(function (u) {
+            if (u.selected) {
+                var path = _this.getPath(u.position, mousePosition);
+                u.move(path);
+            }
+        });
+    };
     GameEngine.prototype.getPath = function (from, to) {
         var path = new Array();
         // TODO: Make req to the server and get the path
@@ -236,10 +242,7 @@ var Unit = /** @class */ (function (_super) {
         // The first path step must be the current
         var startPoint = path.shift().clone();
         var endPoint = path.shift().clone();
-        var velocity = startPoint.velocity(endPoint, that.speed);
-        //let delta = that.speed / Utils.calcDistance2d(startPoint, endPoint);
-        //let offsetX = Utils.lerp(startPoint.x, endPoint.x, delta) - startPoint.x;
-        //let offsetY = Utils.lerp(startPoint.y, endPoint.y, delta) - startPoint.y;
+        var velocity = startPoint.calcVelocity(endPoint, that.speed);
         function update() {
             // Step over
             if (that.isPointInside(endPoint)) {
@@ -249,10 +252,7 @@ var Unit = /** @class */ (function (_super) {
                 }
                 startPoint = endPoint;
                 endPoint = path.shift().clone();
-                //delta = that.speed / Utils.calcDistance2d(startPoint, endPoint);
-                //offsetX = Utils.lerp(startPoint.x, endPoint.x, delta) - startPoint.x;
-                //offsetY = Utils.lerp(startPoint.y, endPoint.y, delta) - startPoint.y;
-                velocity = startPoint.velocity(endPoint, that.speed);
+                velocity = startPoint.calcVelocity(endPoint, that.speed);
             }
             that.clear();
             that.position.x += velocity.x;
@@ -275,11 +275,11 @@ var Point2d = /** @class */ (function () {
     Point2d.prototype.clone = function () {
         return new Point2d(this.x, this.y);
     };
-    Point2d.prototype.distance = function (other) {
+    Point2d.prototype.distanceTo = function (other) {
         return Math.sqrt(Math.pow(this.x - other.x, 2) + Math.pow(this.y - other.y, 2));
     };
-    Point2d.prototype.velocity = function (other, magnitude) {
-        var delta = magnitude / this.distance(other);
+    Point2d.prototype.calcVelocity = function (other, magnitude) {
+        var delta = magnitude / this.distanceTo(other);
         var offsetX = Utils.lerp(this.x, other.x, delta) - this.x;
         var offsetY = Utils.lerp(this.y, other.y, delta) - this.y;
         return new Point2d(offsetX, offsetY);
