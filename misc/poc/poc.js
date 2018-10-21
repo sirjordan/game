@@ -228,7 +228,7 @@ var Unit = /** @class */ (function (_super) {
     __extends(Unit, _super);
     function Unit(ctx, position, width, height, fill, stroke, strokewidth) {
         var _this = _super.call(this, ctx, position, width, height, fill, stroke, strokewidth) || this;
-        _this.speed = 1;
+        _this.speed = 3;
         return _this;
     }
     Unit.prototype.move = function (path) {
@@ -236,9 +236,10 @@ var Unit = /** @class */ (function (_super) {
         // The first path step must be the current
         var startPoint = path.shift().clone();
         var endPoint = path.shift().clone();
-        var delta = that.speed * Settings.animationSpeed;
-        var dX = Utils.lerp(startPoint.x, endPoint.x, delta) - startPoint.x;
-        var dY = Utils.lerp(startPoint.y, endPoint.y, delta) - startPoint.y;
+        var velocity = startPoint.velocity(endPoint, that.speed);
+        //let delta = that.speed / Utils.calcDistance2d(startPoint, endPoint);
+        //let offsetX = Utils.lerp(startPoint.x, endPoint.x, delta) - startPoint.x;
+        //let offsetY = Utils.lerp(startPoint.y, endPoint.y, delta) - startPoint.y;
         function update() {
             // Step over
             if (that.isPointInside(endPoint)) {
@@ -248,12 +249,14 @@ var Unit = /** @class */ (function (_super) {
                 }
                 startPoint = endPoint;
                 endPoint = path.shift().clone();
-                dX = Utils.lerp(startPoint.x, endPoint.x, delta) - startPoint.x;
-                dY = Utils.lerp(startPoint.y, endPoint.y, delta) - startPoint.y;
+                //delta = that.speed / Utils.calcDistance2d(startPoint, endPoint);
+                //offsetX = Utils.lerp(startPoint.x, endPoint.x, delta) - startPoint.x;
+                //offsetY = Utils.lerp(startPoint.y, endPoint.y, delta) - startPoint.y;
+                velocity = startPoint.velocity(endPoint, that.speed);
             }
             that.clear();
-            that.position.x += dX;
-            that.position.y += dY;
+            that.position.x += velocity.x;
+            that.position.y += velocity.y;
             that.draw();
             requestAnimationFrame(update);
         }
@@ -271,6 +274,15 @@ var Point2d = /** @class */ (function () {
     }
     Point2d.prototype.clone = function () {
         return new Point2d(this.x, this.y);
+    };
+    Point2d.prototype.distance = function (other) {
+        return Math.sqrt(Math.pow(this.x - other.x, 2) + Math.pow(this.y - other.y, 2));
+    };
+    Point2d.prototype.velocity = function (other, magnitude) {
+        var delta = magnitude / this.distance(other);
+        var offsetX = Utils.lerp(this.x, other.x, delta) - this.x;
+        var offsetY = Utils.lerp(this.y, other.y, delta) - this.y;
+        return new Point2d(offsetX, offsetY);
     };
     return Point2d;
 }());

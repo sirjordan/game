@@ -133,12 +133,12 @@ class GameEngine {
 
         while (pos.y < bgCtx.canvas.height) {
             while (pos.x < bgCtx.canvas.width) {
-              let r = new Rect(bgCtx, pos, offset, offset, 'green', 'black', 1);
-              r.draw();
+                let r = new Rect(bgCtx, pos, offset, offset, 'green', 'black', 1);
+                r.draw();
 
-              pos.x += offset;
+                pos.x += offset;
             }
-            
+
             pos.x = 0;
             pos.y += offset;
         }
@@ -289,7 +289,7 @@ class Unit extends Rect implements IMovable {
 
     constructor(ctx: CanvasRenderingContext2D, position: Point2d, width: number, height: number, fill: string, stroke: string, strokewidth: number) {
         super(ctx, position, width, height, fill, stroke, strokewidth);
-        this.speed = 1;
+        this.speed = 3;
     }
 
     move(path: Array<Point2d>) {
@@ -299,9 +299,7 @@ class Unit extends Rect implements IMovable {
         let startPoint = path.shift().clone();
         let endPoint = path.shift().clone();
 
-        let delta = that.speed * Settings.animationSpeed;
-        let dX = Utils.lerp(startPoint.x, endPoint.x, delta) - startPoint.x;
-        let dY = Utils.lerp(startPoint.y, endPoint.y, delta) - startPoint.y;
+        let velocity = startPoint.calcVelocity(endPoint, that.speed);
 
         function update() {
             // Step over
@@ -314,13 +312,12 @@ class Unit extends Rect implements IMovable {
                 startPoint = endPoint;
                 endPoint = path.shift().clone();
 
-                dX = Utils.lerp(startPoint.x, endPoint.x, delta) - startPoint.x;
-                dY = Utils.lerp(startPoint.y, endPoint.y, delta) - startPoint.y;
+                velocity = startPoint.calcVelocity(endPoint, that.speed);
             }
 
             that.clear();
-            that.position.x += dX;
-            that.position.y += dY;
+            that.position.x += velocity.x;
+            that.position.y += velocity.y;
             that.draw();
 
             requestAnimationFrame(update);
@@ -344,6 +341,18 @@ class Point2d {
 
     clone(): Point2d {
         return new Point2d(this.x, this.y);
+    }
+
+    distanceTo(other: Point2d): number {
+        return Math.sqrt(Math.pow(this.x - other.x, 2) + Math.pow(this.y - other.y, 2));
+    }
+
+    calcVelocity(other: Point2d, magnitude: number): Point2d {
+        let delta = magnitude / this.distanceTo(other);
+        let offsetX = Utils.lerp(this.x, other.x, delta) - this.x;
+        let offsetY = Utils.lerp(this.y, other.y, delta) - this.y;
+
+        return new Point2d(offsetX, offsetY);
     }
 }
 
