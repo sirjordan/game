@@ -59,11 +59,13 @@ class Terrain {
     private ctx: CanvasRenderingContext2D;
     private rasterSize: number;
     private map: Map;
+    public max: Size;
 
     constructor(ctx: CanvasRenderingContext2D, map: Map, ) {
         this.ctx = ctx;
         this.rasterSize = 50;   // TODO: Take it based on the client display resolution
         this.map = map;
+        this.max = new Size(map.objects.length * this.rasterSize, map.objects[0].length * this.rasterSize);
     }
 
     public draw(camera: Point2d) {
@@ -123,6 +125,7 @@ class Game {
     private bottomPanel: HTMLElement;
     private camera: Point2d;
     private terrain: Terrain;
+    private stageMax: Size;
 
     constructor(gameLayerId: string, bgLayerId: string, rightPanelId: string, bottomPanelId: string) {
         if (!gameLayerId) throw new Error('Missing argument: gameLayerId');
@@ -166,18 +169,20 @@ class Game {
         let cameraSpeed = 5;
         switch (ev.key) {
             case 'd':
-                this.camera.x += cameraSpeed;
+                if (this.camera.x + this.stageMax.width < this.terrain.max.width) {
+                    this.camera.x += cameraSpeed;
+                }
                 break;
             case 'a':
                 if (this.camera.x > 0) {
                     this.camera.x -= cameraSpeed;
-                    break;
                 }
+                break;
             case 'w':
                 if (this.camera.y > 0) {
                     this.camera.y -= cameraSpeed;
-                    break;
                 }
+                break;
             case 's':
                 this.camera.y += cameraSpeed;
                 break;
@@ -237,6 +242,7 @@ class Game {
 
     private setStageSize(): void {
         let canvasSize = Utils.calcCanvasSize(this.rightPanel, this.bottomPanel);
+        this.stageMax = canvasSize;
         this.gameLayer.width = canvasSize.width;
         this.gameLayer.height = canvasSize.height;
         this.bgLayer.width = canvasSize.width;
