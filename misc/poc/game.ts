@@ -23,6 +23,97 @@ class Utils {
     }
 }
 
+class Map {
+    public objects: number[][];
+
+    constructor() {
+        this.objects = [
+            [0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0],
+            [0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0],
+            [0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0],
+            [0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0],
+            [0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0],
+
+        ];
+    }
+}
+
+class Terrain {
+    private ctx: CanvasRenderingContext2D;
+    private rasterSize: number;
+    private map: Map;
+
+    constructor(ctx: CanvasRenderingContext2D, map: Map, ) {
+        this.ctx = ctx;
+        this.rasterSize = 50;   // TODO: Take it based on the client display resolution
+        this.map = map;
+    }
+
+    public draw(camera: Point2d) {
+        let maxRight = this.ctx.canvas.height;
+        let maxTop = this.ctx.canvas.width;
+
+        this.ctx.clearRect(0, 0, maxRight, maxTop);
+
+        let startPos = new Point2d((camera.x % this.rasterSize) * - 1, (camera.y % this.rasterSize) * -1);
+        let pos = startPos.clone();
+
+        let row = Math.floor(camera.x / this.rasterSize);
+        let col = Math.floor(camera.y / this.rasterSize);
+
+        // Go to the end of the screen X
+        while (row < Math.ceil(maxRight / this.rasterSize)) {
+            // No map rows
+            if (!this.map.objects[row]) break;
+
+            // Go to the end of the screen Y
+            while (col < Math.ceil(maxTop / this.rasterSize)) {
+                // No map columns
+                if (!(this.map.objects[row][col] >= 0)) break;
+
+                let el = this.map.objects[row][col];
+                let terrainObject = this.createTerrainObject(el, pos);
+                terrainObject.draw();
+
+                col++;
+                pos.x = startPos.x + (col * this.rasterSize);
+            }
+
+            col = 0;
+            row++;
+            pos.x = startPos.x;
+            pos.y = startPos.y + (row * this.rasterSize);
+        }
+    }
+
+    private createTerrainObject(signature: number, position: Point2d): Rect {
+        switch (signature) {
+            case 0:
+                return new Rect(this.ctx, position, this.rasterSize, this.rasterSize, 'green', 'black', 1);
+            case 1:
+                return new Rect(this.ctx, position, this.rasterSize, this.rasterSize, 'gray', 'black', 1);
+            default:
+                return new Rect(this.ctx, position, this.rasterSize, this.rasterSize, 'black', 'black', 1);
+        }
+    }
+}
 
 class Game {
     private objects: ObjectPool;
@@ -30,6 +121,8 @@ class Game {
     private bgLayer: HTMLCanvasElement;
     private rightPanel: HTMLElement;
     private bottomPanel: HTMLElement;
+    private camera: Point2d;
+    private terrain: Terrain;
 
     constructor(gameLayerId: string, bgLayerId: string, rightPanelId: string, bottomPanelId: string) {
         if (!gameLayerId) throw new Error('Missing argument: gameLayerId');
@@ -42,6 +135,7 @@ class Game {
         this.bgLayer = <HTMLCanvasElement>document.getElementById(bgLayerId);
         this.rightPanel = document.getElementById(rightPanelId);
         this.bottomPanel = document.getElementById(bottomPanelId);
+        this.camera = new Point2d(0, 0);
 
         this.setStageSize();
 
@@ -52,7 +146,9 @@ class Game {
 
     public start(): void {
         let bgCtx = this.bgLayer.getContext('2d');
-        this.drawTerrain(bgCtx);
+        let map = new Map();
+        this.terrain = new Terrain(bgCtx, map);
+        this.terrain.draw(this.camera);
 
         let gameCtx = this.gameLayer.getContext("2d");
         let factory = new ObjectFactory(gameCtx, this.objects);
@@ -64,11 +160,30 @@ class Game {
         u_2.draw();
     };
 
-    private keyPress(ev: KeyboardEvent): void{
+    private keyPress(ev: KeyboardEvent): void {
         // TODO: Replace the key with some other
-        if (ev.key === 'd') {
-            
+
+        let cameraSpeed = 5;
+        switch (ev.key) {
+            case 'd':
+                this.camera.x += cameraSpeed;
+                break;
+            case 'a':
+                if (this.camera.x > 0) {
+                    this.camera.x -= cameraSpeed;
+                    break;
+                }
+            case 'w':
+                if (this.camera.y > 0) {
+                    this.camera.y -= cameraSpeed;
+                    break;
+                }
+            case 's':
+                this.camera.y += cameraSpeed;
+                break;
         }
+
+        this.terrain.draw(this.camera);
     }
 
     private leftClick(args: MouseEvent): void {
@@ -126,23 +241,6 @@ class Game {
         this.gameLayer.height = canvasSize.height;
         this.bgLayer.width = canvasSize.width;
         this.bgLayer.height = canvasSize.height;
-    }
-
-    private drawTerrain(bgCtx: CanvasRenderingContext2D): void {
-        let offset = 50;
-        let pos = new Point2d(0, 0);
-
-        while (pos.y < bgCtx.canvas.height) {
-            while (pos.x < bgCtx.canvas.width) {
-                let r = new Rect(bgCtx, pos, offset, offset, 'green', 'black', 1);
-                r.draw();
-
-                pos.x += offset;
-            }
-
-            pos.x = 0;
-            pos.y += offset;
-        }
     }
 }
 

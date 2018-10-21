@@ -35,6 +35,83 @@ var Utils = /** @class */ (function () {
     };
     return Utils;
 }());
+var Map = /** @class */ (function () {
+    function Map() {
+        this.objects = [
+            [0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0],
+            [0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0],
+            [0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0],
+            [0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0],
+            [0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0],
+        ];
+    }
+    return Map;
+}());
+var Terrain = /** @class */ (function () {
+    function Terrain(ctx, map) {
+        this.ctx = ctx;
+        this.rasterSize = 50; // TODO: Take it based on the client display resolution
+        this.map = map;
+    }
+    Terrain.prototype.draw = function (camera) {
+        var maxRight = this.ctx.canvas.height;
+        var maxTop = this.ctx.canvas.width;
+        this.ctx.clearRect(0, 0, maxRight, maxTop);
+        var startPos = new Point2d((camera.x % this.rasterSize) * -1, (camera.y % this.rasterSize) * -1);
+        var pos = startPos.clone();
+        var row = Math.floor(camera.x / this.rasterSize);
+        var col = Math.floor(camera.y / this.rasterSize);
+        // Go to the end of the screen X
+        while (row < Math.ceil(maxRight / this.rasterSize)) {
+            // No map rows
+            if (!this.map.objects[row])
+                break;
+            // Go to the end of the screen Y
+            while (col < Math.ceil(maxTop / this.rasterSize)) {
+                // No map columns
+                if (!(this.map.objects[row][col] >= 0))
+                    break;
+                var el = this.map.objects[row][col];
+                var terrainObject = this.createTerrainObject(el, pos);
+                terrainObject.draw();
+                col++;
+                pos.x = startPos.x + (col * this.rasterSize);
+            }
+            col = 0;
+            row++;
+            pos.x = startPos.x;
+            pos.y = startPos.y + (row * this.rasterSize);
+        }
+    };
+    Terrain.prototype.createTerrainObject = function (signature, position) {
+        switch (signature) {
+            case 0:
+                return new Rect(this.ctx, position, this.rasterSize, this.rasterSize, 'green', 'black', 1);
+            case 1:
+                return new Rect(this.ctx, position, this.rasterSize, this.rasterSize, 'gray', 'black', 1);
+            default:
+                return new Rect(this.ctx, position, this.rasterSize, this.rasterSize, 'black', 'black', 1);
+        }
+    };
+    return Terrain;
+}());
 var Game = /** @class */ (function () {
     function Game(gameLayerId, bgLayerId, rightPanelId, bottomPanelId) {
         var _this = this;
@@ -51,6 +128,7 @@ var Game = /** @class */ (function () {
         this.bgLayer = document.getElementById(bgLayerId);
         this.rightPanel = document.getElementById(rightPanelId);
         this.bottomPanel = document.getElementById(bottomPanelId);
+        this.camera = new Point2d(0, 0);
         this.setStageSize();
         document.onkeypress = function (ev) { return _this.keyPress(ev); };
         this.gameLayer.onclick = function (args) { return _this.leftClick(args); };
@@ -58,7 +136,9 @@ var Game = /** @class */ (function () {
     }
     Game.prototype.start = function () {
         var bgCtx = this.bgLayer.getContext('2d');
-        this.drawTerrain(bgCtx);
+        var map = new Map();
+        this.terrain = new Terrain(bgCtx, map);
+        this.terrain.draw(this.camera);
         var gameCtx = this.gameLayer.getContext("2d");
         var factory = new ObjectFactory(gameCtx, this.objects);
         var u_1 = factory.createUnit(new Point2d(20, 20), 25, 25, "blue", "red", 2);
@@ -69,8 +149,26 @@ var Game = /** @class */ (function () {
     ;
     Game.prototype.keyPress = function (ev) {
         // TODO: Replace the key with some other
-        if (ev.key === 'd') {
+        var cameraSpeed = 5;
+        switch (ev.key) {
+            case 'd':
+                this.camera.x += cameraSpeed;
+                break;
+            case 'a':
+                if (this.camera.x > 0) {
+                    this.camera.x -= cameraSpeed;
+                    break;
+                }
+            case 'w':
+                if (this.camera.y > 0) {
+                    this.camera.y -= cameraSpeed;
+                    break;
+                }
+            case 's':
+                this.camera.y += cameraSpeed;
+                break;
         }
+        this.terrain.draw(this.camera);
     };
     Game.prototype.leftClick = function (args) {
         var mousePosition = new Point2d(args.clientX, args.clientY);
@@ -121,19 +219,6 @@ var Game = /** @class */ (function () {
         this.gameLayer.height = canvasSize.height;
         this.bgLayer.width = canvasSize.width;
         this.bgLayer.height = canvasSize.height;
-    };
-    Game.prototype.drawTerrain = function (bgCtx) {
-        var offset = 50;
-        var pos = new Point2d(0, 0);
-        while (pos.y < bgCtx.canvas.height) {
-            while (pos.x < bgCtx.canvas.width) {
-                var r = new Rect(bgCtx, pos, offset, offset, 'green', 'black', 1);
-                r.draw();
-                pos.x += offset;
-            }
-            pos.x = 0;
-            pos.y += offset;
-        }
     };
     return Game;
 }());
