@@ -22,7 +22,7 @@
             height: 20px;
             position: fixed;
             top: 0;
-            border-bottom: 1px solid #2d333b;   
+            border-bottom: 1px solid #2d333b;
         }
 
         #right-panel {
@@ -49,6 +49,7 @@
 
         #background-layer {
             z-index: 1;
+            background-color: #20262e;
         }
 
         .panel {
@@ -61,9 +62,10 @@
     <div id="top-panel" class="panel"></div>
     <div id="right-panel" class="panel"></div>
     <div id="bottom-panel" class="panel"></div>
-    <canvas id="game-layer"></canvas>
-    <canvas id="background-layer"></canvas>
-
+    <div id="stage">
+        <canvas id="game-layer"></canvas>
+        <canvas id="background-layer"></canvas>
+    </div>
     <script src="game.js"></script>
     <script>
         var game = new Game('game-layer', 'background-layer', 'right-panel', 'bottom-panel');

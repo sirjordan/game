@@ -38,28 +38,28 @@ var Utils = /** @class */ (function () {
 var Map = /** @class */ (function () {
     function Map() {
         this.objects = [
-            [0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
+            [0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 2, 0, 0, 0, 1, 0, 0, 0, 0, 2],
             [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0],
-            [0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0],
+            [0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 2],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0],
+            [0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 2],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0],
+            [0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0],
+            [0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 2],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0],
             [0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
             [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
             [0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
             [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0],
-            [0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0],
-            [0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
-            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0],
+            [0, 0, 0, 0, 0, 0, 1, 0, 2, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0],
         ];
     }
     return Map;
@@ -69,7 +69,7 @@ var Terrain = /** @class */ (function () {
         this.ctx = ctx;
         this.rasterSize = 50; // TODO: Take it based on the client display resolution
         this.map = map;
-        this.max = new Size(map.objects.length * this.rasterSize, map.objects[0].length * this.rasterSize);
+        this.max = new Size(map.objects[0].length * this.rasterSize, map.objects.length * this.rasterSize);
     }
     Terrain.prototype.draw = function (camera) {
         var maxRight = this.ctx.canvas.height;
@@ -77,28 +77,29 @@ var Terrain = /** @class */ (function () {
         this.ctx.clearRect(0, 0, maxRight, maxTop);
         var startPos = new Point2d((camera.x % this.rasterSize) * -1, (camera.y % this.rasterSize) * -1);
         var pos = startPos.clone();
-        var row = Math.floor(camera.x / this.rasterSize);
-        var col = Math.floor(camera.y / this.rasterSize);
+        var row = Math.floor(camera.y / this.rasterSize);
+        var col = Math.floor(camera.x / this.rasterSize);
+        var startCol = col;
         // Go to the end of the screen X
-        while (row < Math.ceil(maxRight / this.rasterSize)) {
-            // No map rows
+        for (var i = 1; i <= Math.ceil(maxTop / this.rasterSize) + 1; i++) {
+            // No more map rows
             if (!this.map.objects[row])
                 break;
             // Go to the end of the screen Y
-            while (col < Math.ceil(maxTop / this.rasterSize)) {
-                // No map columns
+            for (var j = 1; j <= Math.ceil(maxRight / this.rasterSize); j++) {
+                // No more map columns
                 if (!(this.map.objects[row][col] >= 0))
                     break;
                 var el = this.map.objects[row][col];
                 var terrainObject = this.createTerrainObject(el, pos);
                 terrainObject.draw();
                 col++;
-                pos.x = startPos.x + (col * this.rasterSize);
+                pos.x = startPos.x + (j * this.rasterSize);
             }
-            col = 0;
+            col = startCol;
             row++;
             pos.x = startPos.x;
-            pos.y = startPos.y + (row * this.rasterSize);
+            pos.y = startPos.y + (i * this.rasterSize);
         }
     };
     Terrain.prototype.createTerrainObject = function (signature, position) {
@@ -151,27 +152,35 @@ var Game = /** @class */ (function () {
     Game.prototype.keyPress = function (ev) {
         // TODO: Replace the key with some other
         var cameraSpeed = 5;
+        var draw = true;
         switch (ev.key) {
             case 'd':
-                if (this.camera.x + this.stageMax.width < this.terrain.max.width) {
+                if (this.camera.x + this.stageMax.width < this.terrain.max.width)
                     this.camera.x += cameraSpeed;
-                }
+                else
+                    draw = false;
                 break;
             case 'a':
-                if (this.camera.x > 0) {
+                if (this.camera.x > 0)
                     this.camera.x -= cameraSpeed;
-                }
+                else
+                    draw = false;
                 break;
             case 'w':
-                if (this.camera.y > 0) {
+                if (this.camera.y > 0)
                     this.camera.y -= cameraSpeed;
-                }
+                else
+                    draw = false;
                 break;
             case 's':
-                this.camera.y += cameraSpeed;
+                if (this.camera.y + this.stageMax.height < this.terrain.max.height)
+                    this.camera.y += cameraSpeed;
+                else
+                    draw = false;
                 break;
         }
-        this.terrain.draw(this.camera);
+        if (draw)
+            this.terrain.draw(this.camera);
     };
     Game.prototype.leftClick = function (args) {
         var mousePosition = new Point2d(args.clientX, args.clientY);

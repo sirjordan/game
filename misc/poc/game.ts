@@ -28,28 +28,28 @@ class Map {
 
     constructor() {
         this.objects = [
-            [0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
+            [0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 2, 0, 0, 0, 1, 0, 0, 0, 0, 2],
             [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0],
-            [0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0],
+            [0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 2],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0],
+            [0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 2],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0],
+            [0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0],
+            [0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 2],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0],
             [0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
             [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
             [0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
             [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0],
-            [0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0],
-            [0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
-            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0],
+            [0, 0, 0, 0, 0, 0, 1, 0, 2, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0],
 
         ];
     }
@@ -65,7 +65,7 @@ class Terrain {
         this.ctx = ctx;
         this.rasterSize = 50;   // TODO: Take it based on the client display resolution
         this.map = map;
-        this.max = new Size(map.objects.length * this.rasterSize, map.objects[0].length * this.rasterSize);
+        this.max = new Size(map.objects[0].length * this.rasterSize, map.objects.length * this.rasterSize);
     }
 
     public draw(camera: Point2d) {
@@ -77,17 +77,18 @@ class Terrain {
         let startPos = new Point2d((camera.x % this.rasterSize) * - 1, (camera.y % this.rasterSize) * -1);
         let pos = startPos.clone();
 
-        let row = Math.floor(camera.x / this.rasterSize);
-        let col = Math.floor(camera.y / this.rasterSize);
+        let row = Math.floor(camera.y / this.rasterSize);
+        let col = Math.floor(camera.x / this.rasterSize);
+        let startCol = col;
 
         // Go to the end of the screen X
-        while (row < Math.ceil(maxRight / this.rasterSize)) {
-            // No map rows
+        for (let i = 1; i <= Math.ceil(maxTop / this.rasterSize) + 1; i++) {
+            // No more map rows
             if (!this.map.objects[row]) break;
 
             // Go to the end of the screen Y
-            while (col < Math.ceil(maxTop / this.rasterSize)) {
-                // No map columns
+            for (let j = 1; j <= Math.ceil(maxRight / this.rasterSize); j++) {
+                // No more map columns
                 if (!(this.map.objects[row][col] >= 0)) break;
 
                 let el = this.map.objects[row][col];
@@ -95,13 +96,13 @@ class Terrain {
                 terrainObject.draw();
 
                 col++;
-                pos.x = startPos.x + (col * this.rasterSize);
+                pos.x = startPos.x + (j * this.rasterSize);
             }
 
-            col = 0;
+            col = startCol;
             row++;
             pos.x = startPos.x;
-            pos.y = startPos.y + (row * this.rasterSize);
+            pos.y = startPos.y + (i * this.rasterSize);
         }
     }
 
@@ -167,28 +168,37 @@ class Game {
         // TODO: Replace the key with some other
 
         let cameraSpeed = 5;
+        let draw = true;
+
         switch (ev.key) {
             case 'd':
-                if (this.camera.x + this.stageMax.width < this.terrain.max.width) {
+                if (this.camera.x + this.stageMax.width < this.terrain.max.width)
                     this.camera.x += cameraSpeed;
-                }
+                else
+                    draw = false;
                 break;
             case 'a':
-                if (this.camera.x > 0) {
+                if (this.camera.x > 0)
                     this.camera.x -= cameraSpeed;
-                }
+                else
+                    draw = false;
                 break;
             case 'w':
-                if (this.camera.y > 0) {
+                if (this.camera.y > 0)
                     this.camera.y -= cameraSpeed;
-                }
+                else
+                    draw = false;
                 break;
             case 's':
-                this.camera.y += cameraSpeed;
+                if (this.camera.y + this.stageMax.height < this.terrain.max.height)
+                    this.camera.y += cameraSpeed;
+                else
+                    draw = false;
                 break;
         }
 
-        this.terrain.draw(this.camera);
+        if (draw)
+            this.terrain.draw(this.camera);
     }
 
     private leftClick(args: MouseEvent): void {
