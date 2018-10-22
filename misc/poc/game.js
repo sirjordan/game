@@ -69,9 +69,15 @@ var Terrain = /** @class */ (function () {
         this.ctx = ctx;
         this.rasterSize = 50; // TODO: Take it based on the client display resolution
         this.map = map;
-        this.max = new Size(map.objects[0].length * this.rasterSize, map.objects.length * this.rasterSize);
     }
+    Terrain.prototype.maxSize = function () {
+        return new Size(this.map.objects[0].length * this.rasterSize, this.map.objects.length * this.rasterSize);
+    };
     Terrain.prototype.draw = function (camera) {
+        // Optimize the draw() and render only if the camera changes its position
+        if (this.lastCamera && camera.x == this.lastCamera.x && camera.y == this.lastCamera.y) {
+            return;
+        }
         var maxRight = this.ctx.canvas.height;
         var maxTop = this.ctx.canvas.width;
         this.ctx.clearRect(0, 0, maxRight, maxTop);
@@ -101,6 +107,7 @@ var Terrain = /** @class */ (function () {
             pos.x = startPos.x;
             pos.y = startPos.y + (i * this.rasterSize);
         }
+        this.lastCamera = camera.clone();
     };
     Terrain.prototype.createTerrainObject = function (signature, position) {
         switch (signature) {
@@ -117,6 +124,13 @@ var Terrain = /** @class */ (function () {
 var Game = /** @class */ (function () {
     function Game(gameLayerId, bgLayerId, rightPanelId, bottomPanelId) {
         var _this = this;
+        this.update = function () {
+            // 1. Get elements to be animated 
+            // 2. el.Draw()
+            // 3. Move all the draw stuff from other clsses here
+            _this.terrain.draw(_this.camera);
+            requestAnimationFrame(_this.update);
+        };
         if (!gameLayerId)
             throw new Error('Missing argument: gameLayerId');
         if (!rightPanelId)
@@ -140,47 +154,36 @@ var Game = /** @class */ (function () {
         var bgCtx = this.bgLayer.getContext('2d');
         var map = new Map();
         this.terrain = new Terrain(bgCtx, map);
-        this.terrain.draw(this.camera);
         var gameCtx = this.gameLayer.getContext("2d");
         var factory = new ObjectFactory(gameCtx, this.objects);
         var u_1 = factory.createUnit(new Point2d(20, 20), 25, 25, "blue", "red", 2);
         u_1.draw();
         var u_2 = factory.createUnit(new Point2d(20, 80), 25, 25, "green", "yellow", 2);
         u_2.draw();
+        this.update();
     };
     ;
     Game.prototype.keyPress = function (ev) {
         // TODO: Replace the key with some other
         var cameraSpeed = 5;
-        var draw = true;
         switch (ev.key) {
             case 'd':
-                if (this.camera.x + this.stageMax.width < this.terrain.max.width)
+                if (this.camera.x + this.stageMax.width < this.terrain.maxSize().width)
                     this.camera.x += cameraSpeed;
-                else
-                    draw = false;
                 break;
             case 'a':
                 if (this.camera.x > 0)
                     this.camera.x -= cameraSpeed;
-                else
-                    draw = false;
                 break;
             case 'w':
                 if (this.camera.y > 0)
                     this.camera.y -= cameraSpeed;
-                else
-                    draw = false;
                 break;
             case 's':
-                if (this.camera.y + this.stageMax.height < this.terrain.max.height)
+                if (this.camera.y + this.stageMax.height < this.terrain.maxSize().height)
                     this.camera.y += cameraSpeed;
-                else
-                    draw = false;
                 break;
         }
-        if (draw)
-            this.terrain.draw(this.camera);
     };
     Game.prototype.leftClick = function (args) {
         var mousePosition = new Point2d(args.clientX, args.clientY);

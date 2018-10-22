@@ -59,16 +59,25 @@ class Terrain {
     private ctx: CanvasRenderingContext2D;
     private rasterSize: number;
     private map: Map;
-    public max: Size;
+    // Used to remember the last camera position
+    private lastCamera: Point2d;
 
     constructor(ctx: CanvasRenderingContext2D, map: Map, ) {
         this.ctx = ctx;
         this.rasterSize = 50;   // TODO: Take it based on the client display resolution
         this.map = map;
-        this.max = new Size(map.objects[0].length * this.rasterSize, map.objects.length * this.rasterSize);
+    }
+
+    public maxSize(): Size {
+        return new Size(this.map.objects[0].length * this.rasterSize, this.map.objects.length * this.rasterSize);
     }
 
     public draw(camera: Point2d) {
+        // Optimize the draw() and render only if the camera changes its position
+        if (this.lastCamera && camera.x == this.lastCamera.x && camera.y == this.lastCamera.y) {
+            return;
+        }
+
         let maxRight = this.ctx.canvas.height;
         let maxTop = this.ctx.canvas.width;
 
@@ -104,6 +113,8 @@ class Terrain {
             pos.x = startPos.x;
             pos.y = startPos.y + (i * this.rasterSize);
         }
+
+        this.lastCamera = camera.clone();
     }
 
     private createTerrainObject(signature: number, position: Point2d): Rect {
@@ -152,7 +163,6 @@ class Game {
         let bgCtx = this.bgLayer.getContext('2d');
         let map = new Map();
         this.terrain = new Terrain(bgCtx, map);
-        this.terrain.draw(this.camera);
 
         let gameCtx = this.gameLayer.getContext("2d");
         let factory = new ObjectFactory(gameCtx, this.objects);
@@ -162,43 +172,40 @@ class Game {
 
         let u_2 = factory.createUnit(new Point2d(20, 80), 25, 25, "green", "yellow", 2);
         u_2.draw();
+
+        this.update();
     };
+
+    private update = () => {
+        this.objects.draw(this.camera);
+        this.terrain.draw(this.camera);
+
+        requestAnimationFrame(this.update);
+    }
 
     private keyPress(ev: KeyboardEvent): void {
         // TODO: Replace the key with some other
 
         let cameraSpeed = 5;
-        let draw = true;
 
         switch (ev.key) {
             case 'd':
-                if (this.camera.x + this.stageMax.width < this.terrain.max.width)
+                if (this.camera.x + this.stageMax.width < this.terrain.maxSize().width)
                     this.camera.x += cameraSpeed;
-                else
-                    draw = false;
                 break;
             case 'a':
                 if (this.camera.x > 0)
                     this.camera.x -= cameraSpeed;
-                else
-                    draw = false;
                 break;
             case 'w':
                 if (this.camera.y > 0)
                     this.camera.y -= cameraSpeed;
-                else
-                    draw = false;
                 break;
             case 's':
-                if (this.camera.y + this.stageMax.height < this.terrain.max.height)
+                if (this.camera.y + this.stageMax.height < this.terrain.maxSize().height)
                     this.camera.y += cameraSpeed;
-                else
-                    draw = false;
                 break;
         }
-
-        if (draw)
-            this.terrain.draw(this.camera);
     }
 
     private leftClick(args: MouseEvent): void {
@@ -299,6 +306,12 @@ class ObjectPool {
     addUnit(obj: IUnit) {
         this.units.push(obj);
         this.addSelectable(obj);
+    }
+
+    draw = (camera: Point2d) => {
+        // TODO:
+        // 1. Draw all objects
+        // 2. Optimize: Draw only objects in the visible area
     }
 }
 
