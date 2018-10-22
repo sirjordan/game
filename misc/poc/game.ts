@@ -242,7 +242,8 @@ class Game {
         this.objects.units.forEach(u => {
             if (u.selected) {
                 let path = this.getPath(u.position, mousePosition);
-                u.move(path);
+                u.loadMovements(path);
+                //u.move(path);
             }
         });
     }
@@ -274,7 +275,9 @@ interface IGameObject {
 
 interface IMovable extends IGameObject {
     speed: number;
-    move(path: Array<Point2d>);
+    //move(path: Array<Point2d>);
+    move();
+    loadMovements(path: Array<Point2d>);
     stop(): void;
 }
 
@@ -310,6 +313,9 @@ class Objects {
     }
 
     update() {
+        this.units.forEach(u => {
+            u.move();
+        });
         // 0. Move objects that has steps in their movement queue
         // 1. Every movable object has a Queue with movement steps
         // 2. If empty -> continue
@@ -437,11 +443,13 @@ class Unit extends Rect implements IMovable {
         this.movementsQueue = path;
     }
 
-    _move(){
-        let step = this.movementsQueue.shift().clone();
+    move(){
+        if (this.movementsQueue.length > 0) {
+            let step = this.movementsQueue.shift().clone();
+        }
     }
 
-    move(path: Array<Point2d>) {
+    _move(path: Array<Point2d>) {
         let that = this;
 
         // The first path step must be the current
