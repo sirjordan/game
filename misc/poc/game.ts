@@ -276,7 +276,7 @@ interface IGameObject {
 interface IMovable extends IGameObject {
     speed: number;
     //move(path: Array<Point2d>);
-    move();
+    nextMove();
     loadMovements(path: Array<Point2d>);
     stop(): void;
 }
@@ -314,7 +314,7 @@ class Objects {
 
     update() {
         this.units.forEach(u => {
-            u.move();
+            u.nextMove();
         });
         // 0. Move objects that has steps in their movement queue
         // 1. Every movable object has a Queue with movement steps
@@ -443,9 +443,10 @@ class Unit extends Rect implements IMovable {
         this.movementsQueue = path;
     }
 
-    move(){
+    nextMove(){
         if (this.movementsQueue.length > 0) {
-            let step = this.movementsQueue.shift().clone();
+            let nextStep = this.movementsQueue.shift().clone();
+            // TODO: calculate the movement and update the position
         }
     }
 
