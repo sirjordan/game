@@ -130,7 +130,7 @@ class Terrain {
 }
 
 class Game {
-    private objects: ObjectPool;
+    private objects: Objects;
     private gameLayer: HTMLCanvasElement;
     private bgLayer: HTMLCanvasElement;
     private rightPanel: HTMLElement;
@@ -145,7 +145,7 @@ class Game {
         if (!rightPanelId) throw new Error('Missing argument: rightPanelId');
         if (!bottomPanelId) throw new Error('Missing argument: bottomPanelId');
 
-        this.objects = new ObjectPool();
+        this.objects = new Objects();
         this.gameLayer = <HTMLCanvasElement>document.getElementById(gameLayerId);
         this.bgLayer = <HTMLCanvasElement>document.getElementById(bgLayerId);
         this.rightPanel = document.getElementById(rightPanelId);
@@ -177,9 +177,10 @@ class Game {
     };
 
     private update = () => {
-        this.objects.draw(this.camera);
         this.terrain.draw(this.camera);
-
+        this.objects.update();
+        this.objects.draw(this.camera);
+        
         requestAnimationFrame(this.update);
     }
 
@@ -290,7 +291,7 @@ interface IShape {
     isPointInside(point: Point2d): boolean;
 }
 
-class ObjectPool {
+class Objects {
     public selectable: Array<ISelectable>;
     public units: Array<IUnit>;
 
@@ -308,18 +309,28 @@ class ObjectPool {
         this.addSelectable(obj);
     }
 
-    draw = (camera: Point2d) => {
+    update() {
+        // 0. Move objects that has steps in their movement queue
+        // 1. Every movable object has a Queue with movement steps
+        // 2. If empty -> continue
+        // 3. If has movements -> Dequeue one
+    }
+
+    draw (camera: Point2d){
+        // Draw all static and movable objects
+
         // TODO:
-        // 1. Draw all objects
-        // 2. Optimize: Draw only objects in the visible area
+        // 1. Clear the canvas
+        // 2. Draw all objects
+        // 3. Optimize: Draw only objects in the visible area
     }
 }
 
 class ObjectFactory {
     private ctx: CanvasRenderingContext2D;
-    private objectPool: ObjectPool;
+    private objectPool: Objects;
 
-    constructor(ctx: CanvasRenderingContext2D, objectPool: ObjectPool) {
+    constructor(ctx: CanvasRenderingContext2D, objectPool: Objects) {
         this.ctx = ctx;
         this.objectPool = objectPool;
     }
@@ -413,11 +424,21 @@ class Rect extends Shape implements ISelectable {
 }
 
 class Unit extends Rect implements IMovable {
-    speed: number;
+    private movementsQueue: Array<Point2d>;
+    public speed: number;
 
     constructor(ctx: CanvasRenderingContext2D, position: Point2d, width: number, height: number, fill: string, stroke: string, strokewidth: number) {
         super(ctx, position, width, height, fill, stroke, strokewidth);
         this.speed = 3;
+        this.movementsQueue = new Array<Point2d>();
+    }
+
+    loadMovements(path: Array<Point2d>){
+        this.movementsQueue = path;
+    }
+
+    _move(){
+        let step = this.movementsQueue.shift().clone();
     }
 
     move(path: Array<Point2d>) {
