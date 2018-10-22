@@ -125,10 +125,9 @@ var Game = /** @class */ (function () {
     function Game(gameLayerId, bgLayerId, rightPanelId, bottomPanelId) {
         var _this = this;
         this.update = function () {
-            // 1. Get elements to be animated 
-            // 2. el.Draw()
-            // 3. Move all the draw stuff from other clsses here
             _this.terrain.draw(_this.camera);
+            _this.objects.update();
+            _this.objects.draw(_this.camera);
             requestAnimationFrame(_this.update);
         };
         if (!gameLayerId)
@@ -139,8 +138,8 @@ var Game = /** @class */ (function () {
             throw new Error('Missing argument: rightPanelId');
         if (!bottomPanelId)
             throw new Error('Missing argument: bottomPanelId');
-        this.objects = new ObjectPool();
         this.gameLayer = document.getElementById(gameLayerId);
+        this.objects = new Objects(this.gameLayer.getContext("2d"));
         this.bgLayer = document.getElementById(bgLayerId);
         this.rightPanel = document.getElementById(rightPanelId);
         this.bottomPanel = document.getElementById(bottomPanelId);
@@ -154,7 +153,7 @@ var Game = /** @class */ (function () {
         var bgCtx = this.bgLayer.getContext('2d');
         var map = new Map();
         this.terrain = new Terrain(bgCtx, map);
-        var gameCtx = this.gameLayer.getContext("2d");
+        var gameCtx = this.gameLayer.getContext("2d"); // TODO: Remove this
         var factory = new ObjectFactory(gameCtx, this.objects);
         var u_1 = factory.createUnit(new Point2d(20, 20), 25, 25, "blue", "red", 2);
         u_1.draw();
@@ -216,7 +215,8 @@ var Game = /** @class */ (function () {
         this.objects.units.forEach(function (u) {
             if (u.selected) {
                 var path = _this.getPath(u.position, mousePosition);
-                u.move(path);
+                u.loadMovements(path);
+                //u.move(path);
             }
         });
     };
@@ -238,19 +238,40 @@ var Game = /** @class */ (function () {
     };
     return Game;
 }());
-var ObjectPool = /** @class */ (function () {
-    function ObjectPool() {
+var Objects = /** @class */ (function () {
+    function Objects(ctx) {
+        this.ctx = ctx;
         this.selectable = new Array();
         this.units = new Array();
     }
-    ObjectPool.prototype.addSelectable = function (obj) {
+    Objects.prototype.addSelectable = function (obj) {
         this.selectable.push(obj);
     };
-    ObjectPool.prototype.addUnit = function (obj) {
+    Objects.prototype.addUnit = function (obj) {
         this.units.push(obj);
         this.addSelectable(obj);
     };
-    return ObjectPool;
+    Objects.prototype.update = function () {
+        this.units.forEach(function (u) {
+            u.move();
+        });
+        // 0. Move objects that has steps in their movement queue
+        // 1. Every movable object has a Queue with movement steps
+        // 2. If empty -> continue
+        // 3. If has movements -> Dequeue one
+    };
+    Objects.prototype.draw = function (camera) {
+        // Draw all static and movable objects
+        this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
+        this.selectable.forEach(function (el) {
+            el.draw();
+        });
+        // TODO:
+        // 1. Clear the canvas
+        // 2. Draw all objects
+        // 3. Optimize: Draw only objects in the visible area
+    };
+    return Objects;
 }());
 var ObjectFactory = /** @class */ (function () {
     function ObjectFactory(ctx, objectPool) {
@@ -326,9 +347,32 @@ var Unit = /** @class */ (function (_super) {
     function Unit(ctx, position, width, height, fill, stroke, strokewidth) {
         var _this = _super.call(this, ctx, position, width, height, fill, stroke, strokewidth) || this;
         _this.speed = 3;
+        _this.movementsQueue = new Array();
         return _this;
     }
-    Unit.prototype.move = function (path) {
+    Unit.prototype.loadMovements = function (path) {
+        this.movementsQueue = path;
+    };
+    Unit.prototype.move = function () {
+        if (this.movementsQueue.length > 0) {
+            if (!this.nextStep) {
+                this.nextStep = this.movementsQueue.shift().clone();
+                // First step in the movement queue is the current - skip it
+                if (this.position.x === this.nextStep.x && this.position.y === this.nextStep.y) {
+                    this.nextStep = this.movementsQueue.shift().clone();
+                }
+                this.currStepVelocity = this.position.calcVelocity(this.nextStep, this.speed);
+            }
+            // Step is over
+            if (this.isPointInside(this.nextStep)) {
+                this.nextStep = this.movementsQueue.shift().clone();
+                this.currStepVelocity = this.position.calcVelocity(this.nextStep, this.speed);
+            }
+            this.position.x += this.currStepVelocity.x;
+            this.position.y += this.currStepVelocity.y;
+        }
+    };
+    Unit.prototype._move = function (path) {
         var that = this;
         // The first path step must be the current
         var startPoint = path.shift().clone();

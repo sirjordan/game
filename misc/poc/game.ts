@@ -145,8 +145,8 @@ class Game {
         if (!rightPanelId) throw new Error('Missing argument: rightPanelId');
         if (!bottomPanelId) throw new Error('Missing argument: bottomPanelId');
 
-        this.objects = new Objects();
         this.gameLayer = <HTMLCanvasElement>document.getElementById(gameLayerId);
+        this.objects = new Objects(this.gameLayer.getContext("2d"));
         this.bgLayer = <HTMLCanvasElement>document.getElementById(bgLayerId);
         this.rightPanel = document.getElementById(rightPanelId);
         this.bottomPanel = document.getElementById(bottomPanelId);
@@ -164,7 +164,7 @@ class Game {
         let map = new Map();
         this.terrain = new Terrain(bgCtx, map);
 
-        let gameCtx = this.gameLayer.getContext("2d");
+        let gameCtx = this.gameLayer.getContext("2d");  // TODO: Remove this
         let factory = new ObjectFactory(gameCtx, this.objects);
 
         let u_1 = factory.createUnit(new Point2d(20, 20), 25, 25, "blue", "red", 2);
@@ -180,7 +180,7 @@ class Game {
         this.terrain.draw(this.camera);
         this.objects.update();
         this.objects.draw(this.camera);
-        
+
         requestAnimationFrame(this.update);
     }
 
@@ -276,8 +276,8 @@ interface IGameObject {
 interface IMovable extends IGameObject {
     speed: number;
     //move(path: Array<Point2d>);
-    nextMove();
-    loadMovements(path: Array<Point2d>);
+    move(): void;
+    loadMovements(path: Array<Point2d>): void;
     stop(): void;
 }
 
@@ -295,10 +295,13 @@ interface IShape {
 }
 
 class Objects {
+    private ctx: CanvasRenderingContext2D;
+    // TODO: Refactor this arrays
     public selectable: Array<ISelectable>;
     public units: Array<IUnit>;
 
-    constructor() {
+    constructor(ctx: CanvasRenderingContext2D) {
+        this.ctx = ctx;
         this.selectable = new Array<ISelectable>();
         this.units = new Array<Unit>();
     }
@@ -314,20 +317,25 @@ class Objects {
 
     update() {
         this.units.forEach(u => {
-            u.nextMove();
+            u.move();
         });
+
         // 0. Move objects that has steps in their movement queue
         // 1. Every movable object has a Queue with movement steps
         // 2. If empty -> continue
         // 3. If has movements -> Dequeue one
     }
 
-    draw (camera: Point2d){
+    draw(camera: Point2d) {
         // Draw all static and movable objects
 
+        this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
+
+        this.selectable.forEach(el => {
+            el.draw();
+        });
+
         // TODO:
-        // 1. Clear the canvas
-        // 2. Draw all objects
         // 3. Optimize: Draw only objects in the visible area
     }
 }
@@ -431,6 +439,8 @@ class Rect extends Shape implements ISelectable {
 
 class Unit extends Rect implements IMovable {
     private movementsQueue: Array<Point2d>;
+    private nextStep: Point2d;
+    private currStepVelocity: Point2d;
     public speed: number;
 
     constructor(ctx: CanvasRenderingContext2D, position: Point2d, width: number, height: number, fill: string, stroke: string, strokewidth: number) {
@@ -439,14 +449,30 @@ class Unit extends Rect implements IMovable {
         this.movementsQueue = new Array<Point2d>();
     }
 
-    loadMovements(path: Array<Point2d>){
+    loadMovements(path: Array<Point2d>) {
         this.movementsQueue = path;
     }
 
-    nextMove(){
+    move() {
         if (this.movementsQueue.length > 0) {
-            let nextStep = this.movementsQueue.shift().clone();
-            // TODO: calculate the movement and update the position
+            if (!this.nextStep) {
+                this.nextStep = this.movementsQueue.shift().clone();
+                // First step in the movement queue is the current - skip it
+                if (this.position.x === this.nextStep.x && this.position.y === this.nextStep.y) {
+                    this.nextStep = this.movementsQueue.shift().clone();
+                }
+
+                this.currStepVelocity = this.position.calcVelocity(this.nextStep, this.speed);
+            }
+
+            // Step is over
+            if (this.isPointInside(this.nextStep)) {
+                this.nextStep = this.movementsQueue.shift().clone();
+                this.currStepVelocity = this.position.calcVelocity(this.nextStep, this.speed);
+            }
+
+            this.position.x += this.currStepVelocity.x;
+            this.position.y += this.currStepVelocity.y;
         }
     }
 
