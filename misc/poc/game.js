@@ -74,7 +74,7 @@ var Terrain = /** @class */ (function () {
         return new Size(this.map.objects[0].length * this.rasterSize, this.map.objects.length * this.rasterSize);
     };
     Terrain.prototype.draw = function (camera) {
-        // Optimize the draw() and render only if the camera changes its position
+        // Optimizing the draw() and render only if the camera changes its position
         if (this.lastCamera && camera.x == this.lastCamera.x && camera.y == this.lastCamera.y) {
             return;
         }
@@ -188,7 +188,7 @@ var Game = /** @class */ (function () {
         for (var _i = 0, _a = this.objects.getSelectable(); _i < _a.length; _i++) {
             var obj = _a[_i];
             if (obj.getRect().isPointInside(mousePosition)) {
-                if (!obj.selected) {
+                if (!obj.selected()) {
                     // Unselect all other objects and reset the selection
                     this.objects.getSelectable().forEach(function (el) {
                         el.unSelect();
@@ -199,7 +199,7 @@ var Game = /** @class */ (function () {
                 }
             }
             else {
-                if (obj.selected) {
+                if (obj.selected()) {
                     obj.unSelect();
                 }
             }
@@ -211,7 +211,7 @@ var Game = /** @class */ (function () {
         // Move selected objects
         var mousePosition = new Point2d(args.clientX, args.clientY);
         this.objects.getUnits().forEach(function (u) {
-            if (u.selected) {
+            if (u.selected()) {
                 var path = _this.getPath(u.position, mousePosition);
                 u.loadMovements(path);
             }

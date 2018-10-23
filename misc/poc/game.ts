@@ -212,7 +212,7 @@ class Game {
         // Check if any selectable object is at the mouse click position
         for (const obj of this.objects.getSelectable()) {
             if (obj.getRect().isPointInside(mousePosition)) {
-                if (!obj.selected) {
+                if (!obj.selected()) {
                     // Unselect all other objects and reset the selection
                     this.objects.getSelectable().forEach(el => {
                         el.unSelect();
@@ -224,7 +224,7 @@ class Game {
                     break;
                 }
             } else {
-                if (obj.selected) {
+                if (obj.selected()) {
                     obj.unSelect();
                 }
             }
@@ -237,7 +237,7 @@ class Game {
         // Move selected objects
         let mousePosition = new Point2d(args.clientX, args.clientY)
         this.objects.getUnits().forEach(u => {
-            if (u.selected) {
+            if (u.selected()) {
                 let path = this.getPath(u.position, mousePosition);
                 u.loadMovements(path);
             }
@@ -370,12 +370,12 @@ abstract class Shape implements IGameObject {
 
 class Rect extends Shape {
     private originalStroke: string;
-    isSelected: boolean
-    width: number;
-    height: number;
-    fill: string;
-    stroke: string;
-    strokewidth: number;
+    private isSelected: boolean
+    private width: number;
+    private height: number;
+    private fill: string;
+    private stroke: string;
+    private strokewidth: number;
 
     constructor(ctx: CanvasRenderingContext2D, topLeft: Point2d, width: number, height: number, fill: string, stroke: string, strokewidth: number) {
         super(ctx, topLeft);
