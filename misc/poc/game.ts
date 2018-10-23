@@ -210,11 +210,11 @@ class Game {
         let mousePosition = new Point2d(args.clientX, args.clientY);
 
         // Check if any selectable object is at the mouse click position
-        for (const obj of this.objects.selectable()) {
-            if (obj.isPointInside(mousePosition)) {
+        for (const obj of this.objects.getSelectable()) {
+            if (obj.getRect().isPointInside(mousePosition)) {
                 if (!obj.selected) {
                     // Unselect all other objects and reset the selection
-                    this.objects.selectable().forEach(el => {
+                    this.objects.getSelectable().forEach(el => {
                         el.unSelect();
                     });
 
@@ -281,6 +281,7 @@ interface ISelectable extends IGameObject {
     selected(): boolean;
     select(): void;
     unSelect(): void;
+    getRect(): Rect;
 }
 
 class Objects {
@@ -303,7 +304,7 @@ class Objects {
         this.objects[type].push(obj);
     }
 
-    all(): Array<IGameObject> {
+    getAll(): Array<IGameObject> {
         let all = new Array<IGameObject>();
         for (const key in this.objects) {
             if (this.objects.hasOwnProperty(key))
@@ -313,7 +314,7 @@ class Objects {
         return all;
     }
 
-    selectable(): Array<ISelectable> {
+    getSelectable(): Array<ISelectable> {
         return this.getUnits();
     }
 
@@ -327,17 +328,12 @@ class Objects {
             .forEach(u => {
                 u.move();
             });
-
-        // 0. Move objects that has steps in their movement queue
-        // 1. Every movable object has a Queue with movement steps
-        // 2. If empty -> continue
-        // 3. If has movements -> Dequeue one
     }
 
     // Draw all static and movable objects
     draw(camera: Point2d) {
         this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
-        this.all().forEach(el => {
+        this.getAll().forEach(el => {
             el.draw();
         });
 
@@ -358,7 +354,7 @@ class ObjectFactory {
     }
 }
 
-abstract class Shape {
+abstract class Shape implements IGameObject {
     protected ctx: CanvasRenderingContext2D;
     public position: Point2d;
 
@@ -372,7 +368,7 @@ abstract class Shape {
     abstract isPointInside(point: Point2d): boolean;
 }
 
-class Rect extends Shape implements ISelectable {
+class Rect extends Shape {
     private originalStroke: string;
     isSelected: boolean
     width: number;
@@ -445,7 +441,7 @@ class Unit implements ISelectable, IMovable {
     // Centered position of the unit
     public position: Point2d;
     // The unit's base rect
-    public rect: Rect;
+    private rect: Rect;
 
     constructor(ctx: CanvasRenderingContext2D, position: Point2d, size: Size, speed: number) {
         this.ctx = ctx;
@@ -461,6 +457,10 @@ class Unit implements ISelectable, IMovable {
             'green',
             'black',
             2);
+    }
+
+    getRect(): Rect{
+        return this.rect;
     }
 
     loadMovements(path: Array<Point2d>) {

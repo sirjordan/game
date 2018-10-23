@@ -185,12 +185,12 @@ var Game = /** @class */ (function () {
     Game.prototype.leftClick = function (args) {
         var mousePosition = new Point2d(args.clientX, args.clientY);
         // Check if any selectable object is at the mouse click position
-        for (var _i = 0, _a = this.objects.selectable(); _i < _a.length; _i++) {
+        for (var _i = 0, _a = this.objects.getSelectable(); _i < _a.length; _i++) {
             var obj = _a[_i];
-            if (obj.isPointInside(mousePosition)) {
+            if (obj.getRect().isPointInside(mousePosition)) {
                 if (!obj.selected) {
                     // Unselect all other objects and reset the selection
-                    this.objects.selectable().forEach(function (el) {
+                    this.objects.getSelectable().forEach(function (el) {
                         el.unSelect();
                     });
                     // Select the only clicked obj
@@ -238,17 +238,8 @@ var Game = /** @class */ (function () {
 var Objects = /** @class */ (function () {
     function Objects(ctx) {
         this.ctx = ctx;
-        //this.selectable = new Array<ISelectable>();
-        //this.units = new Array<IUnit>();
         this.objects = {};
     }
-    // addSelectable(obj: ISelectable) {
-    //     this.selectable.push(obj);
-    // }
-    // addUnit(obj: Unit) {
-    //     this.units.push(obj);
-    //     this.addSelectable(obj);
-    // }
     Objects.prototype.add = function (obj) {
         // Insert the object in Array from its type or create one if missing
         var type = obj.constructor.name;
@@ -257,7 +248,7 @@ var Objects = /** @class */ (function () {
         }
         this.objects[type].push(obj);
     };
-    Objects.prototype.all = function () {
+    Objects.prototype.getAll = function () {
         var all = new Array();
         for (var key in this.objects) {
             if (this.objects.hasOwnProperty(key))
@@ -265,7 +256,7 @@ var Objects = /** @class */ (function () {
         }
         return all;
     };
-    Objects.prototype.selectable = function () {
+    Objects.prototype.getSelectable = function () {
         return this.getUnits();
     };
     Objects.prototype.getUnits = function () {
@@ -277,15 +268,11 @@ var Objects = /** @class */ (function () {
             .forEach(function (u) {
             u.move();
         });
-        // 0. Move objects that has steps in their movement queue
-        // 1. Every movable object has a Queue with movement steps
-        // 2. If empty -> continue
-        // 3. If has movements -> Dequeue one
     };
     // Draw all static and movable objects
     Objects.prototype.draw = function (camera) {
         this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
-        this.all().forEach(function (el) {
+        this.getAll().forEach(function (el) {
             el.draw();
         });
         // TODO: Optimize: Draw only objects in the visible area
@@ -364,6 +351,9 @@ var Unit = /** @class */ (function () {
         this.movementsQueue = new Array();
         this.rect = new Rect(ctx, new Point2d((position.x - size.width / 2), (position.y - size.height / 2)), size.width, size.height, 'green', 'black', 2);
     }
+    Unit.prototype.getRect = function () {
+        return this.rect;
+    };
     Unit.prototype.loadMovements = function (path) {
         this.movementsQueue = path;
     };
@@ -389,31 +379,6 @@ var Unit = /** @class */ (function () {
     Unit.prototype.isPointInside = function (other) {
         // TODO: Make it in the circle/rect with allowable limits
         return this.position.x == other.x && this.position.y == other.y;
-    };
-    Unit.prototype._move = function (path) {
-        // let that = this;
-        // // The first path step must be the current
-        // let startPoint = path.shift().clone();
-        // let endPoint = path.shift().clone();
-        // let velocity = startPoint.calcVelocity(endPoint, that.speed);
-        // function update() {
-        //     // Step over
-        //     if (that.isPointInside(endPoint)) {
-        //         // Path over
-        //         if (path.length === 0) {
-        //             return;
-        //         }
-        //         startPoint = endPoint;
-        //         endPoint = path.shift().clone();
-        //         velocity = startPoint.calcVelocity(endPoint, that.speed);
-        //     }
-        //     that.clear();
-        //     that.position.x += velocity.x;
-        //     that.position.y += velocity.y;
-        //     that.draw();
-        //     requestAnimationFrame(update);
-        // }
-        // update();
     };
     Unit.prototype.stop = function () {
         // Implement
