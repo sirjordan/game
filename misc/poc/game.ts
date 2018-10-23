@@ -73,7 +73,7 @@ class Terrain {
     }
 
     public draw(camera: Point2d) {
-        // Optimize the draw() and render only if the camera changes its position
+        // Optimizing the draw() and render only if the camera changes its position
         if (this.lastCamera && camera.x == this.lastCamera.x && camera.y == this.lastCamera.y) {
             return;
         }
