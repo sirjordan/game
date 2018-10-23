@@ -153,12 +153,10 @@ var Game = /** @class */ (function () {
         var bgCtx = this.bgLayer.getContext('2d');
         var map = new Map();
         this.terrain = new Terrain(bgCtx, map);
-        var gameCtx = this.gameLayer.getContext("2d"); // TODO: Remove this
-        var factory = new ObjectFactory(gameCtx, this.objects);
-        var u_1 = factory.createUnit(new Point2d(20, 20), 25, 25, "blue", "red", 2);
-        u_1.draw();
-        var u_2 = factory.createUnit(new Point2d(20, 80), 25, 25, "green", "yellow", 2);
-        u_2.draw();
+        var gameCtx = this.gameLayer.getContext("2d");
+        var factory = new ObjectFactory(gameCtx);
+        this.objects.add(factory.baseUnit(new Point2d(50, 50)));
+        this.objects.add(factory.baseUnit(new Point2d(100, 100)));
         this.update();
     };
     ;
@@ -187,12 +185,12 @@ var Game = /** @class */ (function () {
     Game.prototype.leftClick = function (args) {
         var mousePosition = new Point2d(args.clientX, args.clientY);
         // Check if any selectable object is at the mouse click position
-        for (var _i = 0, _a = this.objects.selectable; _i < _a.length; _i++) {
+        for (var _i = 0, _a = this.objects.selectable(); _i < _a.length; _i++) {
             var obj = _a[_i];
             if (obj.isPointInside(mousePosition)) {
                 if (!obj.selected) {
                     // Unselect all other objects and reset the selection
-                    this.objects.selectable.forEach(function (el) {
+                    this.objects.selectable().forEach(function (el) {
                         el.unSelect();
                     });
                     // Select the only clicked obj
@@ -212,11 +210,10 @@ var Game = /** @class */ (function () {
         args.preventDefault();
         // Move selected objects
         var mousePosition = new Point2d(args.clientX, args.clientY);
-        this.objects.units.forEach(function (u) {
+        this.objects.getUnits().forEach(function (u) {
             if (u.selected) {
                 var path = _this.getPath(u.position, mousePosition);
                 u.loadMovements(path);
-                //u.move(path);
             }
         });
     };
@@ -241,18 +238,43 @@ var Game = /** @class */ (function () {
 var Objects = /** @class */ (function () {
     function Objects(ctx) {
         this.ctx = ctx;
-        this.selectable = new Array();
-        this.units = new Array();
+        //this.selectable = new Array<ISelectable>();
+        //this.units = new Array<IUnit>();
+        this.objects = {};
     }
-    Objects.prototype.addSelectable = function (obj) {
-        this.selectable.push(obj);
+    // addSelectable(obj: ISelectable) {
+    //     this.selectable.push(obj);
+    // }
+    // addUnit(obj: Unit) {
+    //     this.units.push(obj);
+    //     this.addSelectable(obj);
+    // }
+    Objects.prototype.add = function (obj) {
+        // Insert the object in Array from its type or create one if missing
+        var type = obj.constructor.name;
+        if (!this.objects[type]) {
+            this.objects[type] = new Array();
+        }
+        this.objects[type].push(obj);
     };
-    Objects.prototype.addUnit = function (obj) {
-        this.units.push(obj);
-        this.addSelectable(obj);
+    Objects.prototype.all = function () {
+        var all = new Array();
+        for (var key in this.objects) {
+            if (this.objects.hasOwnProperty(key))
+                all = all.concat(this.objects[key]);
+        }
+        return all;
+    };
+    Objects.prototype.selectable = function () {
+        return this.getUnits();
+    };
+    Objects.prototype.getUnits = function () {
+        return this.objects[Unit.name];
     };
     Objects.prototype.update = function () {
-        this.units.forEach(function (u) {
+        this.getUnits()
+            .filter(function (u) { return u.selected(); })
+            .forEach(function (u) {
             u.move();
         });
         // 0. Move objects that has steps in their movement queue
@@ -260,30 +282,22 @@ var Objects = /** @class */ (function () {
         // 2. If empty -> continue
         // 3. If has movements -> Dequeue one
     };
+    // Draw all static and movable objects
     Objects.prototype.draw = function (camera) {
-        // Draw all static and movable objects
         this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
-        this.selectable.forEach(function (el) {
+        this.all().forEach(function (el) {
             el.draw();
         });
-        // TODO:
-        // 3. Optimize: Draw only objects in the visible area
+        // TODO: Optimize: Draw only objects in the visible area
     };
     return Objects;
 }());
 var ObjectFactory = /** @class */ (function () {
-    function ObjectFactory(ctx, objectPool) {
+    function ObjectFactory(ctx) {
         this.ctx = ctx;
-        this.objectPool = objectPool;
     }
-    ObjectFactory.prototype.createRect = function (position, width, height, fill, stroke, strokewidth) {
-        var r = new Rect(this.ctx, position, width, height, fill, stroke, strokewidth);
-        this.objectPool.addSelectable(r);
-        return r;
-    };
-    ObjectFactory.prototype.createUnit = function (position, width, height, fill, stroke, strokewidth) {
-        var u = new Unit(this.ctx, position, width, height, fill, stroke, strokewidth);
-        this.objectPool.addUnit(u);
+    ObjectFactory.prototype.baseUnit = function (position) {
+        var u = new Unit(this.ctx, position, new Size(20, 20), 3);
         return u;
     };
     return ObjectFactory;
@@ -304,11 +318,10 @@ var Rect = /** @class */ (function (_super) {
         _this.fill = fill;
         _this.stroke = stroke;
         _this.strokewidth = strokewidth;
-        _this.selected = false;
+        _this.isSelected = false;
         return _this;
     }
     Rect.prototype.draw = function () {
-        this.ctx.save();
         this.ctx.beginPath();
         this.ctx.fillStyle = this.fill;
         this.ctx.strokeStyle = this.stroke;
@@ -316,7 +329,6 @@ var Rect = /** @class */ (function (_super) {
         this.ctx.rect(this.position.x, this.position.y, this.width, this.height);
         this.ctx.stroke();
         this.ctx.fill();
-        this.ctx.restore();
     };
     Rect.prototype.clear = function () {
         this.ctx.clearRect(this.position.x - this.strokewidth, this.position.y - this.strokewidth, this.position.x + this.width + this.strokewidth, this.position.y + this.height + this.strokewidth);
@@ -331,22 +343,26 @@ var Rect = /** @class */ (function (_super) {
         this.originalStroke = this.stroke;
         this.stroke = 'orange';
         this.draw();
-        this.selected = true;
+        this.isSelected = true;
     };
     Rect.prototype.unSelect = function () {
         this.stroke = this.originalStroke;
         this.draw();
-        this.selected = false;
+        this.isSelected = false;
+    };
+    Rect.prototype.selected = function () {
+        return this.isSelected;
     };
     return Rect;
 }(Shape));
-var Unit = /** @class */ (function (_super) {
-    __extends(Unit, _super);
-    function Unit(ctx, position, width, height, fill, stroke, strokewidth) {
-        var _this = _super.call(this, ctx, position, width, height, fill, stroke, strokewidth) || this;
-        _this.speed = 3;
-        _this.movementsQueue = new Array();
-        return _this;
+var Unit = /** @class */ (function () {
+    function Unit(ctx, position, size, speed) {
+        this.ctx = ctx;
+        this.size = size;
+        this.position = position;
+        this.speed = speed;
+        this.movementsQueue = new Array();
+        this.rect = new Rect(ctx, new Point2d((position.x - size.width / 2), (position.y - size.height / 2)), size.width, size.height, 'green', 'black', 2);
     }
     Unit.prototype.loadMovements = function (path) {
         this.movementsQueue = path;
@@ -354,54 +370,74 @@ var Unit = /** @class */ (function (_super) {
     Unit.prototype.move = function () {
         if (!this.nextStep) {
             // Path is over
-            if (this.movementsQueue.length == 0) {
+            if (this.movementsQueue.length == 0)
                 return;
-            }
             this.nextStep = this.movementsQueue.shift().clone();
             // First step in the movement queue is the current - skip it
             if (this.position.x === this.nextStep.x && this.position.y === this.nextStep.y) {
                 this.nextStep = this.movementsQueue.shift().clone();
             }
-            this.currStepVelocity = this.position.calcVelocity(this.nextStep, this.speed);
+            this.velocity = this.position.calcVelocity(this.nextStep, this.speed);
         }
         // Step is over
         if (this.isPointInside(this.nextStep)) {
             this.nextStep = null;
-            return;
         }
-        this.position.x += this.currStepVelocity.x;
-        this.position.y += this.currStepVelocity.y;
+        this.position.x += this.velocity.x;
+        this.position.y += this.velocity.y;
+    };
+    Unit.prototype.isPointInside = function (other) {
+        // TODO: Make it in the circle/rect with allowable limits
+        return this.position.x == other.x && this.position.y == other.y;
     };
     Unit.prototype._move = function (path) {
-        var that = this;
-        // The first path step must be the current
-        var startPoint = path.shift().clone();
-        var endPoint = path.shift().clone();
-        var velocity = startPoint.calcVelocity(endPoint, that.speed);
-        function update() {
-            // Step over
-            if (that.isPointInside(endPoint)) {
-                // Path over
-                if (path.length === 0) {
-                    return;
-                }
-                startPoint = endPoint;
-                endPoint = path.shift().clone();
-                velocity = startPoint.calcVelocity(endPoint, that.speed);
-            }
-            that.clear();
-            that.position.x += velocity.x;
-            that.position.y += velocity.y;
-            that.draw();
-            requestAnimationFrame(update);
-        }
-        update();
+        // let that = this;
+        // // The first path step must be the current
+        // let startPoint = path.shift().clone();
+        // let endPoint = path.shift().clone();
+        // let velocity = startPoint.calcVelocity(endPoint, that.speed);
+        // function update() {
+        //     // Step over
+        //     if (that.isPointInside(endPoint)) {
+        //         // Path over
+        //         if (path.length === 0) {
+        //             return;
+        //         }
+        //         startPoint = endPoint;
+        //         endPoint = path.shift().clone();
+        //         velocity = startPoint.calcVelocity(endPoint, that.speed);
+        //     }
+        //     that.clear();
+        //     that.position.x += velocity.x;
+        //     that.position.y += velocity.y;
+        //     that.draw();
+        //     requestAnimationFrame(update);
+        // }
+        // update();
     };
     Unit.prototype.stop = function () {
         // Implement
     };
+    Unit.prototype.selected = function () {
+        return this.rect.selected();
+    };
+    Unit.prototype.draw = function () {
+        this.rect.draw();
+        this.ctx.beginPath();
+        this.ctx.arc(this.position.x, this.position.y, this.size.height / 2, 0, 2 * Math.PI);
+        this.ctx.lineWidth = 1;
+        this.ctx.fillStyle = 'red';
+        this.ctx.fill();
+        this.ctx.stroke();
+    };
+    Unit.prototype.select = function () {
+        this.rect.select();
+    };
+    Unit.prototype.unSelect = function () {
+        this.rect.unSelect();
+    };
     return Unit;
-}(Rect));
+}());
 var Point2d = /** @class */ (function () {
     function Point2d(x, y) {
         this.x = x;

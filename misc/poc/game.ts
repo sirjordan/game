@@ -164,14 +164,11 @@ class Game {
         let map = new Map();
         this.terrain = new Terrain(bgCtx, map);
 
-        let gameCtx = this.gameLayer.getContext("2d");  // TODO: Remove this
-        let factory = new ObjectFactory(gameCtx, this.objects);
+        let gameCtx = this.gameLayer.getContext("2d");
+        let factory = new ObjectFactory(gameCtx);
 
-        let u_1 = factory.createUnit(new Point2d(20, 20), 25, 25, "blue", "red", 2);
-        u_1.draw();
-
-        let u_2 = factory.createUnit(new Point2d(20, 80), 25, 25, "green", "yellow", 2);
-        u_2.draw();
+        this.objects.add(factory.baseUnit(new Point2d(50, 50)));
+        this.objects.add(factory.baseUnit(new Point2d(100, 100)));
 
         this.update();
     };
@@ -213,11 +210,11 @@ class Game {
         let mousePosition = new Point2d(args.clientX, args.clientY);
 
         // Check if any selectable object is at the mouse click position
-        for (const obj of this.objects.selectable) {
+        for (const obj of this.objects.selectable()) {
             if (obj.isPointInside(mousePosition)) {
                 if (!obj.selected) {
                     // Unselect all other objects and reset the selection
-                    this.objects.selectable.forEach(el => {
+                    this.objects.selectable().forEach(el => {
                         el.unSelect();
                     });
 
@@ -239,11 +236,10 @@ class Game {
 
         // Move selected objects
         let mousePosition = new Point2d(args.clientX, args.clientY)
-        this.objects.units.forEach(u => {
+        this.objects.getUnits().forEach(u => {
             if (u.selected) {
                 let path = this.getPath(u.position, mousePosition);
                 u.loadMovements(path);
-                //u.move(path);
             }
         });
     }
@@ -271,54 +267,66 @@ class Game {
 
 interface IGameObject {
     position: Point2d;
+    draw(): void;
+    isPointInside(point: Point2d): boolean;
 }
 
 interface IMovable extends IGameObject {
-    speed: number;
-    //move(path: Array<Point2d>);
     move(): void;
     loadMovements(path: Array<Point2d>): void;
     stop(): void;
 }
 
-interface ISelectable extends IGameObject, IShape {
-    selected: boolean;
+interface ISelectable extends IGameObject {
+    selected(): boolean;
     select(): void;
     unSelect(): void;
 }
 
-interface IUnit extends ISelectable, IMovable { }
-
-interface IShape {
-    draw(): void;
-    isPointInside(point: Point2d): boolean;
-}
-
 class Objects {
     private ctx: CanvasRenderingContext2D;
-    // TODO: Refactor this arrays
-    public selectable: Array<ISelectable>;
-    public units: Array<IUnit>;
+    // Type separated objects for optimization
+    private objects: { [type: string]: Array<IGameObject>; };
 
     constructor(ctx: CanvasRenderingContext2D) {
         this.ctx = ctx;
-        this.selectable = new Array<ISelectable>();
-        this.units = new Array<Unit>();
+        this.objects = {};
     }
 
-    addSelectable(obj: ISelectable) {
-        this.selectable.push(obj);
+    add(obj: IGameObject) {
+        // Insert the object in Array from its type or create one if missing
+        let type = (<any>obj).constructor.name;
+        if (!this.objects[type]) {
+            this.objects[type] = new Array<IGameObject>();
+        }
+
+        this.objects[type].push(obj);
     }
 
-    addUnit(obj: IUnit) {
-        this.units.push(obj);
-        this.addSelectable(obj);
+    all(): Array<IGameObject> {
+        let all = new Array<IGameObject>();
+        for (const key in this.objects) {
+            if (this.objects.hasOwnProperty(key))
+                all = all.concat(this.objects[key]);
+        }
+
+        return all;
+    }
+
+    selectable(): Array<ISelectable> {
+        return this.getUnits();
+    }
+
+    getUnits(): Array<Unit> {
+        return <Array<Unit>>this.objects[(<any>Unit).name];
     }
 
     update() {
-        this.units.forEach(u => {
-            u.move();
-        });
+        this.getUnits()
+            .filter(u => u.selected())
+            .forEach(u => {
+                u.move();
+            });
 
         // 0. Move objects that has steps in their movement queue
         // 1. Every movable object has a Queue with movement steps
@@ -326,38 +334,26 @@ class Objects {
         // 3. If has movements -> Dequeue one
     }
 
+    // Draw all static and movable objects
     draw(camera: Point2d) {
-        // Draw all static and movable objects
-
         this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
-
-        this.selectable.forEach(el => {
+        this.all().forEach(el => {
             el.draw();
         });
 
-        // TODO:
-        // 3. Optimize: Draw only objects in the visible area
+        // TODO: Optimize: Draw only objects in the visible area
     }
 }
 
 class ObjectFactory {
     private ctx: CanvasRenderingContext2D;
-    private objectPool: Objects;
 
-    constructor(ctx: CanvasRenderingContext2D, objectPool: Objects) {
+    constructor(ctx: CanvasRenderingContext2D) {
         this.ctx = ctx;
-        this.objectPool = objectPool;
     }
 
-    createRect(position: Point2d, width: number, height: number, fill: string, stroke: string, strokewidth: number): IShape {
-        let r = new Rect(this.ctx, position, width, height, fill, stroke, strokewidth);
-        this.objectPool.addSelectable(r);
-        return r;
-    }
-
-    createUnit(position: Point2d, width: number, height: number, fill: string, stroke: string, strokewidth: number): IUnit {
-        let u = new Unit(this.ctx, position, width, height, fill, stroke, strokewidth);
-        this.objectPool.addUnit(u);
+    baseUnit(position: Point2d): Unit {
+        let u = new Unit(this.ctx, position, new Size(20, 20), 3);
         return u;
     }
 }
@@ -378,7 +374,7 @@ abstract class Shape {
 
 class Rect extends Shape implements ISelectable {
     private originalStroke: string;
-    selected: boolean
+    isSelected: boolean
     width: number;
     height: number;
     fill: string;
@@ -392,11 +388,10 @@ class Rect extends Shape implements ISelectable {
         this.fill = fill;
         this.stroke = stroke;
         this.strokewidth = strokewidth;
-        this.selected = false;
+        this.isSelected = false;
     }
 
     draw(): void {
-        this.ctx.save();
         this.ctx.beginPath();
         this.ctx.fillStyle = this.fill;
         this.ctx.strokeStyle = this.stroke;
@@ -404,7 +399,6 @@ class Rect extends Shape implements ISelectable {
         this.ctx.rect(this.position.x, this.position.y, this.width, this.height);
         this.ctx.stroke();
         this.ctx.fill();
-        this.ctx.restore();
     }
 
     clear(): void {
@@ -427,26 +421,46 @@ class Rect extends Shape implements ISelectable {
         this.originalStroke = this.stroke;
         this.stroke = 'orange';
         this.draw();
-        this.selected = true;
+        this.isSelected = true;
     }
 
     unSelect(): void {
         this.stroke = this.originalStroke;
         this.draw();
-        this.selected = false;
+        this.isSelected = false;
+    }
+
+    selected(): boolean {
+        return this.isSelected;
     }
 }
 
-class Unit extends Rect implements IMovable {
+class Unit implements ISelectable, IMovable {
+    private ctx: CanvasRenderingContext2D;
+    private size: Size;
     private movementsQueue: Array<Point2d>;
     private nextStep: Point2d;
     private velocity: Point2d;
-    public speed: number;
+    private speed: number;
+    // Centered position of the unit
+    public position: Point2d;
+    // The unit's base rect
+    public rect: Rect;
 
-    constructor(ctx: CanvasRenderingContext2D, position: Point2d, width: number, height: number, fill: string, stroke: string, strokewidth: number) {
-        super(ctx, position, width, height, fill, stroke, strokewidth);
-        this.speed = 3;
+    constructor(ctx: CanvasRenderingContext2D, position: Point2d, size: Size, speed: number) {
+        this.ctx = ctx;
+        this.size = size;
+        this.position = position;
+        this.speed = speed;
         this.movementsQueue = new Array<Point2d>();
+        this.rect = new Rect(
+            ctx,
+            new Point2d((position.x - size.width / 2), (position.y - size.height / 2)),
+            size.width,
+            size.height,
+            'green',
+            'black',
+            2);
     }
 
     loadMovements(path: Array<Point2d>) {
@@ -472,48 +486,42 @@ class Unit extends Rect implements IMovable {
         // Step is over
         if (this.isPointInside(this.nextStep)) {
             this.nextStep = null;
-            return;
         }
 
         this.position.x += this.velocity.x;
         this.position.y += this.velocity.y;
     }
 
-    _move(path: Array<Point2d>) {
-        let that = this;
-
-        // The first path step must be the current
-        let startPoint = path.shift().clone();
-        let endPoint = path.shift().clone();
-
-        let velocity = startPoint.calcVelocity(endPoint, that.speed);
-
-        function update() {
-            // Step over
-            if (that.isPointInside(endPoint)) {
-                // Path over
-                if (path.length === 0) {
-                    return;
-                }
-
-                startPoint = endPoint;
-                endPoint = path.shift().clone();
-
-                velocity = startPoint.calcVelocity(endPoint, that.speed);
-            }
-
-            that.clear();
-            that.position.x += velocity.x;
-            that.position.y += velocity.y;
-            that.draw();
-
-            requestAnimationFrame(update);
-        }
-        update();
+    isPointInside(other: Point2d) {
+        // TODO: Make it in the circle/rect with allowable limits
+        return this.position.x == other.x && this.position.y == other.y;
     }
 
     stop() {
         // Implement
+    }
+
+    selected(): boolean {
+        return this.rect.selected();
+    }
+
+    draw(): void {
+        this.rect.draw();
+
+        this.ctx.beginPath();
+        this.ctx.arc(this.position.x, this.position.y, this.size.height / 2, 0, 2 * Math.PI);
+        this.ctx.lineWidth = 1;
+        this.ctx.fillStyle = 'red';
+        this.ctx.fill();
+        this.ctx.stroke();
+    }
+
+    select(): void {
+        this.rect.select();
+    }
+
+    unSelect(): void {
+        this.rect.unSelect();
     }
 }
 
