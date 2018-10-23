@@ -440,7 +440,7 @@ class Rect extends Shape implements ISelectable {
 class Unit extends Rect implements IMovable {
     private movementsQueue: Array<Point2d>;
     private nextStep: Point2d;
-    private currStepVelocity: Point2d;
+    private velocity: Point2d;
     public speed: number;
 
     constructor(ctx: CanvasRenderingContext2D, position: Point2d, width: number, height: number, fill: string, stroke: string, strokewidth: number) {
@@ -454,26 +454,29 @@ class Unit extends Rect implements IMovable {
     }
 
     move() {
-        if (this.movementsQueue.length > 0) {
-            if (!this.nextStep) {
-                this.nextStep = this.movementsQueue.shift().clone();
-                // First step in the movement queue is the current - skip it
-                if (this.position.x === this.nextStep.x && this.position.y === this.nextStep.y) {
-                    this.nextStep = this.movementsQueue.shift().clone();
-                }
+        if (!this.nextStep) {
+            // Path is over
+            if (this.movementsQueue.length == 0)
+                return;
 
-                this.currStepVelocity = this.position.calcVelocity(this.nextStep, this.speed);
+            this.nextStep = this.movementsQueue.shift().clone();
+
+            // First step in the movement queue is the current - skip it
+            if (this.position.x === this.nextStep.x && this.position.y === this.nextStep.y) {
+                this.nextStep = this.movementsQueue.shift().clone();
             }
 
-            // Step is over
-            if (this.isPointInside(this.nextStep)) {
-                this.nextStep = this.movementsQueue.shift().clone();
-                this.currStepVelocity = this.position.calcVelocity(this.nextStep, this.speed);
-            }
-
-            this.position.x += this.currStepVelocity.x;
-            this.position.y += this.currStepVelocity.y;
+            this.velocity = this.position.calcVelocity(this.nextStep, this.speed);
         }
+
+        // Step is over
+        if (this.isPointInside(this.nextStep)) {
+            this.nextStep = null;
+            return;
+        }
+
+        this.position.x += this.velocity.x;
+        this.position.y += this.velocity.y;
     }
 
     _move(path: Array<Point2d>) {

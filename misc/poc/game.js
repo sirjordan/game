@@ -267,8 +267,6 @@ var Objects = /** @class */ (function () {
             el.draw();
         });
         // TODO:
-        // 1. Clear the canvas
-        // 2. Draw all objects
         // 3. Optimize: Draw only objects in the visible area
     };
     return Objects;
@@ -354,23 +352,25 @@ var Unit = /** @class */ (function (_super) {
         this.movementsQueue = path;
     };
     Unit.prototype.move = function () {
-        if (this.movementsQueue.length > 0) {
-            if (!this.nextStep) {
-                this.nextStep = this.movementsQueue.shift().clone();
-                // First step in the movement queue is the current - skip it
-                if (this.position.x === this.nextStep.x && this.position.y === this.nextStep.y) {
-                    this.nextStep = this.movementsQueue.shift().clone();
-                }
-                this.currStepVelocity = this.position.calcVelocity(this.nextStep, this.speed);
+        if (!this.nextStep) {
+            // Path is over
+            if (this.movementsQueue.length == 0) {
+                return;
             }
-            // Step is over
-            if (this.isPointInside(this.nextStep)) {
+            this.nextStep = this.movementsQueue.shift().clone();
+            // First step in the movement queue is the current - skip it
+            if (this.position.x === this.nextStep.x && this.position.y === this.nextStep.y) {
                 this.nextStep = this.movementsQueue.shift().clone();
-                this.currStepVelocity = this.position.calcVelocity(this.nextStep, this.speed);
             }
-            this.position.x += this.currStepVelocity.x;
-            this.position.y += this.currStepVelocity.y;
+            this.currStepVelocity = this.position.calcVelocity(this.nextStep, this.speed);
         }
+        // Step is over
+        if (this.isPointInside(this.nextStep)) {
+            this.nextStep = null;
+            return;
+        }
+        this.position.x += this.currStepVelocity.x;
+        this.position.y += this.currStepVelocity.y;
     };
     Unit.prototype._move = function (path) {
         var that = this;
