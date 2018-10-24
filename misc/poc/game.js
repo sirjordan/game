@@ -184,13 +184,14 @@ var Game = /** @class */ (function () {
     };
     Game.prototype.leftClick = function (args) {
         var mousePosition = new Point2d(args.clientX, args.clientY);
+        var selectable = this.objects.getSelectable();
         // Check if any selectable object is at the mouse click position
-        for (var _i = 0, _a = this.objects.getSelectable(); _i < _a.length; _i++) {
-            var obj = _a[_i];
+        for (var _i = 0, selectable_1 = selectable; _i < selectable_1.length; _i++) {
+            var obj = selectable_1[_i];
             if (obj.getRect().isPointInside(mousePosition)) {
-                if (!obj.selected()) {
+                if (!obj.isSelected()) {
                     // Unselect all other objects and reset the selection
-                    this.objects.getSelectable().forEach(function (el) {
+                    selectable.forEach(function (el) {
                         el.unSelect();
                     });
                     // Select the only clicked obj
@@ -199,7 +200,7 @@ var Game = /** @class */ (function () {
                 }
             }
             else {
-                if (obj.selected()) {
+                if (obj.isSelected()) {
                     obj.unSelect();
                 }
             }
@@ -211,7 +212,7 @@ var Game = /** @class */ (function () {
         // Move selected objects
         var mousePosition = new Point2d(args.clientX, args.clientY);
         this.objects.getUnits().forEach(function (u) {
-            if (u.selected()) {
+            if (u.isSelected()) {
                 var path = _this.getPath(u.position, mousePosition);
                 u.loadMovements(path);
             }
@@ -264,7 +265,7 @@ var Objects = /** @class */ (function () {
     };
     Objects.prototype.update = function () {
         this.getUnits()
-            .filter(function (u) { return u.selected(); })
+            .filter(function (u) { return u.isSelected(); })
             .forEach(function (u) {
             u.move();
         });
@@ -309,6 +310,8 @@ var Rect = /** @class */ (function (_super) {
         return _this;
     }
     Rect.prototype.draw = function () {
+        // TODO: Draw isometric rect or circle
+        this.ctx.save();
         this.ctx.beginPath();
         this.ctx.fillStyle = this.fill;
         this.ctx.strokeStyle = this.stroke;
@@ -316,9 +319,7 @@ var Rect = /** @class */ (function (_super) {
         this.ctx.rect(this.position.x, this.position.y, this.width, this.height);
         this.ctx.stroke();
         this.ctx.fill();
-    };
-    Rect.prototype.clear = function () {
-        this.ctx.clearRect(this.position.x - this.strokewidth, this.position.y - this.strokewidth, this.position.x + this.width + this.strokewidth, this.position.y + this.height + this.strokewidth);
+        this.ctx.restore();
     };
     Rect.prototype.isPointInside = function (point) {
         return (point.x >= this.position.x &&
@@ -329,12 +330,10 @@ var Rect = /** @class */ (function (_super) {
     Rect.prototype.select = function () {
         this.originalStroke = this.stroke;
         this.stroke = 'orange';
-        this.draw();
         this.isSelected = true;
     };
     Rect.prototype.unSelect = function () {
         this.stroke = this.originalStroke;
-        this.draw();
         this.isSelected = false;
     };
     Rect.prototype.selected = function () {
@@ -369,21 +368,29 @@ var Unit = /** @class */ (function () {
             }
             this.velocity = this.position.calcVelocity(this.nextStep, this.speed);
         }
-        // Step is over
-        if (this.isPointInside(this.nextStep)) {
-            this.nextStep = null;
-        }
         this.position.x += this.velocity.x;
         this.position.y += this.velocity.y;
+        // If the position is closer less than a velocity unit, the next step will turn over position
+        if (Math.abs(this.position.x - this.nextStep.x) < this.velocity.x)
+            this.position.x = this.nextStep.x;
+        if (Math.abs(this.position.y - this.nextStep.y) < this.velocity.y)
+            this.position.y = this.nextStep.y;
+        // Step is over
+        if (this.isPointInside(this.nextStep))
+            this.nextStep = null;
     };
     Unit.prototype.isPointInside = function (other) {
-        // TODO: Make it in the circle/rect with allowable limits
         return this.position.x == other.x && this.position.y == other.y;
+        // The exact position, with offset for the velocity
+        return (this.position.x >= other.x - this.velocity.x &&
+            this.position.x <= other.x + this.velocity.x &&
+            this.position.y >= other.y - this.velocity.y &&
+            this.position.y <= other.y + this.velocity.y);
     };
     Unit.prototype.stop = function () {
         // Implement
     };
-    Unit.prototype.selected = function () {
+    Unit.prototype.isSelected = function () {
         return this.rect.selected();
     };
     Unit.prototype.draw = function () {

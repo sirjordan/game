@@ -208,13 +208,14 @@ class Game {
 
     private leftClick(args: MouseEvent): void {
         let mousePosition = new Point2d(args.clientX, args.clientY);
+        let selectable = this.objects.getSelectable();
 
         // Check if any selectable object is at the mouse click position
-        for (const obj of this.objects.getSelectable()) {
+        for (const obj of selectable) {
             if (obj.getRect().isPointInside(mousePosition)) {
-                if (!obj.selected()) {
+                if (!obj.isSelected()) {
                     // Unselect all other objects and reset the selection
-                    this.objects.getSelectable().forEach(el => {
+                    selectable.forEach(el => {
                         el.unSelect();
                     });
 
@@ -224,7 +225,7 @@ class Game {
                     break;
                 }
             } else {
-                if (obj.selected()) {
+                if (obj.isSelected()) {
                     obj.unSelect();
                 }
             }
@@ -237,7 +238,7 @@ class Game {
         // Move selected objects
         let mousePosition = new Point2d(args.clientX, args.clientY)
         this.objects.getUnits().forEach(u => {
-            if (u.selected()) {
+            if (u.isSelected()) {
                 let path = this.getPath(u.position, mousePosition);
                 u.loadMovements(path);
             }
@@ -278,7 +279,7 @@ interface IMovable extends IGameObject {
 }
 
 interface ISelectable extends IGameObject {
-    selected(): boolean;
+    isSelected(): boolean;
     select(): void;
     unSelect(): void;
     getRect(): Rect;
@@ -324,7 +325,7 @@ class Objects {
 
     update() {
         this.getUnits()
-            .filter(u => u.selected())
+            .filter(u => u.isSelected())
             .forEach(u => {
                 u.move();
             });
@@ -364,7 +365,6 @@ abstract class Shape implements IGameObject {
     }
 
     abstract draw(): void;
-    abstract clear(): void;
     abstract isPointInside(point: Point2d): boolean;
 }
 
@@ -388,6 +388,8 @@ class Rect extends Shape {
     }
 
     draw(): void {
+        // TODO: Draw isometric rect or circle
+        this.ctx.save();
         this.ctx.beginPath();
         this.ctx.fillStyle = this.fill;
         this.ctx.strokeStyle = this.stroke;
@@ -395,14 +397,7 @@ class Rect extends Shape {
         this.ctx.rect(this.position.x, this.position.y, this.width, this.height);
         this.ctx.stroke();
         this.ctx.fill();
-    }
-
-    clear(): void {
-        this.ctx.clearRect(
-            this.position.x - this.strokewidth,
-            this.position.y - this.strokewidth,
-            this.position.x + this.width + this.strokewidth,
-            this.position.y + this.height + this.strokewidth);
+        this.ctx.restore();
     }
 
     isPointInside(point: Point2d): boolean {
@@ -416,13 +411,11 @@ class Rect extends Shape {
     select(): void {
         this.originalStroke = this.stroke;
         this.stroke = 'orange';
-        this.draw();
         this.isSelected = true;
     }
 
     unSelect(): void {
         this.stroke = this.originalStroke;
-        this.draw();
         this.isSelected = false;
     }
 
@@ -459,7 +452,7 @@ class Unit implements ISelectable, IMovable {
             2);
     }
 
-    getRect(): Rect{
+    getRect(): Rect {
         return this.rect;
     }
 
@@ -483,25 +476,37 @@ class Unit implements ISelectable, IMovable {
             this.velocity = this.position.calcVelocity(this.nextStep, this.speed);
         }
 
-        // Step is over
-        if (this.isPointInside(this.nextStep)) {
-            this.nextStep = null;
-        }
-
         this.position.x += this.velocity.x;
         this.position.y += this.velocity.y;
+
+        // If the position is closer than a velocity unit, the next step will turn over position
+        if (Math.abs(this.position.x - this.nextStep.x) < this.velocity.x)
+            this.position.x = this.nextStep.x;
+
+        if (Math.abs(this.position.y - this.nextStep.y) < this.velocity.y)
+            this.position.y = this.nextStep.y;
+
+        // Step is over
+        if (this.isPointInside(this.nextStep))
+            this.nextStep = null;
     }
 
     isPointInside(other: Point2d) {
-        // TODO: Make it in the circle/rect with allowable limits
         return this.position.x == other.x && this.position.y == other.y;
+
+        // The exact position, with offset for the velocity
+        return (
+            this.position.x >= other.x - this.velocity.x &&
+            this.position.x <= other.x + this.velocity.x &&
+            this.position.y >= other.y - this.velocity.y &&
+            this.position.y <= other.y + this.velocity.y);
     }
 
     stop() {
         // Implement
     }
 
-    selected(): boolean {
+    isSelected(): boolean {
         return this.rect.selected();
     }
 
