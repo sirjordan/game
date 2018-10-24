@@ -74,7 +74,7 @@ class Terrain {
 
     public draw(camera: Point2d) {
         // Optimizing the draw() and render only if the camera changes its position
-        if (this.lastCamera && camera.x == this.lastCamera.x && camera.y == this.lastCamera.y) {
+        if (this.lastCamera && camera.x === this.lastCamera.x && camera.y === this.lastCamera.y) {
             return;
         }
 
@@ -442,14 +442,8 @@ class Unit implements ISelectable, IMovable {
         this.position = position;
         this.speed = speed;
         this.movementsQueue = new Array<Point2d>();
-        this.rect = new Rect(
-            ctx,
-            new Point2d((position.x - size.width / 2), (position.y - size.height / 2)),
-            size.width,
-            size.height,
-            'green',
-            'black',
-            2);
+        this.rect = new Rect(ctx, new Point2d(0, 0), size.width, size.height, 'green', 'black', 2);
+        this.positionRect();
     }
 
     getRect(): Rect {
@@ -463,7 +457,7 @@ class Unit implements ISelectable, IMovable {
     move() {
         if (!this.nextStep) {
             // Path is over
-            if (this.movementsQueue.length == 0)
+            if (this.movementsQueue.length === 0)
                 return;
 
             this.nextStep = this.movementsQueue.shift().clone();
@@ -476,15 +470,16 @@ class Unit implements ISelectable, IMovable {
             this.velocity = this.position.calcVelocity(this.nextStep, this.speed);
         }
 
-        this.position.x += this.velocity.x;
-        this.position.y += this.velocity.y;
+        this.position.add(this.velocity);
 
-        // If the position is closer than a velocity unit, the next step will turn over position
-        if (Math.abs(this.position.x - this.nextStep.x) < this.velocity.x)
+        // If the position is closer than a velocity unit, the next step will jump over the position
+        if (Math.abs(this.position.x - this.nextStep.x) < Math.abs(this.velocity.x))
             this.position.x = this.nextStep.x;
 
-        if (Math.abs(this.position.y - this.nextStep.y) < this.velocity.y)
+        if (Math.abs(this.position.y - this.nextStep.y) < Math.abs(this.velocity.y))
             this.position.y = this.nextStep.y;
+
+        this.positionRect();
 
         // Step is over
         if (this.isPointInside(this.nextStep))
@@ -492,14 +487,7 @@ class Unit implements ISelectable, IMovable {
     }
 
     isPointInside(other: Point2d) {
-        return this.position.x == other.x && this.position.y == other.y;
-
-        // The exact position, with offset for the velocity
-        return (
-            this.position.x >= other.x - this.velocity.x &&
-            this.position.x <= other.x + this.velocity.x &&
-            this.position.y >= other.y - this.velocity.y &&
-            this.position.y <= other.y + this.velocity.y);
+        return this.position.x === other.x && this.position.y === other.y;
     }
 
     stop() {
@@ -528,6 +516,10 @@ class Unit implements ISelectable, IMovable {
     unSelect(): void {
         this.rect.unSelect();
     }
+
+    private positionRect(): void {
+        this.rect.position = new Point2d((this.position.x - this.size.width / 2), (this.position.y - this.size.height / 2))
+    }
 }
 
 class Point2d {
@@ -553,6 +545,11 @@ class Point2d {
         let offsetY = Utils.lerp(this.y, other.y, delta) - this.y;
 
         return new Point2d(offsetX, offsetY);
+    }
+
+    add(point: Point2d): void {
+        this.x += point.x;
+        this.y += point.y;
     }
 }
 

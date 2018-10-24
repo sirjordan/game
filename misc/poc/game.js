@@ -75,7 +75,7 @@ var Terrain = /** @class */ (function () {
     };
     Terrain.prototype.draw = function (camera) {
         // Optimizing the draw() and render only if the camera changes its position
-        if (this.lastCamera && camera.x == this.lastCamera.x && camera.y == this.lastCamera.y) {
+        if (this.lastCamera && camera.x === this.lastCamera.x && camera.y === this.lastCamera.y) {
             return;
         }
         var maxRight = this.ctx.canvas.height;
@@ -348,7 +348,8 @@ var Unit = /** @class */ (function () {
         this.position = position;
         this.speed = speed;
         this.movementsQueue = new Array();
-        this.rect = new Rect(ctx, new Point2d((position.x - size.width / 2), (position.y - size.height / 2)), size.width, size.height, 'green', 'black', 2);
+        this.rect = new Rect(ctx, new Point2d(0, 0), size.width, size.height, 'green', 'black', 2);
+        this.positionRect();
     }
     Unit.prototype.getRect = function () {
         return this.rect;
@@ -359,7 +360,7 @@ var Unit = /** @class */ (function () {
     Unit.prototype.move = function () {
         if (!this.nextStep) {
             // Path is over
-            if (this.movementsQueue.length == 0)
+            if (this.movementsQueue.length === 0)
                 return;
             this.nextStep = this.movementsQueue.shift().clone();
             // First step in the movement queue is the current - skip it
@@ -368,24 +369,19 @@ var Unit = /** @class */ (function () {
             }
             this.velocity = this.position.calcVelocity(this.nextStep, this.speed);
         }
-        this.position.x += this.velocity.x;
-        this.position.y += this.velocity.y;
-        // If the position is closer less than a velocity unit, the next step will turn over position
-        if (Math.abs(this.position.x - this.nextStep.x) < this.velocity.x)
+        this.position.add(this.velocity);
+        // If the position is closer than a velocity unit, the next step will jump over the position
+        if (Math.abs(this.position.x - this.nextStep.x) < Math.abs(this.velocity.x))
             this.position.x = this.nextStep.x;
-        if (Math.abs(this.position.y - this.nextStep.y) < this.velocity.y)
+        if (Math.abs(this.position.y - this.nextStep.y) < Math.abs(this.velocity.y))
             this.position.y = this.nextStep.y;
+        this.positionRect();
         // Step is over
         if (this.isPointInside(this.nextStep))
             this.nextStep = null;
     };
     Unit.prototype.isPointInside = function (other) {
-        return this.position.x == other.x && this.position.y == other.y;
-        // The exact position, with offset for the velocity
-        return (this.position.x >= other.x - this.velocity.x &&
-            this.position.x <= other.x + this.velocity.x &&
-            this.position.y >= other.y - this.velocity.y &&
-            this.position.y <= other.y + this.velocity.y);
+        return this.position.x === other.x && this.position.y === other.y;
     };
     Unit.prototype.stop = function () {
         // Implement
@@ -408,6 +404,9 @@ var Unit = /** @class */ (function () {
     Unit.prototype.unSelect = function () {
         this.rect.unSelect();
     };
+    Unit.prototype.positionRect = function () {
+        this.rect.position = new Point2d((this.position.x - this.size.width / 2), (this.position.y - this.size.height / 2));
+    };
     return Unit;
 }());
 var Point2d = /** @class */ (function () {
@@ -426,6 +425,10 @@ var Point2d = /** @class */ (function () {
         var offsetX = Utils.lerp(this.x, other.x, delta) - this.x;
         var offsetY = Utils.lerp(this.y, other.y, delta) - this.y;
         return new Point2d(offsetX, offsetY);
+    };
+    Point2d.prototype.add = function (point) {
+        this.x += point.x;
+        this.y += point.y;
     };
     return Point2d;
 }());
