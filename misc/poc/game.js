@@ -1,3 +1,16 @@
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    }
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
 var Utils = /** @class */ (function () {
     function Utils() {
     }
@@ -100,11 +113,11 @@ var Terrain = /** @class */ (function () {
         // TODO: Move to object factory class
         switch (signature) {
             case 0:
-                return new Rect(this.ctx, position, this.rasterSize, this.rasterSize, 'green', 'black', 1);
+                return new Raster(this.ctx, position, this.rasterSize, this.rasterSize, 'green', 'black', 1);
             case 1:
-                return new Rect(this.ctx, position, this.rasterSize, this.rasterSize, 'gray', 'black', 1);
+                return new Raster(this.ctx, position, this.rasterSize, this.rasterSize, 'gray', 'black', 1);
             default:
-                return new Rect(this.ctx, position, this.rasterSize, this.rasterSize, 'black', 'black', 1);
+                return new Raster(this.ctx, position, this.rasterSize, this.rasterSize, 'black', 'black', 1);
         }
     };
     return Terrain;
@@ -171,7 +184,7 @@ var Game = /** @class */ (function () {
         }
     };
     Game.prototype.leftClick = function (args) {
-        var mousePosition = new Point2d(args.clientX, args.clientY);
+        var mousePosition = new Point2d(args.clientX, args.clientY).add(this.camera);
         var selectable = this.objects.getSelectable();
         // Check if any selectable object is at the mouse click position
         for (var _i = 0, selectable_1 = selectable; _i < selectable_1.length; _i++) {
@@ -198,7 +211,7 @@ var Game = /** @class */ (function () {
         var _this = this;
         args.preventDefault();
         // Move selected objects
-        var mousePosition = new Point2d(args.clientX, args.clientY);
+        var mousePosition = new Point2d(args.clientX, args.clientY).add(this.camera);
         this.objects.getUnits().forEach(function (u) {
             if (u.isSelected()) {
                 var path = _this.getPath(u.position, mousePosition);
@@ -287,9 +300,54 @@ var Rect = /** @class */ (function () {
         this.fill = fill;
         this.stroke = stroke;
         this.strokewidth = strokewidth;
-        this.isSelected = false;
     }
-    Rect.prototype.draw = function (camera) {
+    Rect.prototype.isPointInside = function (point) {
+        return (point.x >= this.position.x &&
+            point.x <= this.position.x + this.width &&
+            point.y >= this.position.y &&
+            point.y <= this.position.y + this.height);
+    };
+    return Rect;
+}());
+var Raster = /** @class */ (function (_super) {
+    __extends(Raster, _super);
+    function Raster() {
+        return _super !== null && _super.apply(this, arguments) || this;
+    }
+    Raster.prototype.draw = function (camera) {
+        this.ctx.save();
+        this.ctx.beginPath();
+        this.ctx.fillStyle = this.fill;
+        this.ctx.strokeStyle = this.stroke;
+        this.ctx.lineWidth = this.strokewidth;
+        this.ctx.rect(this.position.x, this.position.y, this.width, this.height);
+        this.ctx.stroke();
+        this.ctx.fill();
+        this.ctx.restore();
+    };
+    return Raster;
+}(Rect));
+var SelectRect = /** @class */ (function (_super) {
+    __extends(SelectRect, _super);
+    function SelectRect() {
+        return _super !== null && _super.apply(this, arguments) || this;
+    }
+    SelectRect.prototype.isSelected = function () {
+        return this._isSelected;
+    };
+    SelectRect.prototype.select = function () {
+        this.originalStroke = this.stroke;
+        this.stroke = 'orange';
+        this._isSelected = true;
+    };
+    SelectRect.prototype.unSelect = function () {
+        this.stroke = this.originalStroke;
+        this._isSelected = false;
+    };
+    SelectRect.prototype.getRect = function () {
+        return this;
+    };
+    SelectRect.prototype.draw = function (camera) {
         // TODO: Draw isometric rect or circle
         this.ctx.save();
         this.ctx.beginPath();
@@ -301,26 +359,61 @@ var Rect = /** @class */ (function () {
         this.ctx.fill();
         this.ctx.restore();
     };
-    Rect.prototype.isPointInside = function (point) {
-        return (point.x >= this.position.x &&
-            point.x <= this.position.x + this.width &&
-            point.y >= this.position.y &&
-            point.y <= this.position.y + this.height);
-    };
-    Rect.prototype.select = function () {
-        this.originalStroke = this.stroke;
-        this.stroke = 'orange';
-        this.isSelected = true;
-    };
-    Rect.prototype.unSelect = function () {
-        this.stroke = this.originalStroke;
-        this.isSelected = false;
-    };
-    Rect.prototype.selected = function () {
-        return this.isSelected;
-    };
-    return Rect;
-}());
+    return SelectRect;
+}(Rect));
+// class _Rect implements IGameObject {
+//     // TODO: Split this into SelectableRect for and TerrainRect
+//     public position: Point2d;
+//     private ctx: CanvasRenderingContext2D;
+//     private originalStroke: string;
+//     private isSelected: boolean
+//     private width: number;
+//     private height: number;
+//     private fill: string;
+//     private stroke: string;
+//     private strokewidth: number;
+//     constructor(ctx: CanvasRenderingContext2D, topLeft: Point2d, width: number, height: number, fill: string, stroke: string, strokewidth: number) {
+//         this.ctx = ctx;
+//         this.position = topLeft;
+//         this.width = width;
+//         this.height = height;
+//         this.fill = fill;
+//         this.stroke = stroke;
+//         this.strokewidth = strokewidth;
+//         this.isSelected = false;
+//     }
+//     draw(camera: Point2d): void {
+//         // TODO: Draw isometric rect or circle
+//         this.ctx.save();
+//         this.ctx.beginPath();
+//         this.ctx.fillStyle = this.fill;
+//         this.ctx.strokeStyle = this.stroke;
+//         this.ctx.lineWidth = this.strokewidth;
+//         this.ctx.rect(this.position.x - camera.x, this.position.y - camera.y, this.width, this.height);
+//         this.ctx.stroke();
+//         this.ctx.fill();
+//         this.ctx.restore();
+//     }
+//     isPointInside(point: Point2d): boolean {
+//         return (
+//             point.x >= this.position.x &&
+//             point.x <= this.position.x + this.width &&
+//             point.y >= this.position.y &&
+//             point.y <= this.position.y + this.height);
+//     }
+//     select(): void {
+//         this.originalStroke = this.stroke;
+//         this.stroke = 'orange';
+//         this.isSelected = true;
+//     }
+//     unSelect(): void {
+//         this.stroke = this.originalStroke;
+//         this.isSelected = false;
+//     }
+//     selected(): boolean {
+//         return this.isSelected;
+//     }
+// }
 var Unit = /** @class */ (function () {
     function Unit(ctx, position, size, speed) {
         this.ctx = ctx;
@@ -328,7 +421,7 @@ var Unit = /** @class */ (function () {
         this.position = position;
         this.speed = speed;
         this.movementsQueue = new Array();
-        this.rect = new Rect(ctx, new Point2d(0, 0), size.width, size.height, 'green', 'black', 2);
+        this.rect = new SelectRect(ctx, new Point2d(0, 0), size.width, size.height, 'green', 'black', 2);
         this.positionRect();
     }
     Unit.prototype.getRect = function () {
@@ -367,7 +460,7 @@ var Unit = /** @class */ (function () {
         // Implement
     };
     Unit.prototype.isSelected = function () {
-        return this.rect.selected();
+        return this.rect.isSelected();
     };
     Unit.prototype.draw = function (camera) {
         this.rect.draw(camera);
@@ -409,6 +502,12 @@ var Point2d = /** @class */ (function () {
     Point2d.prototype.add = function (point) {
         this.x += point.x;
         this.y += point.y;
+        return this;
+    };
+    Point2d.prototype.substract = function (point) {
+        this.x -= point.x;
+        this.y -= point.y;
+        return this;
     };
     return Point2d;
 }());

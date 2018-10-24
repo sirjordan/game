@@ -117,15 +117,15 @@ class Terrain {
         this.lastCamera = camera.clone();
     }
 
-    private createTerrainObject(signature: number, position: Point2d): Rect {
+    private createTerrainObject(signature: number, position: Point2d): Raster {
         // TODO: Move to object factory class
         switch (signature) {
             case 0:
-                return new Rect(this.ctx, position, this.rasterSize, this.rasterSize, 'green', 'black', 1);
+                return new Raster(this.ctx, position, this.rasterSize, this.rasterSize, 'green', 'black', 1);
             case 1:
-                return new Rect(this.ctx, position, this.rasterSize, this.rasterSize, 'gray', 'black', 1);
+                return new Raster(this.ctx, position, this.rasterSize, this.rasterSize, 'gray', 'black', 1);
             default:
-                return new Rect(this.ctx, position, this.rasterSize, this.rasterSize, 'black', 'black', 1);
+                return new Raster(this.ctx, position, this.rasterSize, this.rasterSize, 'black', 'black', 1);
         }
     }
 }
@@ -208,7 +208,7 @@ class Game {
     }
 
     private leftClick(args: MouseEvent): void {
-        let mousePosition = new Point2d(args.clientX, args.clientY);
+        let mousePosition = new Point2d(args.clientX, args.clientY).add(this.camera);
         let selectable = this.objects.getSelectable();
 
         // Check if any selectable object is at the mouse click position
@@ -237,7 +237,7 @@ class Game {
         args.preventDefault();
 
         // Move selected objects
-        let mousePosition = new Point2d(args.clientX, args.clientY)
+        let mousePosition = new Point2d(args.clientX, args.clientY).add(this.camera);
         this.objects.getUnits().forEach(u => {
             if (u.isSelected()) {
                 let path = this.getPath(u.position, mousePosition);
@@ -283,7 +283,7 @@ interface ISelectable extends IGameObject {
     isSelected(): boolean;
     select(): void;
     unSelect(): void;
-    getRect(): Rect;
+    getRect(): SelectRect;
 }
 
 class Objects {
@@ -356,17 +356,14 @@ class ObjectFactory {
     }
 }
 
-class Rect implements IGameObject {
-    // TODO: Split this into SelectableRect for and TerrainRect
+abstract class Rect implements IGameObject {
     public position: Point2d;
-    private ctx: CanvasRenderingContext2D;
-    private originalStroke: string;
-    private isSelected: boolean
-    private width: number;
-    private height: number;
-    private fill: string;
-    private stroke: string;
-    private strokewidth: number;
+    protected ctx: CanvasRenderingContext2D;
+    protected width: number;
+    protected height: number;
+    protected fill: string;
+    protected stroke: string;
+    protected strokewidth: number;
 
     constructor(ctx: CanvasRenderingContext2D, topLeft: Point2d, width: number, height: number, fill: string, stroke: string, strokewidth: number) {
         this.ctx = ctx;
@@ -376,7 +373,54 @@ class Rect implements IGameObject {
         this.fill = fill;
         this.stroke = stroke;
         this.strokewidth = strokewidth;
-        this.isSelected = false;
+    }
+
+    abstract draw(camera: Point2d): void;
+
+    isPointInside(point: Point2d): boolean {
+        return (
+            point.x >= this.position.x &&
+            point.x <= this.position.x + this.width &&
+            point.y >= this.position.y &&
+            point.y <= this.position.y + this.height);
+    }
+}
+
+class Raster extends Rect {
+    draw(camera: Point2d): void {
+        this.ctx.save();
+        this.ctx.beginPath();
+        this.ctx.fillStyle = this.fill;
+        this.ctx.strokeStyle = this.stroke;
+        this.ctx.lineWidth = this.strokewidth;
+        this.ctx.rect(this.position.x, this.position.y, this.width, this.height);
+        this.ctx.stroke();
+        this.ctx.fill();
+        this.ctx.restore();
+    }
+}
+
+class SelectRect extends Rect implements ISelectable {
+    private _isSelected: boolean
+    private originalStroke: string;
+
+    isSelected(): boolean {
+        return this._isSelected;
+    }
+
+    select(): void {
+        this.originalStroke = this.stroke;
+        this.stroke = 'orange';
+        this._isSelected = true;
+    }
+
+    unSelect(): void {
+        this.stroke = this.originalStroke;
+        this._isSelected = false;
+    }
+
+    getRect(): SelectRect {
+        return this;
     }
 
     draw(camera: Point2d): void {
@@ -391,29 +435,6 @@ class Rect implements IGameObject {
         this.ctx.fill();
         this.ctx.restore();
     }
-
-    isPointInside(point: Point2d): boolean {
-        return (
-            point.x >= this.position.x &&
-            point.x <= this.position.x + this.width &&
-            point.y >= this.position.y &&
-            point.y <= this.position.y + this.height);
-    }
-
-    select(): void {
-        this.originalStroke = this.stroke;
-        this.stroke = 'orange';
-        this.isSelected = true;
-    }
-
-    unSelect(): void {
-        this.stroke = this.originalStroke;
-        this.isSelected = false;
-    }
-
-    selected(): boolean {
-        return this.isSelected;
-    }
 }
 
 class Unit implements ISelectable, IMovable {
@@ -426,7 +447,7 @@ class Unit implements ISelectable, IMovable {
     // Centered position of the unit
     public position: Point2d;
     // The unit's base rect
-    private rect: Rect;
+    private rect: SelectRect;
 
     constructor(ctx: CanvasRenderingContext2D, position: Point2d, size: Size, speed: number) {
         this.ctx = ctx;
@@ -434,11 +455,11 @@ class Unit implements ISelectable, IMovable {
         this.position = position;
         this.speed = speed;
         this.movementsQueue = new Array<Point2d>();
-        this.rect = new Rect(ctx, new Point2d(0, 0), size.width, size.height, 'green', 'black', 2);
+        this.rect = new SelectRect(ctx, new Point2d(0, 0), size.width, size.height, 'green', 'black', 2);
         this.positionRect();
     }
 
-    getRect(): Rect {
+    getRect(): SelectRect {
         return this.rect;
     }
 
@@ -487,7 +508,7 @@ class Unit implements ISelectable, IMovable {
     }
 
     isSelected(): boolean {
-        return this.rect.selected();
+        return this.rect.isSelected();
     }
 
     draw(camera: Point2d): void {
@@ -539,9 +560,18 @@ class Point2d {
         return new Point2d(offsetX, offsetY);
     }
 
-    add(point: Point2d): void {
+    add(point: Point2d): Point2d {
         this.x += point.x;
         this.y += point.y;
+
+        return this;
+    }
+
+    substract(point: Point2d): Point2d {
+        this.x -= point.x;
+        this.y -= point.y;
+
+        return this;
     }
 }
 
