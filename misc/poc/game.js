@@ -1,16 +1,3 @@
-var __extends = (this && this.__extends) || (function () {
-    var extendStatics = function (d, b) {
-        extendStatics = Object.setPrototypeOf ||
-            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-        return extendStatics(d, b);
-    }
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
 var Utils = /** @class */ (function () {
     function Utils() {
     }
@@ -98,7 +85,7 @@ var Terrain = /** @class */ (function () {
                     break;
                 var el = this.map.objects[row][col];
                 var terrainObject = this.createTerrainObject(el, pos);
-                terrainObject.draw();
+                terrainObject.draw(camera);
                 col++;
                 pos.x = startPos.x + (j * this.rasterSize);
             }
@@ -110,6 +97,7 @@ var Terrain = /** @class */ (function () {
         this.lastCamera = camera.clone();
     };
     Terrain.prototype.createTerrainObject = function (signature, position) {
+        // TODO: Move to object factory class
         switch (signature) {
             case 0:
                 return new Rect(this.ctx, position, this.rasterSize, this.rasterSize, 'green', 'black', 1);
@@ -274,7 +262,7 @@ var Objects = /** @class */ (function () {
     Objects.prototype.draw = function (camera) {
         this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
         this.getAll().forEach(function (el) {
-            el.draw();
+            el.draw(camera);
         });
         // TODO: Optimize: Draw only objects in the visible area
     };
@@ -290,33 +278,25 @@ var ObjectFactory = /** @class */ (function () {
     };
     return ObjectFactory;
 }());
-var Shape = /** @class */ (function () {
-    function Shape(ctx, position) {
-        this.ctx = ctx;
-        this.position = position;
-    }
-    return Shape;
-}());
-var Rect = /** @class */ (function (_super) {
-    __extends(Rect, _super);
+var Rect = /** @class */ (function () {
     function Rect(ctx, topLeft, width, height, fill, stroke, strokewidth) {
-        var _this = _super.call(this, ctx, topLeft) || this;
-        _this.width = width;
-        _this.height = height;
-        _this.fill = fill;
-        _this.stroke = stroke;
-        _this.strokewidth = strokewidth;
-        _this.isSelected = false;
-        return _this;
+        this.ctx = ctx;
+        this.position = topLeft;
+        this.width = width;
+        this.height = height;
+        this.fill = fill;
+        this.stroke = stroke;
+        this.strokewidth = strokewidth;
+        this.isSelected = false;
     }
-    Rect.prototype.draw = function () {
+    Rect.prototype.draw = function (camera) {
         // TODO: Draw isometric rect or circle
         this.ctx.save();
         this.ctx.beginPath();
         this.ctx.fillStyle = this.fill;
         this.ctx.strokeStyle = this.stroke;
         this.ctx.lineWidth = this.strokewidth;
-        this.ctx.rect(this.position.x, this.position.y, this.width, this.height);
+        this.ctx.rect(this.position.x - camera.x, this.position.y - camera.y, this.width, this.height);
         this.ctx.stroke();
         this.ctx.fill();
         this.ctx.restore();
@@ -340,7 +320,7 @@ var Rect = /** @class */ (function (_super) {
         return this.isSelected;
     };
     return Rect;
-}(Shape));
+}());
 var Unit = /** @class */ (function () {
     function Unit(ctx, position, size, speed) {
         this.ctx = ctx;
@@ -389,10 +369,10 @@ var Unit = /** @class */ (function () {
     Unit.prototype.isSelected = function () {
         return this.rect.selected();
     };
-    Unit.prototype.draw = function () {
-        this.rect.draw();
+    Unit.prototype.draw = function (camera) {
+        this.rect.draw(camera);
         this.ctx.beginPath();
-        this.ctx.arc(this.position.x, this.position.y, this.size.height / 2, 0, 2 * Math.PI);
+        this.ctx.arc(this.position.x - camera.x, this.position.y - camera.y, this.size.height / 2, 0, 2 * Math.PI);
         this.ctx.lineWidth = 1;
         this.ctx.fillStyle = 'red';
         this.ctx.fill();

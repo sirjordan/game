@@ -102,7 +102,7 @@ class Terrain {
 
                 let el = this.map.objects[row][col];
                 let terrainObject = this.createTerrainObject(el, pos);
-                terrainObject.draw();
+                terrainObject.draw(camera);
 
                 col++;
                 pos.x = startPos.x + (j * this.rasterSize);
@@ -118,6 +118,7 @@ class Terrain {
     }
 
     private createTerrainObject(signature: number, position: Point2d): Rect {
+        // TODO: Move to object factory class
         switch (signature) {
             case 0:
                 return new Rect(this.ctx, position, this.rasterSize, this.rasterSize, 'green', 'black', 1);
@@ -268,7 +269,7 @@ class Game {
 
 interface IGameObject {
     position: Point2d;
-    draw(): void;
+    draw(camera: Point2d): void;
     isPointInside(point: Point2d): boolean;
 }
 
@@ -335,7 +336,7 @@ class Objects {
     draw(camera: Point2d) {
         this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
         this.getAll().forEach(el => {
-            el.draw();
+            el.draw(camera);
         });
 
         // TODO: Optimize: Draw only objects in the visible area
@@ -355,20 +356,10 @@ class ObjectFactory {
     }
 }
 
-abstract class Shape implements IGameObject {
-    protected ctx: CanvasRenderingContext2D;
+class Rect implements IGameObject {
+    // TODO: Split this into SelectableRect for and TerrainRect
     public position: Point2d;
-
-    constructor(ctx: CanvasRenderingContext2D, position: Point2d) {
-        this.ctx = ctx;
-        this.position = position;
-    }
-
-    abstract draw(): void;
-    abstract isPointInside(point: Point2d): boolean;
-}
-
-class Rect extends Shape {
+    private ctx: CanvasRenderingContext2D;
     private originalStroke: string;
     private isSelected: boolean
     private width: number;
@@ -378,7 +369,8 @@ class Rect extends Shape {
     private strokewidth: number;
 
     constructor(ctx: CanvasRenderingContext2D, topLeft: Point2d, width: number, height: number, fill: string, stroke: string, strokewidth: number) {
-        super(ctx, topLeft);
+        this.ctx = ctx;
+        this.position = topLeft;
         this.width = width;
         this.height = height;
         this.fill = fill;
@@ -387,14 +379,14 @@ class Rect extends Shape {
         this.isSelected = false;
     }
 
-    draw(): void {
+    draw(camera: Point2d): void {
         // TODO: Draw isometric rect or circle
         this.ctx.save();
         this.ctx.beginPath();
         this.ctx.fillStyle = this.fill;
         this.ctx.strokeStyle = this.stroke;
         this.ctx.lineWidth = this.strokewidth;
-        this.ctx.rect(this.position.x, this.position.y, this.width, this.height);
+        this.ctx.rect(this.position.x - camera.x, this.position.y - camera.y, this.width, this.height);
         this.ctx.stroke();
         this.ctx.fill();
         this.ctx.restore();
@@ -498,11 +490,11 @@ class Unit implements ISelectable, IMovable {
         return this.rect.selected();
     }
 
-    draw(): void {
-        this.rect.draw();
+    draw(camera: Point2d): void {
+        this.rect.draw(camera);
 
         this.ctx.beginPath();
-        this.ctx.arc(this.position.x, this.position.y, this.size.height / 2, 0, 2 * Math.PI);
+        this.ctx.arc(this.position.x - camera.x, this.position.y - camera.y, this.size.height / 2, 0, 2 * Math.PI);
         this.ctx.lineWidth = 1;
         this.ctx.fillStyle = 'red';
         this.ctx.fill();
