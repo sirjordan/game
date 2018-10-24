@@ -65,10 +65,11 @@ var Map = /** @class */ (function () {
     return Map;
 }());
 var Terrain = /** @class */ (function () {
-    function Terrain(ctx, map) {
+    function Terrain(ctx, map, objectsFactory) {
         this.ctx = ctx;
         this.rasterSize = 50; // TODO: Take it based on the client display resolution
         this.map = map;
+        this.objectsFactory = objectsFactory;
     }
     Terrain.prototype.maxSize = function () {
         return new Size(this.map.objects[0].length * this.rasterSize, this.map.objects.length * this.rasterSize);
@@ -96,8 +97,8 @@ var Terrain = /** @class */ (function () {
                 // No more map columns
                 if (!(this.map.objects[row][col] >= 0))
                     break;
-                var el = this.map.objects[row][col];
-                var terrainObject = this.createTerrainObject(el, pos);
+                var rasterCode = this.map.objects[row][col];
+                var terrainObject = this.objectsFactory.create(rasterCode, pos, this.rasterSize);
                 terrainObject.draw(camera);
                 col++;
                 pos.x = startPos.x + (j * this.rasterSize);
@@ -108,17 +109,6 @@ var Terrain = /** @class */ (function () {
             pos.y = startPos.y + (i * this.rasterSize);
         }
         this.lastCamera = camera.clone();
-    };
-    Terrain.prototype.createTerrainObject = function (signature, position) {
-        // TODO: Move to object factory class
-        switch (signature) {
-            case 0:
-                return new Raster(this.ctx, position, this.rasterSize, this.rasterSize, 'green', 'black', 1);
-            case 1:
-                return new Raster(this.ctx, position, this.rasterSize, this.rasterSize, 'gray', 'black', 1);
-            default:
-                return new Raster(this.ctx, position, this.rasterSize, this.rasterSize, 'black', 'black', 1);
-        }
     };
     return Terrain;
 }());
@@ -152,18 +142,19 @@ var Game = /** @class */ (function () {
     }
     Game.prototype.start = function () {
         var bgCtx = this.bgLayer.getContext('2d');
+        var terrainObjectsFactory = new TerrainObjectsFactory(bgCtx);
         var map = new Map();
-        this.terrain = new Terrain(bgCtx, map);
+        this.terrain = new Terrain(bgCtx, map, terrainObjectsFactory);
         var gameCtx = this.gameLayer.getContext("2d");
-        var factory = new ObjectFactory(gameCtx);
-        this.objects.add(factory.baseUnit(new Point2d(50, 50)));
-        this.objects.add(factory.baseUnit(new Point2d(100, 100)));
+        var unitFactory = new UnitFactory(gameCtx);
+        this.objects.add(unitFactory.baseUnit(new Point2d(50, 50)));
+        this.objects.add(unitFactory.baseUnit(new Point2d(100, 100)));
         this.update();
     };
     ;
     Game.prototype.keyPress = function (ev) {
         // TODO: Replace the key with some other
-        var cameraSpeed = 5;
+        var cameraSpeed = 15;
         switch (ev.key) {
             case 'd':
                 if (this.camera.x + this.stageMax.width < this.terrain.maxSize().width)
@@ -281,15 +272,30 @@ var Objects = /** @class */ (function () {
     };
     return Objects;
 }());
-var ObjectFactory = /** @class */ (function () {
-    function ObjectFactory(ctx) {
+var TerrainObjectsFactory = /** @class */ (function () {
+    function TerrainObjectsFactory(ctx) {
         this.ctx = ctx;
     }
-    ObjectFactory.prototype.baseUnit = function (position) {
-        var u = new Unit(this.ctx, position, new Size(20, 20), 3);
-        return u;
+    TerrainObjectsFactory.prototype.create = function (rasterCode, position, size) {
+        switch (rasterCode) {
+            case 0:
+                return new Raster(this.ctx, position, size, size, 'green', 'black', 1);
+            case 1:
+                return new Raster(this.ctx, position, size, size, 'gray', 'black', 1);
+            default:
+                return new Raster(this.ctx, position, size, size, 'black', 'black', 1);
+        }
     };
-    return ObjectFactory;
+    return TerrainObjectsFactory;
+}());
+var UnitFactory = /** @class */ (function () {
+    function UnitFactory(ctx) {
+        this.ctx = ctx;
+    }
+    UnitFactory.prototype.baseUnit = function (position) {
+        return new Unit(this.ctx, position, new Size(20, 20), 3);
+    };
+    return UnitFactory;
 }());
 var Rect = /** @class */ (function () {
     function Rect(ctx, topLeft, width, height, fill, stroke, strokewidth) {
@@ -361,59 +367,6 @@ var SelectRect = /** @class */ (function (_super) {
     };
     return SelectRect;
 }(Rect));
-// class _Rect implements IGameObject {
-//     // TODO: Split this into SelectableRect for and TerrainRect
-//     public position: Point2d;
-//     private ctx: CanvasRenderingContext2D;
-//     private originalStroke: string;
-//     private isSelected: boolean
-//     private width: number;
-//     private height: number;
-//     private fill: string;
-//     private stroke: string;
-//     private strokewidth: number;
-//     constructor(ctx: CanvasRenderingContext2D, topLeft: Point2d, width: number, height: number, fill: string, stroke: string, strokewidth: number) {
-//         this.ctx = ctx;
-//         this.position = topLeft;
-//         this.width = width;
-//         this.height = height;
-//         this.fill = fill;
-//         this.stroke = stroke;
-//         this.strokewidth = strokewidth;
-//         this.isSelected = false;
-//     }
-//     draw(camera: Point2d): void {
-//         // TODO: Draw isometric rect or circle
-//         this.ctx.save();
-//         this.ctx.beginPath();
-//         this.ctx.fillStyle = this.fill;
-//         this.ctx.strokeStyle = this.stroke;
-//         this.ctx.lineWidth = this.strokewidth;
-//         this.ctx.rect(this.position.x - camera.x, this.position.y - camera.y, this.width, this.height);
-//         this.ctx.stroke();
-//         this.ctx.fill();
-//         this.ctx.restore();
-//     }
-//     isPointInside(point: Point2d): boolean {
-//         return (
-//             point.x >= this.position.x &&
-//             point.x <= this.position.x + this.width &&
-//             point.y >= this.position.y &&
-//             point.y <= this.position.y + this.height);
-//     }
-//     select(): void {
-//         this.originalStroke = this.stroke;
-//         this.stroke = 'orange';
-//         this.isSelected = true;
-//     }
-//     unSelect(): void {
-//         this.stroke = this.originalStroke;
-//         this.isSelected = false;
-//     }
-//     selected(): boolean {
-//         return this.isSelected;
-//     }
-// }
 var Unit = /** @class */ (function () {
     function Unit(ctx, position, size, speed) {
         this.ctx = ctx;

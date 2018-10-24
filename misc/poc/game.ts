@@ -61,11 +61,13 @@ class Terrain {
     private map: Map;
     // Used to remember the last camera position
     private lastCamera: Point2d;
+    private objectsFactory: TerrainObjectsFactory;
 
-    constructor(ctx: CanvasRenderingContext2D, map: Map, ) {
+    constructor(ctx: CanvasRenderingContext2D, map: Map, objectsFactory: TerrainObjectsFactory) {
         this.ctx = ctx;
         this.rasterSize = 50;   // TODO: Take it based on the client display resolution
         this.map = map;
+        this.objectsFactory = objectsFactory;
     }
 
     public maxSize(): Size {
@@ -100,8 +102,9 @@ class Terrain {
                 // No more map columns
                 if (!(this.map.objects[row][col] >= 0)) break;
 
-                let el = this.map.objects[row][col];
-                let terrainObject = this.createTerrainObject(el, pos);
+                let rasterCode = this.map.objects[row][col];
+                let terrainObject = this.objectsFactory.create(rasterCode, pos, this.rasterSize);
+
                 terrainObject.draw(camera);
 
                 col++;
@@ -115,18 +118,6 @@ class Terrain {
         }
 
         this.lastCamera = camera.clone();
-    }
-
-    private createTerrainObject(signature: number, position: Point2d): Raster {
-        // TODO: Move to object factory class
-        switch (signature) {
-            case 0:
-                return new Raster(this.ctx, position, this.rasterSize, this.rasterSize, 'green', 'black', 1);
-            case 1:
-                return new Raster(this.ctx, position, this.rasterSize, this.rasterSize, 'gray', 'black', 1);
-            default:
-                return new Raster(this.ctx, position, this.rasterSize, this.rasterSize, 'black', 'black', 1);
-        }
     }
 }
 
@@ -162,14 +153,15 @@ class Game {
 
     public start(): void {
         let bgCtx = this.bgLayer.getContext('2d');
+        let terrainObjectsFactory = new TerrainObjectsFactory(bgCtx);
         let map = new Map();
-        this.terrain = new Terrain(bgCtx, map);
+        this.terrain = new Terrain(bgCtx, map, terrainObjectsFactory);
 
         let gameCtx = this.gameLayer.getContext("2d");
-        let factory = new ObjectFactory(gameCtx);
+        let unitFactory = new UnitFactory(gameCtx);
 
-        this.objects.add(factory.baseUnit(new Point2d(50, 50)));
-        this.objects.add(factory.baseUnit(new Point2d(100, 100)));
+        this.objects.add(unitFactory.baseUnit(new Point2d(50, 50)));
+        this.objects.add(unitFactory.baseUnit(new Point2d(100, 100)));
 
         this.update();
     };
@@ -185,7 +177,7 @@ class Game {
     private keyPress(ev: KeyboardEvent): void {
         // TODO: Replace the key with some other
 
-        let cameraSpeed = 5;
+        let cameraSpeed = 15;
 
         switch (ev.key) {
             case 'd':
@@ -343,7 +335,26 @@ class Objects {
     }
 }
 
-class ObjectFactory {
+class TerrainObjectsFactory {
+    private ctx: CanvasRenderingContext2D;
+
+    constructor(ctx: CanvasRenderingContext2D) {
+        this.ctx = ctx;
+    }
+
+    create(rasterCode: number, position: Point2d, size: number): Raster {
+        switch (rasterCode) {
+            case 0:
+                return new Raster(this.ctx, position, size, size, 'green', 'black', 1);
+            case 1:
+                return new Raster(this.ctx, position, size, size, 'gray', 'black', 1);
+            default:
+                return new Raster(this.ctx, position, size, size, 'black', 'black', 1);
+        }
+    }
+}
+
+class UnitFactory {
     private ctx: CanvasRenderingContext2D;
 
     constructor(ctx: CanvasRenderingContext2D) {
@@ -351,8 +362,7 @@ class ObjectFactory {
     }
 
     baseUnit(position: Point2d): Unit {
-        let u = new Unit(this.ctx, position, new Size(20, 20), 3);
-        return u;
+        return new Unit(this.ctx, position, new Size(20, 20), 3);
     }
 }
 
@@ -438,16 +448,16 @@ class SelectRect extends Rect implements ISelectable {
 }
 
 class Unit implements ISelectable, IMovable {
+    // Centered position of the unit
+    public position: Point2d;
+    // The unit's base rect
+    private rect: SelectRect;
     private ctx: CanvasRenderingContext2D;
     private size: Size;
     private movementsQueue: Array<Point2d>;
     private nextStep: Point2d;
     private velocity: Point2d;
     private speed: number;
-    // Centered position of the unit
-    public position: Point2d;
-    // The unit's base rect
-    private rect: SelectRect;
 
     constructor(ctx: CanvasRenderingContext2D, position: Point2d, size: Size, speed: number) {
         this.ctx = ctx;
