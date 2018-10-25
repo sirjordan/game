@@ -16,43 +16,41 @@
             position: absolute;
         }
 
+        .panel {
+            background-color: #20262e;
+            position: fixed;
+        }
+
         #top-panel {
-            z-index: 4;
+            z-index: 20;
             width: 100%;
             height: 20px;
-            position: fixed;
             top: 0;
             border-bottom: 1px solid #2d333b;
         }
 
         #right-panel {
-            z-index: 3;
+            z-index: 15;
             width: 225px;
             height: 100%;
-            position: fixed;
             right: 0;
             border-left: 1px solid #2d333b;
         }
 
         #bottom-panel {
-            z-index: 3;
+            z-index: 15;
             height: 150px;
             width: 100%;
-            position: fixed;
             bottom: 0;
             border-top: 1px solid #2d333b;
         }
 
         #game-layer {
-            z-index: 2;
+            z-index: 10;
         }
 
         #background-layer {
-            z-index: 1;
-            background-color: #20262e;
-        }
-
-        .panel {
+            z-index: 5;
             background-color: #20262e;
         }
     </style>
