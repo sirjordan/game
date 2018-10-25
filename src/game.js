@@ -18,6 +18,7 @@ var Utils = /** @class */ (function () {
         return v0 + t * (v1 - v0);
     };
     Utils.calcCanvasSize = function (rightPanel, bottomPanel) {
+        var x = "";
         var rightPanelOffset = this.calcOffset(rightPanel);
         var bottomPanelOffset = this.calcOffset(bottomPanel);
         return new Size(rightPanelOffset.left, bottomPanelOffset.top);
