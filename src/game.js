@@ -18,7 +18,6 @@ var Utils = /** @class */ (function () {
         return v0 + t * (v1 - v0);
     };
     Utils.calcCanvasSize = function (rightPanel, bottomPanel) {
-        var x = "";
         var rightPanelOffset = this.calcOffset(rightPanel);
         var bottomPanelOffset = this.calcOffset(bottomPanel);
         return new Size(rightPanelOffset.left, bottomPanelOffset.top);
@@ -280,11 +279,11 @@ var TerrainObjectsFactory = /** @class */ (function () {
     TerrainObjectsFactory.prototype.create = function (rasterCode, position, size) {
         switch (rasterCode) {
             case 0:
-                return new Raster(this.ctx, position, size, size, 'green', 'black', 1);
+                return new Raster(this.ctx, position, new Size(size, size), 'green', 'black', 1);
             case 1:
-                return new Raster(this.ctx, position, size, size, 'gray', 'black', 1);
+                return new Raster(this.ctx, position, new Size(size, size), 'gray', 'black', 1);
             default:
-                return new Raster(this.ctx, position, size, size, 'black', 'black', 1);
+                return new Raster(this.ctx, position, new Size(size, size), 'black', 'black', 1);
         }
     };
     return TerrainObjectsFactory;
@@ -299,23 +298,37 @@ var UnitFactory = /** @class */ (function () {
     return UnitFactory;
 }());
 var Rect = /** @class */ (function () {
-    function Rect(ctx, topLeft, width, height, fill, stroke, strokewidth) {
+    function Rect(ctx, topLeft, size, fill, stroke, strokewidth) {
         this.ctx = ctx;
         this.position = topLeft;
-        this.width = width;
-        this.height = height;
+        //this.width = width;
+        //this.height = height;
+        this.size = size;
         this.fill = fill;
         this.stroke = stroke;
         this.strokewidth = strokewidth;
     }
     Rect.prototype.isPointInside = function (point) {
         return (point.x >= this.position.x &&
-            point.x <= this.position.x + this.width &&
+            point.x <= this.position.x + this.size.width &&
             point.y >= this.position.y &&
-            point.y <= this.position.y + this.height);
+            point.y <= this.position.y + this.size.height);
     };
     return Rect;
 }());
+var MapProjection = /** @class */ (function (_super) {
+    __extends(MapProjection, _super);
+    function MapProjection() {
+        return _super !== null && _super.apply(this, arguments) || this;
+    }
+    /// Projected map as an interactive component
+    /// Shows the active objects, current camera position
+    /// Player can click and move the camera fast
+    MapProjection.prototype.draw = function (camera) {
+        throw new Error("Method not implemented.");
+    };
+    return MapProjection;
+}(Rect));
 var Raster = /** @class */ (function (_super) {
     __extends(Raster, _super);
     function Raster() {
@@ -327,7 +340,7 @@ var Raster = /** @class */ (function (_super) {
         this.ctx.fillStyle = this.fill;
         this.ctx.strokeStyle = this.stroke;
         this.ctx.lineWidth = this.strokewidth;
-        this.ctx.rect(this.position.x, this.position.y, this.width, this.height);
+        this.ctx.rect(this.position.x, this.position.y, this.size.width, this.size.height);
         this.ctx.stroke();
         this.ctx.fill();
         this.ctx.restore();
@@ -361,7 +374,7 @@ var SelectRect = /** @class */ (function (_super) {
         this.ctx.fillStyle = this.fill;
         this.ctx.strokeStyle = this.stroke;
         this.ctx.lineWidth = this.strokewidth;
-        this.ctx.rect(this.position.x - camera.x, this.position.y - camera.y, this.width, this.height);
+        this.ctx.rect(this.position.x - camera.x, this.position.y - camera.y, this.size.width, this.size.height);
         this.ctx.stroke();
         this.ctx.fill();
         this.ctx.restore();
@@ -375,7 +388,7 @@ var Unit = /** @class */ (function () {
         this.position = position;
         this.speed = speed;
         this.movementsQueue = new Array();
-        this.rect = new SelectRect(ctx, new Point2d(0, 0), size.width, size.height, 'green', 'black', 2);
+        this.rect = new SelectRect(ctx, new Point2d(0, 0), size, 'green', 'black', 2);
         this.positionRect();
     }
     Unit.prototype.getRect = function () {
