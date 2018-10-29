@@ -403,6 +403,7 @@ class MapProjection extends Rect {
 
     draw(camera: Point2d): void {
         // TODO: Optimize and render only if the camera changes its position
+        let step = new Size(Math.round(this.size.height / this.map.objects.length), Math.round(this.size.width / this.map.objects[0].length))
 
         throw new Error("Method not implemented.");
     }
