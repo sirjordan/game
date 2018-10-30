@@ -124,24 +124,31 @@ class Terrain {
 class Game {
     private objects: Objects;
     private gameLayer: HTMLCanvasElement;
+    private gameCtx: CanvasRenderingContext2D;
     private bgLayer: HTMLCanvasElement;
+    private toolsLayer: HTMLCanvasElement;
     private rightPanel: HTMLElement;
     private bottomPanel: HTMLElement;
     private camera: Point2d;
     private terrain: Terrain;
     private stageMax: Size;
+    private mapProjection: MapProjection;
 
-    constructor(gameLayerId: string, bgLayerId: string, rightPanelId: string, bottomPanelId: string) {
-        if (!gameLayerId) throw new Error('Missing argument: gameLayerId');
-        if (!rightPanelId) throw new Error('Missing argument: rightPanelId');
-        if (!rightPanelId) throw new Error('Missing argument: rightPanelId');
-        if (!bottomPanelId) throw new Error('Missing argument: bottomPanelId');
+    constructor(gameLayer: HTMLCanvasElement, bgLayer: HTMLCanvasElement, toolsLayer: HTMLCanvasElement, rightPanel: HTMLElement, bottomPanel: HTMLElement) {
+        if (!gameLayer) throw new Error('Missing argument: gameLayer');
+        if (!rightPanel) throw new Error('Missing argument: rightPanel');
+        if (!rightPanel) throw new Error('Missing argument: rightPanel');
+        if (!bottomPanel) throw new Error('Missing argument: bottomPanel');
+        if (!toolsLayer) throw new Error('Missing argument: toolsLayer');
 
-        this.gameLayer = <HTMLCanvasElement>document.getElementById(gameLayerId);
-        this.objects = new Objects(this.gameLayer.getContext("2d"));
-        this.bgLayer = <HTMLCanvasElement>document.getElementById(bgLayerId);
-        this.rightPanel = document.getElementById(rightPanelId);
-        this.bottomPanel = document.getElementById(bottomPanelId);
+        this.gameLayer = gameLayer;
+        this.bgLayer = bgLayer;
+        this.toolsLayer = toolsLayer;
+        this.rightPanel = rightPanel;
+        this.bottomPanel = bottomPanel;
+
+        this.gameCtx = this.gameLayer.getContext("2d");
+        this.objects = new Objects(this.gameCtx);
         this.camera = new Point2d(0, 0);
 
         this.setStageSize();
@@ -157,9 +164,12 @@ class Game {
         let map = new Map();
         this.terrain = new Terrain(bgCtx, map, terrainObjectsFactory);
 
+        // Test only
+        let toolsCtx = this.toolsLayer.getContext('2d');
+        this.mapProjection = new MapProjection(this.objects, map, toolsCtx, new Point2d(10, 10), new Size(50, 50));
+
         let player = new Player('red');
-        let gameCtx = this.gameLayer.getContext("2d");
-        let unitFactory = new UnitFactory(gameCtx, player);
+        let unitFactory = new UnitFactory(this.gameCtx, player);
 
         this.objects.add(unitFactory.baseUnit(new Point2d(50, 50)));
         this.objects.add(unitFactory.baseUnit(new Point2d(100, 100)));
@@ -172,6 +182,7 @@ class Game {
         this.terrain.draw(this.camera);
         this.objects.update();
         this.objects.draw(this.camera);
+        this.mapProjection.draw(this.camera);
 
         requestAnimationFrame(this.update);
     }
@@ -398,7 +409,21 @@ abstract class Rect implements IGameObject {
     }
 }
 
-class MapProjection extends Rect {
+class Raster extends Rect {
+    draw(camera: Point2d): void {
+        this.ctx.save();
+        this.ctx.beginPath();
+        this.ctx.fillStyle = this.fill;
+        this.ctx.strokeStyle = this.stroke;
+        this.ctx.lineWidth = this.strokewidth;
+        this.ctx.rect(this.position.x, this.position.y, this.size.width, this.size.height);
+        this.ctx.stroke();
+        this.ctx.fill();
+        this.ctx.restore();
+    }
+}
+
+class MapProjection extends Raster {
     /// Projected map as an interactive component
     /// Shows the active objects, current camera position
     /// Player can click and move the camera fast
@@ -414,23 +439,9 @@ class MapProjection extends Rect {
 
     draw(camera: Point2d): void {
         // TODO: Optimize and render only if the camera changes its position
-        let step = new Size(Math.round(this.size.height / this.map.objects.length), Math.round(this.size.width / this.map.objects[0].length))
-
-        throw new Error("Method not implemented.");
-    }
-}
-
-class Raster extends Rect {
-    draw(camera: Point2d): void {
-        this.ctx.save();
-        this.ctx.beginPath();
-        this.ctx.fillStyle = this.fill;
-        this.ctx.strokeStyle = this.stroke;
-        this.ctx.lineWidth = this.strokewidth;
-        this.ctx.rect(this.position.x, this.position.y, this.size.width, this.size.height);
-        this.ctx.stroke();
-        this.ctx.fill();
-        this.ctx.restore();
+        // TODO: User other Raster to represent the units
+        let step = new Size(Math.round(this.size.height / this.map.objects.length), Math.round(this.size.width / this.map.objects[0].length))       
+        super.draw(camera);
     }
 }
 
@@ -571,7 +582,7 @@ class Unit implements ISelectable, IMovable {
     }
 }
 
-class Player{
+class Player {
     public color: string;
 
     constructor(color: string) {

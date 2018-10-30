@@ -58,7 +58,9 @@
 
 <body>
     <div id="top-panel" class="panel"></div>
-    <div id="right-panel" class="panel"></div>
+    <div id="right-panel" class="panel">
+        <canvas id="tools-layer"></canvas>
+    </div>
     <div id="bottom-panel" class="panel"></div>
     <div id="stage">
         <canvas id="game-layer"></canvas>
@@ -66,7 +68,13 @@
     </div>
     <script src="game.js"></script>
     <script>
-        var game = new Game('game-layer', 'background-layer', 'right-panel', 'bottom-panel');
+        let gameLayer = document.getElementById('game-layer');
+        let bgLayer = document.getElementById('background-layer');
+        let toolsLayer = document.getElementById('tools-layer');
+        let rightPanel = document.getElementById('right-panel');
+        let bottomPanel = document.getElementById('bottom-panel');
+
+        var game = new Game(gameLayer, bgLayer, toolsLayer, rightPanel, bottomPanel);
         game.start();
     </script>
 </body>

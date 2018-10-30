@@ -113,27 +113,32 @@ var Terrain = /** @class */ (function () {
     return Terrain;
 }());
 var Game = /** @class */ (function () {
-    function Game(gameLayerId, bgLayerId, rightPanelId, bottomPanelId) {
+    function Game(gameLayer, bgLayer, toolsLayer, rightPanel, bottomPanel) {
         var _this = this;
         this.update = function () {
             _this.terrain.draw(_this.camera);
             _this.objects.update();
             _this.objects.draw(_this.camera);
+            _this.mapProjection.draw(_this.camera);
             requestAnimationFrame(_this.update);
         };
-        if (!gameLayerId)
-            throw new Error('Missing argument: gameLayerId');
-        if (!rightPanelId)
-            throw new Error('Missing argument: rightPanelId');
-        if (!rightPanelId)
-            throw new Error('Missing argument: rightPanelId');
-        if (!bottomPanelId)
-            throw new Error('Missing argument: bottomPanelId');
-        this.gameLayer = document.getElementById(gameLayerId);
-        this.objects = new Objects(this.gameLayer.getContext("2d"));
-        this.bgLayer = document.getElementById(bgLayerId);
-        this.rightPanel = document.getElementById(rightPanelId);
-        this.bottomPanel = document.getElementById(bottomPanelId);
+        if (!gameLayer)
+            throw new Error('Missing argument: gameLayer');
+        if (!rightPanel)
+            throw new Error('Missing argument: rightPanel');
+        if (!rightPanel)
+            throw new Error('Missing argument: rightPanel');
+        if (!bottomPanel)
+            throw new Error('Missing argument: bottomPanel');
+        if (!toolsLayer)
+            throw new Error('Missing argument: toolsLayer');
+        this.gameLayer = gameLayer;
+        this.bgLayer = bgLayer;
+        this.toolsLayer = toolsLayer;
+        this.rightPanel = rightPanel;
+        this.bottomPanel = bottomPanel;
+        this.gameCtx = this.gameLayer.getContext("2d");
+        this.objects = new Objects(this.gameCtx);
         this.camera = new Point2d(0, 0);
         this.setStageSize();
         document.onkeypress = function (ev) { return _this.keyPress(ev); };
@@ -145,11 +150,14 @@ var Game = /** @class */ (function () {
         var terrainObjectsFactory = new TerrainObjectsFactory(bgCtx);
         var map = new Map();
         this.terrain = new Terrain(bgCtx, map, terrainObjectsFactory);
+        // Test only
+        var toolsCtx = this.toolsLayer.getContext('2d');
+        this.mapProjection = new MapProjection(this.objects, map, toolsCtx, new Point2d(10, 10), new Size(50, 50));
         var player = new Player('red');
-        var gameCtx = this.gameLayer.getContext("2d");
-        var unitFactory = new UnitFactory(gameCtx, player);
+        var unitFactory = new UnitFactory(this.gameCtx, player);
         this.objects.add(unitFactory.baseUnit(new Point2d(50, 50)));
         this.objects.add(unitFactory.baseUnit(new Point2d(100, 100)));
+        // Start the game loop
         this.update();
     };
     ;
@@ -327,7 +335,16 @@ var MapProjection = /** @class */ (function (_super) {
     MapProjection.prototype.draw = function (camera) {
         // TODO: Optimize and render only if the camera changes its position
         var step = new Size(Math.round(this.size.height / this.map.objects.length), Math.round(this.size.width / this.map.objects[0].length));
-        throw new Error("Method not implemented.");
+        // TODO: Test only, remove this or reuse
+        this.ctx.save();
+        this.ctx.beginPath();
+        this.ctx.fillStyle = this.fill;
+        this.ctx.strokeStyle = this.stroke;
+        this.ctx.lineWidth = this.strokewidth;
+        this.ctx.rect(this.position.x, this.position.y, this.size.width, this.size.height);
+        this.ctx.stroke();
+        this.ctx.fill();
+        this.ctx.restore();
     };
     return MapProjection;
 }(Rect));
@@ -427,7 +444,7 @@ var Unit = /** @class */ (function () {
         return this.position.x === other.x && this.position.y === other.y;
     };
     Unit.prototype.stop = function () {
-        // Implement
+        // TODO: Implement
     };
     Unit.prototype.isSelected = function () {
         return this.rect.isSelected();
