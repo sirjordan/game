@@ -165,7 +165,7 @@ class Game {
         this.terrain = new Terrain(bgCtx, map, terrainObjectsFactory);
 
         let toolsCtx = this.toolsLayer.getContext('2d');
-        this.mapProjection = new MapProjection(this.objects, map, toolsCtx, Point2d.zero(), new Size(50, 50));
+        this.mapProjection = new MapProjection(this.objects, map, toolsCtx, Point2d.zero(), new Size(this.rightPanel.clientWidth, this.rightPanel.clientWidth));
 
         let player = new Player('red');
         let unitFactory = new UnitFactory(this.gameCtx, player);

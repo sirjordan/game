@@ -150,9 +150,9 @@ var Game = /** @class */ (function () {
         var terrainObjectsFactory = new TerrainObjectsFactory(bgCtx);
         var map = new Map();
         this.terrain = new Terrain(bgCtx, map, terrainObjectsFactory);
-        // Test only
         var toolsCtx = this.toolsLayer.getContext('2d');
-        this.mapProjection = new MapProjection(this.objects, map, toolsCtx, Point2d.zero(), new Size(50, 50));
+        this.rightPanel.clientWidth;
+        this.mapProjection = new MapProjection(this.objects, map, toolsCtx, Point2d.zero(), new Size(this.rightPanel.clientWidth, this.rightPanel.clientWidth));
         var player = new Player('red');
         var unitFactory = new UnitFactory(this.gameCtx, player);
         this.objects.add(unitFactory.baseUnit(new Point2d(50, 50)));
