@@ -87,12 +87,12 @@ var Terrain = /** @class */ (function () {
         var row = Math.floor(camera.y / this.rasterSize);
         var col = Math.floor(camera.x / this.rasterSize);
         var startCol = col;
-        // Go to the end of the screen X
+        // Go to the end of the screen Y
         for (var i = 1; i <= Math.ceil(maxTop / this.rasterSize) + 1; i++) {
             // No more map rows
             if (!this.map.objects[row])
                 break;
-            // Go to the end of the screen Y
+            // Go to the end of the screen X
             for (var j = 1; j <= Math.ceil(maxRight / this.rasterSize); j++) {
                 // No more map columns
                 if (!(this.map.objects[row][col] >= 0))
@@ -145,8 +145,9 @@ var Game = /** @class */ (function () {
         var terrainObjectsFactory = new TerrainObjectsFactory(bgCtx);
         var map = new Map();
         this.terrain = new Terrain(bgCtx, map, terrainObjectsFactory);
+        var player = new Player('red');
         var gameCtx = this.gameLayer.getContext("2d");
-        var unitFactory = new UnitFactory(gameCtx);
+        var unitFactory = new UnitFactory(gameCtx, player);
         this.objects.add(unitFactory.baseUnit(new Point2d(50, 50)));
         this.objects.add(unitFactory.baseUnit(new Point2d(100, 100)));
         this.update();
@@ -289,11 +290,12 @@ var TerrainObjectsFactory = /** @class */ (function () {
     return TerrainObjectsFactory;
 }());
 var UnitFactory = /** @class */ (function () {
-    function UnitFactory(ctx) {
+    function UnitFactory(ctx, player) {
         this.ctx = ctx;
+        this.player = player;
     }
     UnitFactory.prototype.baseUnit = function (position) {
-        return new Unit(this.ctx, position, new Size(20, 20), 3);
+        return new Unit(this.ctx, position, new Size(20, 20), 3, this.player);
     };
     return UnitFactory;
 }());
@@ -301,8 +303,6 @@ var Rect = /** @class */ (function () {
     function Rect(ctx, topLeft, size, fill, stroke, strokewidth) {
         this.ctx = ctx;
         this.position = topLeft;
-        //this.width = width;
-        //this.height = height;
         this.size = size;
         this.fill = fill;
         this.stroke = stroke;
@@ -318,13 +318,15 @@ var Rect = /** @class */ (function () {
 }());
 var MapProjection = /** @class */ (function (_super) {
     __extends(MapProjection, _super);
-    function MapProjection() {
-        return _super !== null && _super.apply(this, arguments) || this;
+    function MapProjection(objects, map, ctx, topLeft, size) {
+        var _this = _super.call(this, ctx, topLeft, size, 'black', 'black', 1) || this;
+        _this.map = map;
+        _this.objects = objects;
+        return _this;
     }
-    /// Projected map as an interactive component
-    /// Shows the active objects, current camera position
-    /// Player can click and move the camera fast
     MapProjection.prototype.draw = function (camera) {
+        // TODO: Optimize and render only if the camera changes its position
+        var step = new Size(Math.round(this.size.height / this.map.objects.length), Math.round(this.size.width / this.map.objects[0].length));
         throw new Error("Method not implemented.");
     };
     return MapProjection;
@@ -382,7 +384,8 @@ var SelectRect = /** @class */ (function (_super) {
     return SelectRect;
 }(Rect));
 var Unit = /** @class */ (function () {
-    function Unit(ctx, position, size, speed) {
+    function Unit(ctx, position, size, speed, player) {
+        this.player = player;
         this.ctx = ctx;
         this.size = size;
         this.position = position;
@@ -434,7 +437,7 @@ var Unit = /** @class */ (function () {
         this.ctx.beginPath();
         this.ctx.arc(this.position.x - camera.x, this.position.y - camera.y, this.size.height / 2, 0, 2 * Math.PI);
         this.ctx.lineWidth = 1;
-        this.ctx.fillStyle = 'red';
+        this.ctx.fillStyle = this.player.color;
         this.ctx.fill();
         this.ctx.stroke();
     };
@@ -448,6 +451,12 @@ var Unit = /** @class */ (function () {
         this.rect.position = new Point2d((this.position.x - this.size.width / 2), (this.position.y - this.size.height / 2));
     };
     return Unit;
+}());
+var Player = /** @class */ (function () {
+    function Player(color) {
+        this.color = color;
+    }
+    return Player;
 }());
 var Point2d = /** @class */ (function () {
     function Point2d(x, y) {

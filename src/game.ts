@@ -92,12 +92,12 @@ class Terrain {
         let col = Math.floor(camera.x / this.rasterSize);
         let startCol = col;
 
-        // Go to the end of the screen X
+        // Go to the end of the screen Y
         for (let i = 1; i <= Math.ceil(maxTop / this.rasterSize) + 1; i++) {
             // No more map rows
             if (!this.map.objects[row]) break;
 
-            // Go to the end of the screen Y
+            // Go to the end of the screen X
             for (let j = 1; j <= Math.ceil(maxRight / this.rasterSize); j++) {
                 // No more map columns
                 if (!(this.map.objects[row][col] >= 0)) break;
@@ -157,12 +157,14 @@ class Game {
         let map = new Map();
         this.terrain = new Terrain(bgCtx, map, terrainObjectsFactory);
 
+        let player = new Player('red');
         let gameCtx = this.gameLayer.getContext("2d");
-        let unitFactory = new UnitFactory(gameCtx);
+        let unitFactory = new UnitFactory(gameCtx, player);
 
         this.objects.add(unitFactory.baseUnit(new Point2d(50, 50)));
         this.objects.add(unitFactory.baseUnit(new Point2d(100, 100)));
 
+        // Start the game loop
         this.update();
     };
 
@@ -356,13 +358,15 @@ class TerrainObjectsFactory {
 
 class UnitFactory {
     private ctx: CanvasRenderingContext2D;
+    private player: Player;
 
-    constructor(ctx: CanvasRenderingContext2D) {
+    constructor(ctx: CanvasRenderingContext2D, player: Player) {
         this.ctx = ctx;
+        this.player = player;
     }
 
     baseUnit(position: Point2d): Unit {
-        return new Unit(this.ctx, position, new Size(20, 20), 3);
+        return new Unit(this.ctx, position, new Size(20, 20), 3, this.player);
     }
 }
 
@@ -400,6 +404,13 @@ class MapProjection extends Rect {
     /// Player can click and move the camera fast
 
     private map: Map;
+    private objects: Objects;
+
+    constructor(objects: Objects, map: Map, ctx: CanvasRenderingContext2D, topLeft: Point2d, size: Size) {
+        super(ctx, topLeft, size, 'black', 'black', 1);
+        this.map = map;
+        this.objects = objects;
+    }
 
     draw(camera: Point2d): void {
         // TODO: Optimize and render only if the camera changes its position
@@ -461,6 +472,7 @@ class SelectRect extends Rect implements ISelectable {
 }
 
 class Unit implements ISelectable, IMovable {
+    public player: Player;
     // Centered position of the unit
     public position: Point2d;
     // The unit's base rect
@@ -472,7 +484,8 @@ class Unit implements ISelectable, IMovable {
     private velocity: Point2d;
     private speed: number;
 
-    constructor(ctx: CanvasRenderingContext2D, position: Point2d, size: Size, speed: number) {
+    constructor(ctx: CanvasRenderingContext2D, position: Point2d, size: Size, speed: number, player: Player) {
+        this.player = player;
         this.ctx = ctx;
         this.size = size;
         this.position = position;
@@ -527,7 +540,7 @@ class Unit implements ISelectable, IMovable {
     }
 
     stop() {
-        // Implement
+        // TODO: Implement
     }
 
     isSelected(): boolean {
@@ -540,7 +553,7 @@ class Unit implements ISelectable, IMovable {
         this.ctx.beginPath();
         this.ctx.arc(this.position.x - camera.x, this.position.y - camera.y, this.size.height / 2, 0, 2 * Math.PI);
         this.ctx.lineWidth = 1;
-        this.ctx.fillStyle = 'red';
+        this.ctx.fillStyle = this.player.color;
         this.ctx.fill();
         this.ctx.stroke();
     }
@@ -555,6 +568,14 @@ class Unit implements ISelectable, IMovable {
 
     private positionRect(): void {
         this.rect.position = new Point2d((this.position.x - this.size.width / 2), (this.position.y - this.size.height / 2))
+    }
+}
+
+class Player{
+    public color: string;
+
+    constructor(color: string) {
+        this.color = color;
     }
 }
 
@@ -596,6 +617,8 @@ class Point2d {
 
         return this;
     }
+
+    // TODO: Implement equal()
 }
 
 class Size {
