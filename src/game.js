@@ -139,7 +139,7 @@ var Game = /** @class */ (function () {
         this.bottomPanel = bottomPanel;
         this.gameCtx = this.gameLayer.getContext("2d");
         this.objects = new Objects(this.gameCtx);
-        this.camera = new Point2d(0, 0);
+        this.camera = Point2d.zero();
         this.setStageSize();
         document.onkeypress = function (ev) { return _this.keyPress(ev); };
         this.gameLayer.onclick = function (args) { return _this.leftClick(args); };
@@ -152,7 +152,7 @@ var Game = /** @class */ (function () {
         this.terrain = new Terrain(bgCtx, map, terrainObjectsFactory);
         // Test only
         var toolsCtx = this.toolsLayer.getContext('2d');
-        this.mapProjection = new MapProjection(this.objects, map, toolsCtx, new Point2d(10, 10), new Size(50, 50));
+        this.mapProjection = new MapProjection(this.objects, map, toolsCtx, Point2d.zero(), new Size(50, 50));
         var player = new Player('red');
         var unitFactory = new UnitFactory(this.gameCtx, player);
         this.objects.add(unitFactory.baseUnit(new Point2d(50, 50)));
@@ -324,30 +324,6 @@ var Rect = /** @class */ (function () {
     };
     return Rect;
 }());
-var MapProjection = /** @class */ (function (_super) {
-    __extends(MapProjection, _super);
-    function MapProjection(objects, map, ctx, topLeft, size) {
-        var _this = _super.call(this, ctx, topLeft, size, 'black', 'black', 1) || this;
-        _this.map = map;
-        _this.objects = objects;
-        return _this;
-    }
-    MapProjection.prototype.draw = function (camera) {
-        // TODO: Optimize and render only if the camera changes its position
-        var step = new Size(Math.round(this.size.height / this.map.objects.length), Math.round(this.size.width / this.map.objects[0].length));
-        // TODO: Test only, remove this or reuse
-        this.ctx.save();
-        this.ctx.beginPath();
-        this.ctx.fillStyle = this.fill;
-        this.ctx.strokeStyle = this.stroke;
-        this.ctx.lineWidth = this.strokewidth;
-        this.ctx.rect(this.position.x, this.position.y, this.size.width, this.size.height);
-        this.ctx.stroke();
-        this.ctx.fill();
-        this.ctx.restore();
-    };
-    return MapProjection;
-}(Rect));
 var Raster = /** @class */ (function (_super) {
     __extends(Raster, _super);
     function Raster() {
@@ -366,6 +342,22 @@ var Raster = /** @class */ (function (_super) {
     };
     return Raster;
 }(Rect));
+var MapProjection = /** @class */ (function (_super) {
+    __extends(MapProjection, _super);
+    function MapProjection(objects, map, ctx, topLeft, size) {
+        var _this = _super.call(this, ctx, topLeft, size, 'black', 'black', 1) || this;
+        _this.map = map;
+        _this.objects = objects;
+        return _this;
+    }
+    MapProjection.prototype.draw = function (camera) {
+        // TODO: Optimize and render only if the camera changes its position
+        // TODO: User other Raster to represent the units
+        var step = new Size(Math.round(this.size.height / this.map.objects.length), Math.round(this.size.width / this.map.objects[0].length));
+        _super.prototype.draw.call(this, camera);
+    };
+    return MapProjection;
+}(Raster));
 var SelectRect = /** @class */ (function (_super) {
     __extends(SelectRect, _super);
     function SelectRect() {
@@ -408,7 +400,7 @@ var Unit = /** @class */ (function () {
         this.position = position;
         this.speed = speed;
         this.movementsQueue = new Array();
-        this.rect = new SelectRect(ctx, new Point2d(0, 0), size, 'green', 'black', 2);
+        this.rect = new SelectRect(ctx, Point2d.zero(), size, 'green', 'black', 2);
         this.positionRect();
     }
     Unit.prototype.getRect = function () {
@@ -480,6 +472,9 @@ var Point2d = /** @class */ (function () {
         this.x = x;
         this.y = y;
     }
+    Point2d.zero = function () {
+        return new Point2d(0, 0);
+    };
     Point2d.prototype.clone = function () {
         return new Point2d(this.x, this.y);
     };

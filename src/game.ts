@@ -149,7 +149,7 @@ class Game {
 
         this.gameCtx = this.gameLayer.getContext("2d");
         this.objects = new Objects(this.gameCtx);
-        this.camera = new Point2d(0, 0);
+        this.camera = Point2d.zero();
 
         this.setStageSize();
 
@@ -164,9 +164,8 @@ class Game {
         let map = new Map();
         this.terrain = new Terrain(bgCtx, map, terrainObjectsFactory);
 
-        // Test only
         let toolsCtx = this.toolsLayer.getContext('2d');
-        this.mapProjection = new MapProjection(this.objects, map, toolsCtx, new Point2d(10, 10), new Size(50, 50));
+        this.mapProjection = new MapProjection(this.objects, map, toolsCtx, Point2d.zero(), new Size(50, 50));
 
         let player = new Player('red');
         let unitFactory = new UnitFactory(this.gameCtx, player);
@@ -502,7 +501,7 @@ class Unit implements ISelectable, IMovable {
         this.position = position;
         this.speed = speed;
         this.movementsQueue = new Array<Point2d>();
-        this.rect = new SelectRect(ctx, new Point2d(0, 0), size, 'green', 'black', 2);
+        this.rect = new SelectRect(ctx, Point2d.zero(), size, 'green', 'black', 2);
         this.positionRect();
     }
 
@@ -597,6 +596,10 @@ class Point2d {
     constructor(x: number, y: number) {
         this.x = x;
         this.y = y;
+    }
+
+    static zero(): Point2d{
+        return new Point2d(0, 0);
     }
 
     clone(): Point2d {
