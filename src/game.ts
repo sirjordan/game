@@ -268,6 +268,8 @@ class Game {
         this.gameLayer.height = canvasSize.height;
         this.bgLayer.width = canvasSize.width;
         this.bgLayer.height = canvasSize.height;
+        this.toolsLayer.width = this.rightPanel.clientWidth;
+        this.toolsLayer.height = this.rightPanel.clientHeight;
     }
 }
 
@@ -441,6 +443,9 @@ class MapProjection extends Raster {
         // TODO: User other Raster to represent the units
         let step = new Size(Math.round(this.size.height / this.map.objects.length), Math.round(this.size.width / this.map.objects[0].length))       
         super.draw(camera);
+
+        let u = new Raster(this.ctx, new Point2d(5, 5), new Size(5, 5), 'green', 'green', 1);
+        u.draw(camera);
     }
 }
 

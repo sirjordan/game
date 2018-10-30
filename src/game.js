@@ -151,7 +151,6 @@ var Game = /** @class */ (function () {
         var map = new Map();
         this.terrain = new Terrain(bgCtx, map, terrainObjectsFactory);
         var toolsCtx = this.toolsLayer.getContext('2d');
-        this.rightPanel.clientWidth;
         this.mapProjection = new MapProjection(this.objects, map, toolsCtx, Point2d.zero(), new Size(this.rightPanel.clientWidth, this.rightPanel.clientWidth));
         var player = new Player('red');
         var unitFactory = new UnitFactory(this.gameCtx, player);
@@ -234,6 +233,8 @@ var Game = /** @class */ (function () {
         this.gameLayer.height = canvasSize.height;
         this.bgLayer.width = canvasSize.width;
         this.bgLayer.height = canvasSize.height;
+        this.toolsLayer.width = this.rightPanel.clientWidth;
+        this.toolsLayer.height = this.rightPanel.clientHeight;
     };
     return Game;
 }());
@@ -355,6 +356,8 @@ var MapProjection = /** @class */ (function (_super) {
         // TODO: User other Raster to represent the units
         var step = new Size(Math.round(this.size.height / this.map.objects.length), Math.round(this.size.width / this.map.objects[0].length));
         _super.prototype.draw.call(this, camera);
+        var u = new Raster(this.ctx, new Point2d(5, 5), new Size(5, 5), 'green', 'green', 1);
+        u.draw(camera);
     };
     return MapProjection;
 }(Raster));
