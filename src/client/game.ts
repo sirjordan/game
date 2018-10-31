@@ -436,7 +436,7 @@ class MapProjection extends Raster {
     /// Shows the active objects, current camera position
     /// Player can click and move the camera fast
 
-    private static bgColor: string = 'black';
+    private static bgColor: string = '#20262e';
     private static borderColor: string = '#2d333b';
     private map: Map;
     private objects: Objects;
@@ -464,8 +464,7 @@ class MapProjection extends Raster {
         let w = this.map.size().width,
             h = this.map.size().height,
             scaledW: number,
-            scaledH: number,
-            borderWidth: 2;
+            scaledH: number;
 
         if (w >= h) {
             scaledW = 1;
@@ -481,7 +480,7 @@ class MapProjection extends Raster {
         let x = (this.size.width - size.width) / 2;
         let y = (this.size.height - size.height) / 2;
 
-        return new Raster(this.ctx, new Point2d(x, y), size, MapProjection.bgColor, MapProjection.borderColor, borderWidth);
+        return new Raster(this.ctx, new Point2d(x, y), size, 'black', MapProjection.borderColor, 1);
     }
 }
 

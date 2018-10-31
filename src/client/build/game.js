@@ -367,7 +367,7 @@ var MapProjection = /** @class */ (function (_super) {
     };
     MapProjection.prototype.createBorder = function () {
         // Get scaled size based on the map ratio
-        var w = this.map.size().width, h = this.map.size().height, scaledW, scaledH, borderWidth;
+        var w = this.map.size().width, h = this.map.size().height, scaledW, scaledH;
         if (w >= h) {
             scaledW = 1;
             scaledH = h / w;
@@ -380,12 +380,12 @@ var MapProjection = /** @class */ (function (_super) {
         // Get centered position
         var x = (this.size.width - size.width) / 2;
         var y = (this.size.height - size.height) / 2;
-        return new Raster(this.ctx, new Point2d(x, y), size, MapProjection.bgColor, MapProjection.borderColor, 2);
+        return new Raster(this.ctx, new Point2d(x, y), size, 'black', MapProjection.borderColor, 1);
     };
     /// Projected map as an interactive component
     /// Shows the active objects, current camera position
     /// Player can click and move the camera fast
-    MapProjection.bgColor = 'black';
+    MapProjection.bgColor = '#20262e';
     MapProjection.borderColor = '#2d333b';
     return MapProjection;
 }(Raster));
