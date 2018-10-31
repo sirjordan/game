@@ -62,6 +62,10 @@ var Map = /** @class */ (function () {
             [0, 0, 0, 0, 0, 0, 1, 0, 2, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0],
         ];
     }
+    Map.prototype.size = function () {
+        // Size of the map in objects (not in pixels)
+        return new Size(this.objects[0].length, this.objects.length);
+    };
     return Map;
 }());
 var Terrain = /** @class */ (function () {
@@ -71,8 +75,9 @@ var Terrain = /** @class */ (function () {
         this.map = map;
         this.objectsFactory = objectsFactory;
     }
-    Terrain.prototype.maxSize = function () {
-        return new Size(this.map.objects[0].length * this.rasterSize, this.map.objects.length * this.rasterSize);
+    Terrain.prototype.size = function () {
+        // Size of the terrain in pixels
+        return new Size(this.map.size().width * this.rasterSize, this.map.size().height * this.rasterSize);
     };
     Terrain.prototype.draw = function (camera) {
         // Optimizing the draw() and render only if the camera changes its position
@@ -165,7 +170,7 @@ var Game = /** @class */ (function () {
         var cameraSpeed = 15;
         switch (ev.key) {
             case 'd':
-                if (this.camera.x + this.stageMax.width < this.terrain.maxSize().width)
+                if (this.camera.x + this.stageMax.width < this.terrain.size().width)
                     this.camera.x += cameraSpeed;
                 break;
             case 'a':
@@ -177,7 +182,7 @@ var Game = /** @class */ (function () {
                     this.camera.y -= cameraSpeed;
                 break;
             case 's':
-                if (this.camera.y + this.stageMax.height < this.terrain.maxSize().height)
+                if (this.camera.y + this.stageMax.height < this.terrain.size().height)
                     this.camera.y += cameraSpeed;
                 break;
         }
@@ -233,6 +238,7 @@ var Game = /** @class */ (function () {
         this.gameLayer.height = canvasSize.height;
         this.bgLayer.width = canvasSize.width;
         this.bgLayer.height = canvasSize.height;
+        //this.toolsLayer
         this.toolsLayer.width = this.rightPanel.clientWidth;
         this.toolsLayer.height = this.rightPanel.clientHeight;
     };
@@ -272,8 +278,8 @@ var Objects = /** @class */ (function () {
             u.move();
         });
     };
-    // Draw all static and movable objects
     Objects.prototype.draw = function (camera) {
+        // Draw all static and movable objects
         this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
         this.getAll().forEach(function (el) {
             el.draw(camera);
@@ -346,19 +352,41 @@ var Raster = /** @class */ (function (_super) {
 var MapProjection = /** @class */ (function (_super) {
     __extends(MapProjection, _super);
     function MapProjection(objects, map, ctx, topLeft, size) {
-        var _this = _super.call(this, ctx, topLeft, size, 'black', 'black', 1) || this;
+        var _this = _super.call(this, ctx, topLeft, size, MapProjection.bgColor, MapProjection.bgColor, 1) || this;
         _this.map = map;
         _this.objects = objects;
+        _this.border = _this.createBorder();
         return _this;
     }
     MapProjection.prototype.draw = function (camera) {
         // TODO: Optimize and render only if the camera changes its position
         // TODO: User other Raster to represent the units
-        var step = new Size(Math.round(this.size.height / this.map.objects.length), Math.round(this.size.width / this.map.objects[0].length));
+        var step = new Size(Math.round(this.size.width / this.map.size().width), Math.round(this.size.height / this.map.size().height));
         _super.prototype.draw.call(this, camera);
-        var u = new Raster(this.ctx, new Point2d(5, 5), new Size(5, 5), 'green', 'green', 1);
-        u.draw(camera);
+        this.border.draw(camera);
     };
+    MapProjection.prototype.createBorder = function () {
+        // Get scaled size based on the map ratio
+        var w = this.map.size().width, h = this.map.size().height, scaledW, scaledH, borderWidth;
+        if (w >= h) {
+            scaledW = 1;
+            scaledH = h / w;
+        }
+        else {
+            scaledW = w / h;
+            scaledH = 1;
+        }
+        var size = new Size(this.size.width * scaledW, this.size.height * scaledH);
+        // Get centered position
+        var x = (this.size.width - size.width) / 2;
+        var y = (this.size.height - size.height) / 2;
+        return new Raster(this.ctx, new Point2d(x, y), size, MapProjection.bgColor, MapProjection.borderColor, 2);
+    };
+    /// Projected map as an interactive component
+    /// Shows the active objects, current camera position
+    /// Player can click and move the camera fast
+    MapProjection.bgColor = 'black';
+    MapProjection.borderColor = '#2d333b';
     return MapProjection;
 }(Raster));
 var SelectRect = /** @class */ (function (_super) {

@@ -53,6 +53,11 @@ class Map {
 
         ];
     }
+
+    size(): Size {
+        // Size of the map in objects (not in pixels)
+        return new Size(this.objects[0].length, this.objects.length);
+    }
 }
 
 class Terrain {
@@ -70,8 +75,9 @@ class Terrain {
         this.objectsFactory = objectsFactory;
     }
 
-    public maxSize(): Size {
-        return new Size(this.map.objects[0].length * this.rasterSize, this.map.objects.length * this.rasterSize);
+    public size(): Size {
+        // Size of the terrain in pixels
+        return new Size(this.map.size().width * this.rasterSize, this.map.size().height * this.rasterSize);
     }
 
     public draw(camera: Point2d) {
@@ -193,7 +199,7 @@ class Game {
 
         switch (ev.key) {
             case 'd':
-                if (this.camera.x + this.stageMax.width < this.terrain.maxSize().width)
+                if (this.camera.x + this.stageMax.width < this.terrain.size().width)
                     this.camera.x += cameraSpeed;
                 break;
             case 'a':
@@ -205,7 +211,7 @@ class Game {
                     this.camera.y -= cameraSpeed;
                 break;
             case 's':
-                if (this.camera.y + this.stageMax.height < this.terrain.maxSize().height)
+                if (this.camera.y + this.stageMax.height < this.terrain.size().height)
                     this.camera.y += cameraSpeed;
                 break;
         }
@@ -268,6 +274,7 @@ class Game {
         this.gameLayer.height = canvasSize.height;
         this.bgLayer.width = canvasSize.width;
         this.bgLayer.height = canvasSize.height;
+        //this.toolsLayer
         this.toolsLayer.width = this.rightPanel.clientWidth;
         this.toolsLayer.height = this.rightPanel.clientHeight;
     }
@@ -338,8 +345,8 @@ class Objects {
             });
     }
 
-    // Draw all static and movable objects
     draw(camera: Point2d) {
+        // Draw all static and movable objects
         this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
         this.getAll().forEach(el => {
             el.draw(camera);
@@ -429,23 +436,52 @@ class MapProjection extends Raster {
     /// Shows the active objects, current camera position
     /// Player can click and move the camera fast
 
+    private static bgColor: string = 'black';
+    private static borderColor: string = '#2d333b';
     private map: Map;
     private objects: Objects;
+    private border: Raster;
 
     constructor(objects: Objects, map: Map, ctx: CanvasRenderingContext2D, topLeft: Point2d, size: Size) {
-        super(ctx, topLeft, size, 'black', 'black', 1);
+        super(ctx, topLeft, size, MapProjection.bgColor, MapProjection.bgColor, 1);
         this.map = map;
         this.objects = objects;
+        this.border = this.createBorder();
     }
 
     draw(camera: Point2d): void {
         // TODO: Optimize and render only if the camera changes its position
         // TODO: User other Raster to represent the units
-        let step = new Size(Math.round(this.size.height / this.map.objects.length), Math.round(this.size.width / this.map.objects[0].length))       
-        super.draw(camera);
 
-        let u = new Raster(this.ctx, new Point2d(5, 5), new Size(5, 5), 'green', 'green', 1);
-        u.draw(camera);
+        let step = new Size(Math.round(this.size.width / this.map.size().width), Math.round(this.size.height / this.map.size().height));
+        
+        super.draw(camera);
+        this.border.draw(camera);
+    }
+
+    private createBorder(): Raster {
+        // Get scaled size based on the map ratio
+        let w = this.map.size().width,
+            h = this.map.size().height,
+            scaledW: number,
+            scaledH: number,
+            borderWidth: 2;
+
+        if (w >= h) {
+            scaledW = 1;
+            scaledH = h / w;
+        } else {
+            scaledW = w / h;
+            scaledH = 1;
+        }
+
+        let size = new Size(this.size.width * scaledW, this.size.height * scaledH);
+
+        // Get centered position
+        let x = (this.size.width - size.width) / 2;
+        let y = (this.size.height - size.height) / 2;
+
+        return new Raster(this.ctx, new Point2d(x, y), size, MapProjection.bgColor, MapProjection.borderColor, borderWidth);
     }
 }
 
@@ -603,7 +639,7 @@ class Point2d {
         this.y = y;
     }
 
-    static zero(): Point2d{
+    static zero(): Point2d {
         return new Point2d(0, 0);
     }
 
