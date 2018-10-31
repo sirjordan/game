@@ -81,7 +81,7 @@ var Terrain = /** @class */ (function () {
     };
     Terrain.prototype.draw = function (camera) {
         // Optimizing the draw() and render only if the camera changes its position
-        if (this.lastCamera && camera.x === this.lastCamera.x && camera.y === this.lastCamera.y) {
+        if (this.lastCamera && camera.equals(this.lastCamera)) {
             return;
         }
         var maxRight = this.ctx.canvas.height;
@@ -352,18 +352,17 @@ var Raster = /** @class */ (function (_super) {
 var MapProjection = /** @class */ (function (_super) {
     __extends(MapProjection, _super);
     function MapProjection(objects, map, ctx, topLeft, size) {
-        var _this = _super.call(this, ctx, topLeft, size, MapProjection.bgColor, MapProjection.bgColor, 1) || this;
+        var _this = _super.call(this, ctx, topLeft, size, MapProjection.bgColor, MapProjection.borderColor, 1) || this;
         _this.map = map;
         _this.objects = objects;
         _this.border = _this.createBorder();
         return _this;
     }
     MapProjection.prototype.draw = function (camera) {
-        // TODO: Optimize and render only if the camera changes its position
-        // TODO: User other Raster to represent the units
         var step = new Size(Math.round(this.size.width / this.map.size().width), Math.round(this.size.height / this.map.size().height));
         _super.prototype.draw.call(this, camera);
         this.border.draw(camera);
+        // TODO: User other Raster to represent the units
     };
     MapProjection.prototype.createBorder = function () {
         // Get scaled size based on the map ratio
@@ -527,6 +526,9 @@ var Point2d = /** @class */ (function () {
         this.x -= point.x;
         this.y -= point.y;
         return this;
+    };
+    Point2d.prototype.equals = function (other) {
+        return this.x === other.x && this.y === other.y;
     };
     return Point2d;
 }());

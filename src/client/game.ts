@@ -82,7 +82,7 @@ class Terrain {
 
     public draw(camera: Point2d) {
         // Optimizing the draw() and render only if the camera changes its position
-        if (this.lastCamera && camera.x === this.lastCamera.x && camera.y === this.lastCamera.y) {
+        if (this.lastCamera && camera.equals(this.lastCamera)) {
             return;
         }
 
@@ -443,20 +443,18 @@ class MapProjection extends Raster {
     private border: Raster;
 
     constructor(objects: Objects, map: Map, ctx: CanvasRenderingContext2D, topLeft: Point2d, size: Size) {
-        super(ctx, topLeft, size, MapProjection.bgColor, MapProjection.bgColor, 1);
+        super(ctx, topLeft, size, MapProjection.bgColor, MapProjection.borderColor, 1);
         this.map = map;
         this.objects = objects;
         this.border = this.createBorder();
     }
 
     draw(camera: Point2d): void {
-        // TODO: Optimize and render only if the camera changes its position
-        // TODO: User other Raster to represent the units
-
         let step = new Size(Math.round(this.size.width / this.map.size().width), Math.round(this.size.height / this.map.size().height));
-        
+
         super.draw(camera);
         this.border.draw(camera);
+        // TODO: User other Raster to represent the units
     }
 
     private createBorder(): Raster {
@@ -672,7 +670,9 @@ class Point2d {
         return this;
     }
 
-    // TODO: Implement equal()
+    equals(other: Point2d): boolean {
+        return this.x === other.x && this.y === other.y;
+    }
 }
 
 class Size {
