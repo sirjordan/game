@@ -457,8 +457,9 @@ class MapProjection extends Raster {
 
          // Unit's projection on the map
         this.objects.getUnits().forEach(u => {
-            // TODO: Create objects in every frame may be too expensive. Must remake it!
-            // TODO: Here every unit projection sets the clearRect() and stroke and fill. Make it at once, by clear all at star
+            // TODO: Optimize - Mandatory!
+            // 1. Create objects in every frame may be too expensive. Must remake it!
+            // 2. Here every unit projection sets the clearRect() and stroke and fill. Make it at once, draw them at once
             let ratioX = u.position.x / (this.map.size().width * this.map.rasterSize);
             let ratioY = u.position.y / (this.map.size().height * this.map.rasterSize);
 
