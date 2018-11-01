@@ -37,29 +37,31 @@ var Utils = /** @class */ (function () {
 }());
 var Map = /** @class */ (function () {
     function Map() {
+        this.rasterSize = 50;
         this.objects = [
-            [0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 2, 0, 0, 0, 1, 0, 0, 0, 0, 2],
-            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0],
-            [0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 2],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0],
-            [0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 2],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
-            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0],
-            [0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0],
-            [0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 2],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0],
-            [0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
-            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 1, 0, 2, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0],
+            [0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 2, 0, 0, 0, 1, 0, 0, 0, 0, 2, 1, 2, 0, 0, 0, 1, 0, 1, 0, 2],
+            [0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 2, 0, 0, 0, 1, 0, 0, 0, 0, 2, 1, 0, 0, 0, 0, 0, 0, 1, 0, 2],
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 2, 0, 0, 1, 0, 0, 1, 0, 2],
+            [0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 2, 0, 2, 0, 0, 0, 0, 0, 1, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 2],
+            [0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 2, 1, 0, 0, 0, 0, 1, 0, 2],
+            [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 2, 1, 2, 0, 0, 1, 0, 0, 1, 0, 2],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0],
+            [0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 2, 0, 0, 0, 1, 0, 2],
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 0, 0, 0, 0, 0, 1, 0, 0],
+            [0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 1, 2, 1, 0, 0, 0, 0, 0, 0, 2],
+            [0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 2, 0, 1, 0, 2],
+            [0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 2, 0, 0, 0, 0, 0, 1, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 2, 1, 1, 0, 0, 0, 0, 0, 1, 0, 2],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 0, 0, 1, 0, 0, 1, 0, 2],
+            [0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 2, 0, 0, 0, 0, 0, 1, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 2, 0, 0, 0, 0, 0, 0, 0, 2],
+            [0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 2, 0, 0, 0, 0, 0, 1, 0, 2],
+            [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 2, 0, 1, 0, 0, 0, 1, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 2],
+            [0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 2, 0, 0, 0, 0, 0, 1, 0, 2],
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 0, 1, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 1, 0, 2, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 2],
         ];
     }
     Map.prototype.size = function () {
@@ -71,13 +73,12 @@ var Map = /** @class */ (function () {
 var Terrain = /** @class */ (function () {
     function Terrain(ctx, map, objectsFactory) {
         this.ctx = ctx;
-        this.rasterSize = 50; // TODO: Take it based on the client display resolution
         this.map = map;
         this.objectsFactory = objectsFactory;
     }
     Terrain.prototype.size = function () {
         // Size of the terrain in pixels
-        return new Size(this.map.size().width * this.rasterSize, this.map.size().height * this.rasterSize);
+        return new Size(this.map.size().width * this.map.rasterSize, this.map.size().height * this.map.rasterSize);
     };
     Terrain.prototype.draw = function (camera) {
         // Optimizing the draw() and render only if the camera changes its position
@@ -86,32 +87,33 @@ var Terrain = /** @class */ (function () {
         }
         var maxRight = this.ctx.canvas.height;
         var maxTop = this.ctx.canvas.width;
+        var rasterSize = this.map.rasterSize;
         this.ctx.clearRect(0, 0, maxRight, maxTop);
-        var startPos = new Point2d((camera.x % this.rasterSize) * -1, (camera.y % this.rasterSize) * -1);
+        var startPos = new Point2d((camera.x % rasterSize) * -1, (camera.y % rasterSize) * -1);
         var pos = startPos.clone();
-        var row = Math.floor(camera.y / this.rasterSize);
-        var col = Math.floor(camera.x / this.rasterSize);
+        var row = Math.floor(camera.y / rasterSize);
+        var col = Math.floor(camera.x / rasterSize);
         var startCol = col;
         // Go to the end of the screen Y
-        for (var i = 1; i <= Math.ceil(maxTop / this.rasterSize) + 1; i++) {
+        for (var i = 1; i <= Math.ceil(maxTop / rasterSize) + 1; i++) {
             // No more map rows
             if (!this.map.objects[row])
                 break;
             // Go to the end of the screen X
-            for (var j = 1; j <= Math.ceil(maxRight / this.rasterSize); j++) {
+            for (var j = 1; j <= Math.ceil(maxRight / rasterSize); j++) {
                 // No more map columns
                 if (!(this.map.objects[row][col] >= 0))
                     break;
                 var rasterCode = this.map.objects[row][col];
-                var terrainObject = this.objectsFactory.create(rasterCode, pos, this.rasterSize);
+                var terrainObject = this.objectsFactory.create(rasterCode, pos, rasterSize);
                 terrainObject.draw(camera);
                 col++;
-                pos.x = startPos.x + (j * this.rasterSize);
+                pos.x = startPos.x + (j * rasterSize);
             }
             col = startCol;
             row++;
             pos.x = startPos.x;
-            pos.y = startPos.y + (i * this.rasterSize);
+            pos.y = startPos.y + (i * rasterSize);
         }
         this.lastCamera = camera.clone();
     };
@@ -295,11 +297,11 @@ var TerrainObjectsFactory = /** @class */ (function () {
     TerrainObjectsFactory.prototype.create = function (rasterCode, position, size) {
         switch (rasterCode) {
             case 0:
-                return new Raster(this.ctx, position, new Size(size, size), 'green', 'black', 1);
+                return new Raster(this.ctx, position, new Size(size, size), '#66440b', 'black', 1);
             case 1:
-                return new Raster(this.ctx, position, new Size(size, size), 'gray', 'black', 1);
+                return new Raster(this.ctx, position, new Size(size, size), '#3d3321', 'black', 1);
             default:
-                return new Raster(this.ctx, position, new Size(size, size), 'black', 'black', 1);
+                return new Raster(this.ctx, position, new Size(size, size), '#0f0b04', 'black', 1);
         }
     };
     return TerrainObjectsFactory;
@@ -359,10 +361,19 @@ var MapProjection = /** @class */ (function (_super) {
         return _this;
     }
     MapProjection.prototype.draw = function (camera) {
-        var step = new Size(Math.round(this.size.width / this.map.size().width), Math.round(this.size.height / this.map.size().height));
+        var _this = this;
         _super.prototype.draw.call(this, camera);
         this.border.draw(camera);
-        // TODO: User other Raster to represent the units
+        this.objects.getUnits().forEach(function (u) {
+            // Unit's projection on the map
+            // TODO: This may be expensive to create n objects in every frame. Check for memory leaks
+            var ratioX = u.position.x / (_this.map.size().width * _this.map.rasterSize);
+            var ratioY = u.position.y / (_this.map.size().height * _this.map.rasterSize);
+            var x = _this.border.position.x + (ratioX * _this.border.size.width);
+            var y = _this.border.position.y + (ratioY * _this.border.size.height);
+            var unitProjection = new Raster(_this.ctx, new Point2d(x, y), new Size(5, 5), u.player.color, u.player.color, 1);
+            unitProjection.draw(camera);
+        });
     };
     MapProjection.prototype.createBorder = function () {
         // Get scaled size based on the map ratio
@@ -423,11 +434,11 @@ var SelectRect = /** @class */ (function (_super) {
     return SelectRect;
 }(Rect));
 var Unit = /** @class */ (function () {
-    function Unit(ctx, position, size, speed, player) {
+    function Unit(ctx, center, size, speed, player) {
         this.player = player;
         this.ctx = ctx;
         this.size = size;
-        this.position = position;
+        this.position = center;
         this.speed = speed;
         this.movementsQueue = new Array();
         this.rect = new SelectRect(ctx, Point2d.zero(), size, 'green', 'black', 2);

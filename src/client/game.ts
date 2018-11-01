@@ -25,32 +25,35 @@ class Utils {
 
 class Map {
     public objects: number[][];
+    // In pixels
+    public rasterSize: number;
 
     constructor() {
+        this.rasterSize = 50;
         this.objects = [
-            [0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 2, 0, 0, 0, 1, 0, 0, 0, 0, 2],
-            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0],
-            [0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 2],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0],
-            [0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 2],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
-            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0],
-            [0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0],
-            [0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 2],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0],
-            [0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
-            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 1, 0, 2, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0],
-
+            [0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 2, 0, 0, 0, 1, 0, 0, 0, 0, 2, 1, 2, 0, 0, 0, 1, 0, 1, 0, 2],
+            [0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 2, 0, 0, 0, 1, 0, 0, 0, 0, 2, 1, 0, 0, 0, 0, 0, 0, 1, 0, 2],
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 2, 0, 0, 1, 0, 0, 1, 0, 2],
+            [0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 2, 0, 2, 0, 0, 0, 0, 0, 1, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 2],
+            [0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 2, 1, 0, 0, 0, 0, 1, 0, 2],
+            [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 2, 1, 2, 0, 0, 1, 0, 0, 1, 0, 2],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0],
+            [0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 2, 0, 0, 0, 1, 0, 2],
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 0, 0, 0, 0, 0, 1, 0, 0],
+            [0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 1, 2, 1, 0, 0, 0, 0, 0, 0, 2],
+            [0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 2, 0, 1, 0, 2],
+            [0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 2, 0, 0, 0, 0, 0, 1, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 2, 1, 1, 0, 0, 0, 0, 0, 1, 0, 2],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 0, 0, 1, 0, 0, 1, 0, 2],
+            [0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 2, 0, 0, 0, 0, 0, 1, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 2, 0, 0, 0, 0, 0, 0, 0, 2],
+            [0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 2, 0, 0, 0, 0, 0, 1, 0, 2],
+            [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 2, 0, 1, 0, 0, 0, 1, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 2],
+            [0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 2, 0, 0, 0, 0, 0, 1, 0, 2],
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 0, 1, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 1, 0, 2, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 2],
         ];
     }
 
@@ -62,7 +65,6 @@ class Map {
 
 class Terrain {
     private ctx: CanvasRenderingContext2D;
-    private rasterSize: number;
     private map: Map;
     // Used to remember the last camera position
     private lastCamera: Point2d;
@@ -70,14 +72,13 @@ class Terrain {
 
     constructor(ctx: CanvasRenderingContext2D, map: Map, objectsFactory: TerrainObjectsFactory) {
         this.ctx = ctx;
-        this.rasterSize = 50;   // TODO: Take it based on the client display resolution
         this.map = map;
         this.objectsFactory = objectsFactory;
     }
 
     public size(): Size {
         // Size of the terrain in pixels
-        return new Size(this.map.size().width * this.rasterSize, this.map.size().height * this.rasterSize);
+        return new Size(this.map.size().width * this.map.rasterSize, this.map.size().height * this.map.rasterSize);
     }
 
     public draw(camera: Point2d) {
@@ -88,39 +89,40 @@ class Terrain {
 
         let maxRight = this.ctx.canvas.height;
         let maxTop = this.ctx.canvas.width;
+        let rasterSize = this.map.rasterSize;
 
         this.ctx.clearRect(0, 0, maxRight, maxTop);
 
-        let startPos = new Point2d((camera.x % this.rasterSize) * - 1, (camera.y % this.rasterSize) * -1);
+        let startPos = new Point2d((camera.x % rasterSize) * - 1, (camera.y % rasterSize) * -1);
         let pos = startPos.clone();
 
-        let row = Math.floor(camera.y / this.rasterSize);
-        let col = Math.floor(camera.x / this.rasterSize);
+        let row = Math.floor(camera.y / rasterSize);
+        let col = Math.floor(camera.x / rasterSize);
         let startCol = col;
 
         // Go to the end of the screen Y
-        for (let i = 1; i <= Math.ceil(maxTop / this.rasterSize) + 1; i++) {
+        for (let i = 1; i <= Math.ceil(maxTop / rasterSize) + 1; i++) {
             // No more map rows
             if (!this.map.objects[row]) break;
 
             // Go to the end of the screen X
-            for (let j = 1; j <= Math.ceil(maxRight / this.rasterSize); j++) {
+            for (let j = 1; j <= Math.ceil(maxRight / rasterSize); j++) {
                 // No more map columns
                 if (!(this.map.objects[row][col] >= 0)) break;
 
                 let rasterCode = this.map.objects[row][col];
-                let terrainObject = this.objectsFactory.create(rasterCode, pos, this.rasterSize);
+                let terrainObject = this.objectsFactory.create(rasterCode, pos, rasterSize);
 
                 terrainObject.draw(camera);
 
                 col++;
-                pos.x = startPos.x + (j * this.rasterSize);
+                pos.x = startPos.x + (j * rasterSize);
             }
 
             col = startCol;
             row++;
             pos.x = startPos.x;
-            pos.y = startPos.y + (i * this.rasterSize);
+            pos.y = startPos.y + (i * rasterSize);
         }
 
         this.lastCamera = camera.clone();
@@ -366,11 +368,11 @@ class TerrainObjectsFactory {
     create(rasterCode: number, position: Point2d, size: number): Raster {
         switch (rasterCode) {
             case 0:
-                return new Raster(this.ctx, position, new Size(size, size), 'green', 'black', 1);
+                return new Raster(this.ctx, position, new Size(size, size), '#66440b', 'black', 1);
             case 1:
-                return new Raster(this.ctx, position, new Size(size, size), 'gray', 'black', 1);
+                return new Raster(this.ctx, position, new Size(size, size), '#3d3321', 'black', 1);
             default:
-                return new Raster(this.ctx, position, new Size(size, size), 'black', 'black', 1);
+                return new Raster(this.ctx, position, new Size(size, size), '#0f0b04', 'black', 1);
         }
     }
 }
@@ -391,11 +393,11 @@ class UnitFactory {
 
 abstract class Rect implements IGameObject {
     public position: Point2d;
+    public size: Size;
     protected ctx: CanvasRenderingContext2D;
     protected fill: string;
     protected stroke: string;
     protected strokewidth: number;
-    protected size: Size;
 
     constructor(ctx: CanvasRenderingContext2D, topLeft: Point2d, size: Size, fill: string, stroke: string, strokewidth: number) {
         this.ctx = ctx;
@@ -450,11 +452,23 @@ class MapProjection extends Raster {
     }
 
     draw(camera: Point2d): void {
-        let step = new Size(Math.round(this.size.width / this.map.size().width), Math.round(this.size.height / this.map.size().height));
-
         super.draw(camera);
         this.border.draw(camera);
-        // TODO: User other Raster to represent the units
+
+        this.objects.getUnits().forEach(u => {
+            // Unit's projection on the map
+            // TODO: This may be expensive to create n objects in every frame. Check for memory leaks
+
+            let ratioX = u.position.x / (this.map.size().width * this.map.rasterSize);
+            let ratioY = u.position.y / (this.map.size().height * this.map.rasterSize);
+
+            let x = this.border.position.x + (ratioX * this.border.size.width);
+            let y = this.border.position.y + (ratioY * this.border.size.height);
+
+            let unitProjection = new Raster(this.ctx, new Point2d(x, y), new Size(5, 5), u.player.color, u.player.color, 1);
+
+            unitProjection.draw(camera);
+        });
     }
 
     private createBorder(): Raster {
@@ -532,11 +546,11 @@ class Unit implements ISelectable, IMovable {
     private velocity: Point2d;
     private speed: number;
 
-    constructor(ctx: CanvasRenderingContext2D, position: Point2d, size: Size, speed: number, player: Player) {
+    constructor(ctx: CanvasRenderingContext2D, center: Point2d, size: Size, speed: number, player: Player) {
         this.player = player;
         this.ctx = ctx;
         this.size = size;
-        this.position = position;
+        this.position = center;
         this.speed = speed;
         this.movementsQueue = new Array<Point2d>();
         this.rect = new SelectRect(ctx, Point2d.zero(), size, 'green', 'black', 2);
