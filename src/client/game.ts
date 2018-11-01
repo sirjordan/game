@@ -455,10 +455,10 @@ class MapProjection extends Raster {
         super.draw(camera);
         this.border.draw(camera);
 
+         // Unit's projection on the map
         this.objects.getUnits().forEach(u => {
-            // Unit's projection on the map
-            // TODO: This may be expensive to create n objects in every frame. Check for memory leaks
-
+            // TODO: Create objects in every frame may be too expensive. Must remake it!
+            // TODO: Here every unit projection sets the clearRect() and stroke and fill. Make it at once, by clear all at star
             let ratioX = u.position.x / (this.map.size().width * this.map.rasterSize);
             let ratioY = u.position.y / (this.map.size().height * this.map.rasterSize);
 
