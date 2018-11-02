@@ -297,11 +297,11 @@ var TerrainObjectsFactory = /** @class */ (function () {
     TerrainObjectsFactory.prototype.create = function (rasterCode, position, size) {
         switch (rasterCode) {
             case 0:
-                return new Raster(this.ctx, position, new Size(size, size), '#66440b', 'black', 1);
+                return new Raster(this.ctx, position, new Size(size, size), '#66440b');
             case 1:
-                return new Raster(this.ctx, position, new Size(size, size), '#3d3321', 'black', 1);
+                return new Raster(this.ctx, position, new Size(size, size), '#3d3321');
             default:
-                return new Raster(this.ctx, position, new Size(size, size), '#0f0b04', 'black', 1);
+                return new Raster(this.ctx, position, new Size(size, size), '#0f0b04');
         }
     };
     return TerrainObjectsFactory;
@@ -318,12 +318,13 @@ var UnitFactory = /** @class */ (function () {
 }());
 var Rect = /** @class */ (function () {
     function Rect(ctx, topLeft, size, fill, stroke, strokewidth) {
+        // TODO: Make stroke and strokeWidth optional
         this.ctx = ctx;
         this.position = topLeft;
         this.size = size;
         this.fill = fill;
-        this.stroke = stroke;
-        this.strokewidth = strokewidth;
+        this.stroke = stroke || fill;
+        this.strokewidth = strokewidth || 1;
     }
     Rect.prototype.isPointInside = function (point) {
         return (point.x >= this.position.x &&
@@ -332,6 +333,28 @@ var Rect = /** @class */ (function () {
             point.y <= this.position.y + this.size.height);
     };
     return Rect;
+}());
+var Circle = /** @class */ (function () {
+    function Circle(ctx, center, radius, fill, stroke, strokewidth) {
+        this.ctx = ctx;
+        this.position = center;
+        this.radius = radius;
+        this.fill = fill;
+        this.stroke = stroke || fill;
+        this.strokewidth = strokewidth || 1;
+    }
+    Circle.prototype.draw = function (camera) {
+        this.ctx.beginPath();
+        this.ctx.arc(this.position.x, this.position.y, this.radius, 0, 2 * Math.PI);
+        this.ctx.lineWidth = this.strokewidth;
+        this.ctx.fillStyle = this.fill;
+        this.ctx.fill();
+        this.ctx.stroke();
+    };
+    Circle.prototype.isPointInside = function (point) {
+        throw new Error("Method not implemented.");
+    };
+    return Circle;
 }());
 var Raster = /** @class */ (function (_super) {
     __extends(Raster, _super);
@@ -364,14 +387,15 @@ var MapProjection = /** @class */ (function (_super) {
         var _this = this;
         _super.prototype.draw.call(this, camera);
         this.border.draw(camera);
+        // Unit's projection on the map
         this.objects.getUnits().forEach(function (u) {
-            // Unit's projection on the map
-            // TODO: This may be expensive to create n objects in every frame. Check for memory leaks
+            // TODO: Optimize - Mandatory!
+            // 1. Create objects in every frame may be too expensive. Must remake it!
             var ratioX = u.position.x / (_this.map.size().width * _this.map.rasterSize);
             var ratioY = u.position.y / (_this.map.size().height * _this.map.rasterSize);
             var x = _this.border.position.x + (ratioX * _this.border.size.width);
             var y = _this.border.position.y + (ratioY * _this.border.size.height);
-            var unitProjection = new Raster(_this.ctx, new Point2d(x, y), new Size(5, 5), u.player.color, u.player.color, 1);
+            var unitProjection = new Circle(_this.ctx, new Point2d(x, y), 3, u.player.color);
             unitProjection.draw(camera);
         });
     };

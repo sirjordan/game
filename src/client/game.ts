@@ -368,11 +368,11 @@ class TerrainObjectsFactory {
     create(rasterCode: number, position: Point2d, size: number): Raster {
         switch (rasterCode) {
             case 0:
-                return new Raster(this.ctx, position, new Size(size, size), '#66440b', 'black', 1);
+                return new Raster(this.ctx, position, new Size(size, size), '#66440b');
             case 1:
-                return new Raster(this.ctx, position, new Size(size, size), '#3d3321', 'black', 1);
+                return new Raster(this.ctx, position, new Size(size, size), '#3d3321');
             default:
-                return new Raster(this.ctx, position, new Size(size, size), '#0f0b04', 'black', 1);
+                return new Raster(this.ctx, position, new Size(size, size), '#0f0b04');
         }
     }
 }
@@ -399,13 +399,13 @@ abstract class Rect implements IGameObject {
     protected stroke: string;
     protected strokewidth: number;
 
-    constructor(ctx: CanvasRenderingContext2D, topLeft: Point2d, size: Size, fill: string, stroke: string, strokewidth: number) {
+    constructor(ctx: CanvasRenderingContext2D, topLeft: Point2d, size: Size, fill: string, stroke?: string, strokewidth?: number) {
         this.ctx = ctx;
         this.position = topLeft;
         this.size = size;
         this.fill = fill;
-        this.stroke = stroke;
-        this.strokewidth = strokewidth;
+        this.stroke = stroke || fill;
+        this.strokewidth = strokewidth || 1;
     }
 
     abstract draw(camera: Point2d): void;
@@ -416,6 +416,37 @@ abstract class Rect implements IGameObject {
             point.x <= this.position.x + this.size.width &&
             point.y >= this.position.y &&
             point.y <= this.position.y + this.size.height);
+    }
+}
+
+class Circle implements IGameObject {
+    public position: Point2d;
+    protected ctx: CanvasRenderingContext2D;
+    protected fill: string;
+    protected stroke: string;
+    protected strokewidth: number;
+    protected radius: number;
+
+    constructor(ctx: CanvasRenderingContext2D, center: Point2d, radius: number, fill: string, stroke?: string, strokewidth?: number) {
+        this.ctx = ctx;
+        this.position = center;
+        this.radius = radius;
+        this.fill = fill;
+        this.stroke = stroke || fill;
+        this.strokewidth = strokewidth || 1;
+    }
+
+    draw(camera: Point2d): void {
+        this.ctx.beginPath();
+        this.ctx.arc(this.position.x, this.position.y, this.radius, 0, 2 * Math.PI);
+        this.ctx.lineWidth = this.strokewidth;
+        this.ctx.fillStyle = this.fill;
+        this.ctx.fill();
+        this.ctx.stroke();
+    }
+
+    isPointInside(point: Point2d): boolean {
+        throw new Error("Method not implemented.");
     }
 }
 
@@ -459,14 +490,13 @@ class MapProjection extends Raster {
         this.objects.getUnits().forEach(u => {
             // TODO: Optimize - Mandatory!
             // 1. Create objects in every frame may be too expensive. Must remake it!
-            // 2. Here every unit projection sets the clearRect() and stroke and fill. Make it at once, draw them at once
             let ratioX = u.position.x / (this.map.size().width * this.map.rasterSize);
             let ratioY = u.position.y / (this.map.size().height * this.map.rasterSize);
 
             let x = this.border.position.x + (ratioX * this.border.size.width);
             let y = this.border.position.y + (ratioY * this.border.size.height);
 
-            let unitProjection = new Raster(this.ctx, new Point2d(x, y), new Size(5, 5), u.player.color, u.player.color, 1);
+            let unitProjection = new Circle(this.ctx, new Point2d(x, y), 3, u.player.color);
 
             unitProjection.draw(camera);
         });
