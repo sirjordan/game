@@ -1,3 +1,4 @@
+"use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
         extendStatics = Object.setPrototypeOf ||
@@ -11,30 +12,9 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-var Utils = /** @class */ (function () {
-    function Utils() {
-    }
-    Utils.lerp = function (v0, v1, t) {
-        return v0 + t * (v1 - v0);
-    };
-    Utils.calcCanvasSize = function (rightPanel, bottomPanel) {
-        var rightPanelOffset = this.calcOffset(rightPanel);
-        var bottomPanelOffset = this.calcOffset(bottomPanel);
-        return new Size(rightPanelOffset.left, bottomPanelOffset.top);
-    };
-    Utils.calcOffset = function (el) {
-        // Calculates the TopLeft of Html element
-        var _x = 0;
-        var _y = 0;
-        while (el && !isNaN(el.offsetLeft) && !isNaN(el.offsetTop)) {
-            _x += el.offsetLeft - el.scrollLeft;
-            _y += el.offsetTop - el.scrollTop;
-            el = el.offsetParent;
-        }
-        return { top: _y, left: _x };
-    };
-    return Utils;
-}());
+Object.defineProperty(exports, "__esModule", { value: true });
+var utils_1 = require("./common/utils");
+var utils_2 = require("./common/utils");
 var Map = /** @class */ (function () {
     function Map() {
         this.rasterSize = 50;
@@ -66,7 +46,7 @@ var Map = /** @class */ (function () {
     }
     Map.prototype.size = function () {
         // Size of the map in objects (not in pixels)
-        return new Size(this.objects[0].length, this.objects.length);
+        return new utils_2.Size(this.objects[0].length, this.objects.length);
     };
     return Map;
 }());
@@ -78,7 +58,7 @@ var Terrain = /** @class */ (function () {
     }
     Terrain.prototype.size = function () {
         // Size of the terrain in pixels
-        return new Size(this.map.size().width * this.map.rasterSize, this.map.size().height * this.map.rasterSize);
+        return new utils_2.Size(this.map.size().width * this.map.rasterSize, this.map.size().height * this.map.rasterSize);
     };
     Terrain.prototype.draw = function (camera) {
         // Optimizing the draw() and render only if the camera changes its position
@@ -162,7 +142,7 @@ var Game = /** @class */ (function () {
         this.objects.add(unitFactory.baseUnit(new Point2d(50, 50)));
         this.objects.add(unitFactory.baseUnit(new Point2d(100, 100)));
         var toolsCtx = this.toolsLayer.getContext('2d');
-        this.mapProjection = new MapProjection(this.objects, map, toolsCtx, Point2d.zero(), new Size(this.rightPanel.clientWidth, this.rightPanel.clientWidth));
+        this.mapProjection = new MapProjection(this.objects, map, toolsCtx, Point2d.zero(), new utils_2.Size(this.rightPanel.clientWidth, this.rightPanel.clientWidth));
         // Start the game loop
         this.update();
     };
@@ -234,7 +214,7 @@ var Game = /** @class */ (function () {
         return path;
     };
     Game.prototype.setStageSize = function () {
-        var canvasSize = Utils.calcCanvasSize(this.rightPanel, this.bottomPanel);
+        var canvasSize = utils_1.Utils.calcCanvasSize(this.rightPanel, this.bottomPanel);
         this.stageMax = canvasSize;
         this.gameLayer.width = canvasSize.width;
         this.gameLayer.height = canvasSize.height;
@@ -281,11 +261,11 @@ var Objects = /** @class */ (function () {
     };
     Objects.prototype.draw = function (camera) {
         // Draw all static and movable objects
+        // TODO: Optimize: Draw only objects in the visible area
         this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
         this.getAll().forEach(function (el) {
             el.draw(camera);
         });
-        // TODO: Optimize: Draw only objects in the visible area
     };
     return Objects;
 }());
@@ -296,11 +276,11 @@ var TerrainObjectsFactory = /** @class */ (function () {
     TerrainObjectsFactory.prototype.create = function (rasterCode, position, size) {
         switch (rasterCode) {
             case 0:
-                return new Raster(this.ctx, position, new Size(size, size), '#66440b');
+                return new Raster(this.ctx, position, new utils_2.Size(size, size), '#66440b');
             case 1:
-                return new Raster(this.ctx, position, new Size(size, size), '#3d3321');
+                return new Raster(this.ctx, position, new utils_2.Size(size, size), '#3d3321');
             default:
-                return new Raster(this.ctx, position, new Size(size, size), '#0f0b04');
+                return new Raster(this.ctx, position, new utils_2.Size(size, size), '#0f0b04');
         }
     };
     return TerrainObjectsFactory;
@@ -323,27 +303,18 @@ var UnitFactory = /** @class */ (function () {
         this.sequence = sequence;
     }
     UnitFactory.prototype.baseUnit = function (position) {
-        return new Unit(this.sequence.getNext(), this.ctx, position, new Size(20, 20), 3, this.player);
+        return new Unit(this.sequence.getNext(), this.ctx, position, new utils_2.Size(20, 20), 3, this.player);
     };
     return UnitFactory;
 }());
-var GameObject = /** @class */ (function () {
-    function GameObject(ctx, position) {
-        this.ctx = ctx;
-        this.position = position;
-    }
-    return GameObject;
-}());
-var Rect = /** @class */ (function (_super) {
-    __extends(Rect, _super);
+var Rect = /** @class */ (function () {
     function Rect(ctx, topLeft, size, fill, stroke, strokewidth) {
-        var _this = _super.call(this, ctx, topLeft) || this;
-        _this.ctx = ctx;
-        _this.size = size;
-        _this.fill = fill;
-        _this.stroke = stroke || fill;
-        _this.strokewidth = strokewidth || 1;
-        return _this;
+        this.position = topLeft;
+        this.ctx = ctx;
+        this.size = size;
+        this.fill = fill;
+        this.stroke = stroke || fill;
+        this.strokewidth = strokewidth || 1;
     }
     Rect.prototype.isPointInside = function (point) {
         return (point.x >= this.position.x &&
@@ -352,7 +323,7 @@ var Rect = /** @class */ (function (_super) {
             point.y <= this.position.y + this.size.height);
     };
     return Rect;
-}(GameObject));
+}());
 var Circle = /** @class */ (function () {
     function Circle(ctx, center, radius, fill, stroke, strokewidth) {
         this.ctx = ctx;
@@ -412,20 +383,10 @@ var MapProjection = /** @class */ (function () {
                 this.objectProjections[key].draw(camera);
             }
         }
-        // this.objects.getUnits().forEach(u => {
-        //     // TODO: Optimize - Mandatory!
-        //     // 1. Create objects in every frame may be too expensive. Must remake it!
-        //     let ratioX = u.position.x / (this.map.size().width * this.map.rasterSize);
-        //     let ratioY = u.position.y / (this.map.size().height * this.map.rasterSize);
-        //     let x = this.border.position.x + (ratioX * this.border.size.width);
-        //     let y = this.border.position.y + (ratioY * this.border.size.height);
-        //     let unitProjection = new Circle(this.ctx, new Point2d(x, y), 3, u.player.color);
-        //     unitProjection.draw(camera);
-        // });
     };
     MapProjection.prototype.notify = function (context) {
         // Update the projection when the context object canges its state
-        // TODO: Use notify for objects prop, when the objects uncrease or decrease
+        // TODO: Use notify for this.objects, when the objects uncrease or decrease
         var updatedUnit = context;
         this.objectProjections[updatedUnit.id] = this.createProjection(updatedUnit);
     };
@@ -434,10 +395,10 @@ var MapProjection = /** @class */ (function () {
         // Create initial units projections
         units.forEach(function (u) {
             _this.objectProjections[u.id] = _this.createProjection(u);
-            u.subscribe(_this);
         });
     };
     MapProjection.prototype.createProjection = function (unit) {
+        unit.subscribe(this);
         var ratioX = unit.position.x / (this.map.size().width * this.map.rasterSize);
         var ratioY = unit.position.y / (this.map.size().height * this.map.rasterSize);
         var x = this.border.position.x + (ratioX * this.border.size.width);
@@ -455,7 +416,7 @@ var MapProjection = /** @class */ (function () {
             scaledW = w / h;
             scaledH = 1;
         }
-        var size = new Size(this.background.size.width * scaledW, this.background.size.height * scaledH);
+        var size = new utils_2.Size(this.background.size.width * scaledW, this.background.size.height * scaledH);
         // Get centered position
         var x = (this.background.size.width - size.width) / 2;
         var y = (this.background.size.height - size.height) / 2;
@@ -604,8 +565,8 @@ var Point2d = /** @class */ (function () {
     };
     Point2d.prototype.calcVelocity = function (other, magnitude) {
         var delta = magnitude / this.distanceTo(other);
-        var offsetX = Utils.lerp(this.x, other.x, delta) - this.x;
-        var offsetY = Utils.lerp(this.y, other.y, delta) - this.y;
+        var offsetX = utils_1.Utils.lerp(this.x, other.x, delta) - this.x;
+        var offsetY = utils_1.Utils.lerp(this.y, other.y, delta) - this.y;
         return new Point2d(offsetX, offsetY);
     };
     Point2d.prototype.add = function (point) {
@@ -622,12 +583,5 @@ var Point2d = /** @class */ (function () {
         return this.x === other.x && this.y === other.y;
     };
     return Point2d;
-}());
-var Size = /** @class */ (function () {
-    function Size(width, height) {
-        this.width = width;
-        this.height = height;
-    }
-    return Size;
 }());
 //# sourceMappingURL=game.js.map

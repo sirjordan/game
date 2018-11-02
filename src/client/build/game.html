@@ -54,8 +54,6 @@
             z-index: 5;
             background-color: #20262e;
         }
-
-        
     </style>
 </head>
 
@@ -69,16 +67,19 @@
         <canvas id="game-layer"></canvas>
         <canvas id="background-layer"></canvas>
     </div>
-    <script src="game.js"></script>
+    <script src="https://requirejs.org/docs/release/2.3.6/minified/require.js"></script>
+    <script src="combined.js"></script>
     <script>
-        let gameLayer = document.getElementById('game-layer');
-        let bgLayer = document.getElementById('background-layer');
-        let toolsLayer = document.getElementById('tools-layer');
-        let rightPanel = document.getElementById('right-panel');
-        let bottomPanel = document.getElementById('bottom-panel');
+        require(["combined"], g => {
+            let gameLayer = document.getElementById('game-layer');
+            let bgLayer = document.getElementById('background-layer');
+            let toolsLayer = document.getElementById('tools-layer');
+            let rightPanel = document.getElementById('right-panel');
+            let bottomPanel = document.getElementById('bottom-panel');
 
-        var game = new Game(gameLayer, bgLayer, toolsLayer, rightPanel, bottomPanel);
-        game.start();
+            var game = new Game(gameLayer, bgLayer, toolsLayer, rightPanel, bottomPanel);
+            game.start();
+        });
     </script>
 </body>
 
