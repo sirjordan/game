@@ -1,6 +1,6 @@
 import Size = require('./size');
 
-class Utils {
+class Functions {
     static lerp(v0: number, v1: number, t: number): number {
         return v0 + t * (v1 - v0);
     }
@@ -25,4 +25,4 @@ class Utils {
     }
 }
 
-export = Utils;
+export = Functions;
