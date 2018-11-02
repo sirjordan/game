@@ -67,10 +67,9 @@
         <canvas id="game-layer"></canvas>
         <canvas id="background-layer"></canvas>
     </div>
-    <script src="https://requirejs.org/docs/release/2.3.6/minified/require.js"></script>
-    <script src="combined.js"></script>
+    <script data-main="scripts/game" src="https://requirejs.org/docs/release/2.3.6/minified/require.js"></script>
     <script>
-        require(["combined"], g => {
+        require(["game"], Game => {
             let gameLayer = document.getElementById('game-layer');
             let bgLayer = document.getElementById('background-layer');
             let toolsLayer = document.getElementById('tools-layer');

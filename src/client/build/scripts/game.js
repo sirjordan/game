@@ -432,10 +432,10 @@ define("game", ["require", "exports", "common/utils", "common/size"], function (
             // Create initial units projections
             units.forEach(function (u) {
                 _this.objectProjections[u.id] = _this.createProjection(u);
+                u.subscribe(_this);
             });
         };
         MapProjection.prototype.createProjection = function (unit) {
-            unit.subscribe(this);
             var ratioX = unit.position.x / (this.map.size().width * this.map.rasterSize);
             var ratioY = unit.position.y / (this.map.size().height * this.map.rasterSize);
             var x = this.border.position.x + (ratioX * this.border.size.width);
@@ -623,4 +623,4 @@ define("game", ["require", "exports", "common/utils", "common/size"], function (
     }());
     return Game;
 });
-//# sourceMappingURL=combined.js.map
+//# sourceMappingURL=game.js.map

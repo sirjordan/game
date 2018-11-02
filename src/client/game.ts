@@ -511,12 +511,11 @@ class MapProjection implements ISubscriber {
         // Create initial units projections
         units.forEach(u => {
             this.objectProjections[u.id] = this.createProjection(u);
+            u.subscribe(this);
         });
     }
 
     private createProjection(unit: Unit): IGameObject {
-        unit.subscribe(this);
-
         let ratioX = unit.position.x / (this.map.size().width * this.map.rasterSize);
         let ratioY = unit.position.y / (this.map.size().height * this.map.rasterSize);
 
