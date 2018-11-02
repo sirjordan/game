@@ -172,14 +172,14 @@ class Game {
         let map = new Map();
         this.terrain = new Terrain(bgCtx, map, terrainObjectsFactory);
 
-        let toolsCtx = this.toolsLayer.getContext('2d');
-        this.mapProjection = new MapProjection(this.objects, map, toolsCtx, Point2d.zero(), new Size(this.rightPanel.clientWidth, this.rightPanel.clientWidth));
-
         let player = new Player('red');
-        let unitFactory = new UnitFactory(this.gameCtx, player);
+        let unitFactory = new UnitFactory(this.gameCtx, player, new Sequence());
 
         this.objects.add(unitFactory.baseUnit(new Point2d(50, 50)));
         this.objects.add(unitFactory.baseUnit(new Point2d(100, 100)));
+
+        let toolsCtx = this.toolsLayer.getContext('2d');
+        this.mapProjection = new MapProjection(this.objects, map, toolsCtx, Point2d.zero(), new Size(this.rightPanel.clientWidth, this.rightPanel.clientWidth));
 
         // Start the game loop
         this.update();
@@ -276,7 +276,6 @@ class Game {
         this.gameLayer.height = canvasSize.height;
         this.bgLayer.width = canvasSize.width;
         this.bgLayer.height = canvasSize.height;
-        //this.toolsLayer
         this.toolsLayer.width = this.rightPanel.clientWidth;
         this.toolsLayer.height = this.rightPanel.clientHeight;
     }
@@ -288,17 +287,25 @@ interface IGameObject {
     isPointInside(point: Point2d): boolean;
 }
 
-interface IMovable extends IGameObject {
+interface IMovable {
     move(): void;
     loadMovements(path: Array<Point2d>): void;
     stop(): void;
 }
 
-interface ISelectable extends IGameObject {
+interface ISelectable {
     isSelected(): boolean;
     select(): void;
     unSelect(): void;
     getRect(): SelectRect;
+}
+
+interface ISubscriber {
+    notify(context: any): any;
+}
+
+interface INotifier {
+    subscribe(subscriber: ISubscriber): void;
 }
 
 class Objects {
@@ -336,7 +343,7 @@ class Objects {
     }
 
     getUnits(): Array<Unit> {
-        return <Array<Unit>>this.objects[(<any>Unit).name];
+        return <Array<Unit>>this.objects[(<any>Unit).name] || [];
     }
 
     update() {
@@ -377,38 +384,62 @@ class TerrainObjectsFactory {
     }
 }
 
-class UnitFactory {
-    private ctx: CanvasRenderingContext2D;
-    private player: Player;
+class Sequence {
+    private last: number;
 
-    constructor(ctx: CanvasRenderingContext2D, player: Player) {
-        this.ctx = ctx;
-        this.player = player;
+    constructor() {
+        this.last = 0;
     }
 
-    baseUnit(position: Point2d): Unit {
-        return new Unit(this.ctx, position, new Size(20, 20), 3, this.player);
+    getNext = (): number => {
+        this.last++;
+        return this.last;
     }
 }
 
-abstract class Rect implements IGameObject {
+class UnitFactory {
+    private ctx: CanvasRenderingContext2D;
+    private player: Player;
+    private sequence: Sequence;
+
+    constructor(ctx: CanvasRenderingContext2D, player: Player, sequence: Sequence) {
+        this.ctx = ctx;
+        this.player = player;
+        this.sequence = sequence;
+    }
+
+    baseUnit(position: Point2d): Unit {
+        return new Unit(this.sequence.getNext(), this.ctx, position, new Size(20, 20), 3, this.player);
+    }
+}
+
+abstract class GameObject implements IGameObject {
     public position: Point2d;
-    public size: Size;
     protected ctx: CanvasRenderingContext2D;
+
+    constructor(ctx: CanvasRenderingContext2D, position: Point2d) {
+        this.ctx = ctx;
+        this.position = position;
+    }
+
+    abstract draw(camera: Point2d): void;
+    abstract isPointInside(point: Point2d): boolean;
+}
+
+abstract class Rect extends GameObject {
+    public size: Size;
     protected fill: string;
     protected stroke: string;
     protected strokewidth: number;
 
     constructor(ctx: CanvasRenderingContext2D, topLeft: Point2d, size: Size, fill: string, stroke?: string, strokewidth?: number) {
+        super(ctx, topLeft)
         this.ctx = ctx;
-        this.position = topLeft;
         this.size = size;
         this.fill = fill;
         this.stroke = stroke || fill;
         this.strokewidth = strokewidth || 1;
     }
-
-    abstract draw(camera: Point2d): void;
 
     isPointInside(point: Point2d): boolean {
         return (
@@ -464,42 +495,64 @@ class Raster extends Rect {
     }
 }
 
-class MapProjection extends Raster {
+class MapProjection implements ISubscriber {
     /// Projected map as an interactive component
     /// Shows the active objects, current camera position
     /// Player can click and move the camera fast
-
+    private background: Raster;
+    private ctx: CanvasRenderingContext2D;
     private static bgColor: string = '#20262e';
     private static borderColor: string = '#2d333b';
     private map: Map;
     private objects: Objects;
     private border: Raster;
+    private objectProjections: { [type: string]: IGameObject; } = {};
 
     constructor(objects: Objects, map: Map, ctx: CanvasRenderingContext2D, topLeft: Point2d, size: Size) {
-        super(ctx, topLeft, size, MapProjection.bgColor, MapProjection.borderColor, 1);
+        this.ctx = ctx;
+        this.background = new Raster(ctx, topLeft, size, MapProjection.bgColor, MapProjection.borderColor, 1);
         this.map = map;
         this.objects = objects;
         this.border = this.createBorder();
+        this.createUnitsProjections(objects.getUnits());
     }
 
     draw(camera: Point2d): void {
-        super.draw(camera);
+        this.background.draw(camera);
         this.border.draw(camera);
 
-         // Unit's projection on the map
-        this.objects.getUnits().forEach(u => {
-            // TODO: Optimize - Mandatory!
-            // 1. Create objects in every frame may be too expensive. Must remake it!
-            let ratioX = u.position.x / (this.map.size().width * this.map.rasterSize);
-            let ratioY = u.position.y / (this.map.size().height * this.map.rasterSize);
+        // Draw unit's projection on the map
+        for (const key in this.objectProjections) {
+            if (this.objectProjections.hasOwnProperty(key)){
+                this.objectProjections[key].draw(camera);
+            }
+        }
+    }
 
-            let x = this.border.position.x + (ratioX * this.border.size.width);
-            let y = this.border.position.y + (ratioY * this.border.size.height);
+    notify(context: any) {
+        // Update the projection when the context object canges its state
+        // TODO: Use notify for objects prop, when the objects uncrease or decrease
+        let updatedUnit = <Unit>context;
+        this.objectProjections[updatedUnit.id] = this.createProjection(updatedUnit);
+    }
 
-            let unitProjection = new Circle(this.ctx, new Point2d(x, y), 3, u.player.color);
-
-            unitProjection.draw(camera);
+    private createUnitsProjections(units: Array<Unit>) {
+        // Create initial units projections
+        units.forEach(u => {
+            this.objectProjections[u.id] = this.createProjection(u);
         });
+    }
+
+    private createProjection(unit: Unit): IGameObject {
+        unit.subscribe(this);
+
+        let ratioX = unit.position.x / (this.map.size().width * this.map.rasterSize);
+        let ratioY = unit.position.y / (this.map.size().height * this.map.rasterSize);
+
+        let x = this.border.position.x + (ratioX * this.border.size.width);
+        let y = this.border.position.y + (ratioY * this.border.size.height);
+
+        return new Circle(this.ctx, new Point2d(x, y), 3, unit.player.color);
     }
 
     private createBorder(): Raster {
@@ -517,11 +570,11 @@ class MapProjection extends Raster {
             scaledH = 1;
         }
 
-        let size = new Size(this.size.width * scaledW, this.size.height * scaledH);
+        let size = new Size(this.background.size.width * scaledW, this.background.size.height * scaledH);
 
         // Get centered position
-        let x = (this.size.width - size.width) / 2;
-        let y = (this.size.height - size.height) / 2;
+        let x = (this.background.size.width - size.width) / 2;
+        let y = (this.background.size.height - size.height) / 2;
 
         return new Raster(this.ctx, new Point2d(x, y), size, 'black', MapProjection.borderColor, 1);
     }
@@ -564,7 +617,8 @@ class SelectRect extends Rect implements ISelectable {
     }
 }
 
-class Unit implements ISelectable, IMovable {
+class Unit implements ISelectable, IMovable, INotifier {
+    public id: number;
     public player: Player;
     // Centered position of the unit
     public position: Point2d;
@@ -576,8 +630,11 @@ class Unit implements ISelectable, IMovable {
     private nextStep: Point2d;
     private velocity: Point2d;
     private speed: number;
+    // List of subscriber that are notified when the object state updates
+    private stateUpdateSubscribers: Array<ISubscriber> = new Array<ISubscriber>();
 
-    constructor(ctx: CanvasRenderingContext2D, center: Point2d, size: Size, speed: number, player: Player) {
+    constructor(id: number, ctx: CanvasRenderingContext2D, center: Point2d, size: Size, speed: number, player: Player) {
+        this.id = id;
         this.player = player;
         this.ctx = ctx;
         this.size = size;
@@ -586,6 +643,10 @@ class Unit implements ISelectable, IMovable {
         this.movementsQueue = new Array<Point2d>();
         this.rect = new SelectRect(ctx, Point2d.zero(), size, 'green', 'black', 2);
         this.positionRect();
+    }
+
+    subscribe(subscriber: ISubscriber): void {
+        this.stateUpdateSubscribers.push(subscriber);
     }
 
     getRect(): SelectRect {
@@ -622,6 +683,7 @@ class Unit implements ISelectable, IMovable {
             this.position.y = this.nextStep.y;
 
         this.positionRect();
+        this.notifyStateUpdate();
 
         // Step is over
         if (this.isPointInside(this.nextStep))
@@ -661,6 +723,13 @@ class Unit implements ISelectable, IMovable {
 
     private positionRect(): void {
         this.rect.position = new Point2d((this.position.x - this.size.width / 2), (this.position.y - this.size.height / 2))
+    }
+
+    private notifyStateUpdate() {
+        // Notify the subscribers, that the state has been updated
+        this.stateUpdateSubscribers.forEach(sc => {
+            sc.notify(this);
+        });
     }
 }
 

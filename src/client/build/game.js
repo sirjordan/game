@@ -157,12 +157,12 @@ var Game = /** @class */ (function () {
         var terrainObjectsFactory = new TerrainObjectsFactory(bgCtx);
         var map = new Map();
         this.terrain = new Terrain(bgCtx, map, terrainObjectsFactory);
-        var toolsCtx = this.toolsLayer.getContext('2d');
-        this.mapProjection = new MapProjection(this.objects, map, toolsCtx, Point2d.zero(), new Size(this.rightPanel.clientWidth, this.rightPanel.clientWidth));
         var player = new Player('red');
-        var unitFactory = new UnitFactory(this.gameCtx, player);
+        var unitFactory = new UnitFactory(this.gameCtx, player, new Sequence());
         this.objects.add(unitFactory.baseUnit(new Point2d(50, 50)));
         this.objects.add(unitFactory.baseUnit(new Point2d(100, 100)));
+        var toolsCtx = this.toolsLayer.getContext('2d');
+        this.mapProjection = new MapProjection(this.objects, map, toolsCtx, Point2d.zero(), new Size(this.rightPanel.clientWidth, this.rightPanel.clientWidth));
         // Start the game loop
         this.update();
     };
@@ -240,7 +240,6 @@ var Game = /** @class */ (function () {
         this.gameLayer.height = canvasSize.height;
         this.bgLayer.width = canvasSize.width;
         this.bgLayer.height = canvasSize.height;
-        //this.toolsLayer
         this.toolsLayer.width = this.rightPanel.clientWidth;
         this.toolsLayer.height = this.rightPanel.clientHeight;
     };
@@ -271,7 +270,7 @@ var Objects = /** @class */ (function () {
         return this.getUnits();
     };
     Objects.prototype.getUnits = function () {
-        return this.objects[Unit.name];
+        return this.objects[Unit.name] || [];
     };
     Objects.prototype.update = function () {
         this.getUnits()
@@ -306,25 +305,45 @@ var TerrainObjectsFactory = /** @class */ (function () {
     };
     return TerrainObjectsFactory;
 }());
+var Sequence = /** @class */ (function () {
+    function Sequence() {
+        var _this = this;
+        this.getNext = function () {
+            _this.last++;
+            return _this.last;
+        };
+        this.last = 0;
+    }
+    return Sequence;
+}());
 var UnitFactory = /** @class */ (function () {
-    function UnitFactory(ctx, player) {
+    function UnitFactory(ctx, player, sequence) {
         this.ctx = ctx;
         this.player = player;
+        this.sequence = sequence;
     }
     UnitFactory.prototype.baseUnit = function (position) {
-        return new Unit(this.ctx, position, new Size(20, 20), 3, this.player);
+        return new Unit(this.sequence.getNext(), this.ctx, position, new Size(20, 20), 3, this.player);
     };
     return UnitFactory;
 }());
-var Rect = /** @class */ (function () {
-    function Rect(ctx, topLeft, size, fill, stroke, strokewidth) {
-        // TODO: Make stroke and strokeWidth optional
+var GameObject = /** @class */ (function () {
+    function GameObject(ctx, position) {
         this.ctx = ctx;
-        this.position = topLeft;
-        this.size = size;
-        this.fill = fill;
-        this.stroke = stroke || fill;
-        this.strokewidth = strokewidth || 1;
+        this.position = position;
+    }
+    return GameObject;
+}());
+var Rect = /** @class */ (function (_super) {
+    __extends(Rect, _super);
+    function Rect(ctx, topLeft, size, fill, stroke, strokewidth) {
+        var _this = _super.call(this, ctx, topLeft) || this;
+        _this.ctx = ctx;
+        _this.size = size;
+        _this.fill = fill;
+        _this.stroke = stroke || fill;
+        _this.strokewidth = strokewidth || 1;
+        return _this;
     }
     Rect.prototype.isPointInside = function (point) {
         return (point.x >= this.position.x &&
@@ -333,7 +352,7 @@ var Rect = /** @class */ (function () {
             point.y <= this.position.y + this.size.height);
     };
     return Rect;
-}());
+}(GameObject));
 var Circle = /** @class */ (function () {
     function Circle(ctx, center, radius, fill, stroke, strokewidth) {
         this.ctx = ctx;
@@ -374,30 +393,56 @@ var Raster = /** @class */ (function (_super) {
     };
     return Raster;
 }(Rect));
-var MapProjection = /** @class */ (function (_super) {
-    __extends(MapProjection, _super);
+var MapProjection = /** @class */ (function () {
     function MapProjection(objects, map, ctx, topLeft, size) {
-        var _this = _super.call(this, ctx, topLeft, size, MapProjection.bgColor, MapProjection.borderColor, 1) || this;
-        _this.map = map;
-        _this.objects = objects;
-        _this.border = _this.createBorder();
-        return _this;
+        this.objectProjections = {};
+        this.ctx = ctx;
+        this.background = new Raster(ctx, topLeft, size, MapProjection.bgColor, MapProjection.borderColor, 1);
+        this.map = map;
+        this.objects = objects;
+        this.border = this.createBorder();
+        this.createUnitsProjections(objects.getUnits());
     }
     MapProjection.prototype.draw = function (camera) {
-        var _this = this;
-        _super.prototype.draw.call(this, camera);
+        this.background.draw(camera);
         this.border.draw(camera);
-        // Unit's projection on the map
-        this.objects.getUnits().forEach(function (u) {
-            // TODO: Optimize - Mandatory!
-            // 1. Create objects in every frame may be too expensive. Must remake it!
-            var ratioX = u.position.x / (_this.map.size().width * _this.map.rasterSize);
-            var ratioY = u.position.y / (_this.map.size().height * _this.map.rasterSize);
-            var x = _this.border.position.x + (ratioX * _this.border.size.width);
-            var y = _this.border.position.y + (ratioY * _this.border.size.height);
-            var unitProjection = new Circle(_this.ctx, new Point2d(x, y), 3, u.player.color);
-            unitProjection.draw(camera);
+        // Draw unit's projection on the map
+        for (var key in this.objectProjections) {
+            if (this.objectProjections.hasOwnProperty(key)) {
+                this.objectProjections[key].draw(camera);
+            }
+        }
+        // this.objects.getUnits().forEach(u => {
+        //     // TODO: Optimize - Mandatory!
+        //     // 1. Create objects in every frame may be too expensive. Must remake it!
+        //     let ratioX = u.position.x / (this.map.size().width * this.map.rasterSize);
+        //     let ratioY = u.position.y / (this.map.size().height * this.map.rasterSize);
+        //     let x = this.border.position.x + (ratioX * this.border.size.width);
+        //     let y = this.border.position.y + (ratioY * this.border.size.height);
+        //     let unitProjection = new Circle(this.ctx, new Point2d(x, y), 3, u.player.color);
+        //     unitProjection.draw(camera);
+        // });
+    };
+    MapProjection.prototype.notify = function (context) {
+        // Update the projection when the context object canges its state
+        // TODO: Use notify for objects prop, when the objects uncrease or decrease
+        var updatedUnit = context;
+        this.objectProjections[updatedUnit.id] = this.createProjection(updatedUnit);
+    };
+    MapProjection.prototype.createUnitsProjections = function (units) {
+        var _this = this;
+        // Create initial units projections
+        units.forEach(function (u) {
+            _this.objectProjections[u.id] = _this.createProjection(u);
+            u.subscribe(_this);
         });
+    };
+    MapProjection.prototype.createProjection = function (unit) {
+        var ratioX = unit.position.x / (this.map.size().width * this.map.rasterSize);
+        var ratioY = unit.position.y / (this.map.size().height * this.map.rasterSize);
+        var x = this.border.position.x + (ratioX * this.border.size.width);
+        var y = this.border.position.y + (ratioY * this.border.size.height);
+        return new Circle(this.ctx, new Point2d(x, y), 3, unit.player.color);
     };
     MapProjection.prototype.createBorder = function () {
         // Get scaled size based on the map ratio
@@ -410,19 +455,16 @@ var MapProjection = /** @class */ (function (_super) {
             scaledW = w / h;
             scaledH = 1;
         }
-        var size = new Size(this.size.width * scaledW, this.size.height * scaledH);
+        var size = new Size(this.background.size.width * scaledW, this.background.size.height * scaledH);
         // Get centered position
-        var x = (this.size.width - size.width) / 2;
-        var y = (this.size.height - size.height) / 2;
+        var x = (this.background.size.width - size.width) / 2;
+        var y = (this.background.size.height - size.height) / 2;
         return new Raster(this.ctx, new Point2d(x, y), size, 'black', MapProjection.borderColor, 1);
     };
-    /// Projected map as an interactive component
-    /// Shows the active objects, current camera position
-    /// Player can click and move the camera fast
     MapProjection.bgColor = '#20262e';
     MapProjection.borderColor = '#2d333b';
     return MapProjection;
-}(Raster));
+}());
 var SelectRect = /** @class */ (function (_super) {
     __extends(SelectRect, _super);
     function SelectRect() {
@@ -458,7 +500,10 @@ var SelectRect = /** @class */ (function (_super) {
     return SelectRect;
 }(Rect));
 var Unit = /** @class */ (function () {
-    function Unit(ctx, center, size, speed, player) {
+    function Unit(id, ctx, center, size, speed, player) {
+        // List of subscriber that are notified when the object state updates
+        this.stateUpdateSubscribers = new Array();
+        this.id = id;
         this.player = player;
         this.ctx = ctx;
         this.size = size;
@@ -468,6 +513,9 @@ var Unit = /** @class */ (function () {
         this.rect = new SelectRect(ctx, Point2d.zero(), size, 'green', 'black', 2);
         this.positionRect();
     }
+    Unit.prototype.subscribe = function (subscriber) {
+        this.stateUpdateSubscribers.push(subscriber);
+    };
     Unit.prototype.getRect = function () {
         return this.rect;
     };
@@ -493,6 +541,7 @@ var Unit = /** @class */ (function () {
         if (Math.abs(this.position.y - this.nextStep.y) < Math.abs(this.velocity.y))
             this.position.y = this.nextStep.y;
         this.positionRect();
+        this.notifyStateUpdate();
         // Step is over
         if (this.isPointInside(this.nextStep))
             this.nextStep = null;
@@ -523,6 +572,13 @@ var Unit = /** @class */ (function () {
     };
     Unit.prototype.positionRect = function () {
         this.rect.position = new Point2d((this.position.x - this.size.width / 2), (this.position.y - this.size.height / 2));
+    };
+    Unit.prototype.notifyStateUpdate = function () {
+        var _this = this;
+        // Notify the subscribers, that the state has been updated
+        this.stateUpdateSubscribers.forEach(function (sc) {
+            sc.notify(_this);
+        });
     };
     return Unit;
 }());
