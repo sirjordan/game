@@ -301,7 +301,7 @@ interface ISelectable {
 }
 
 interface ISubscriber {
-    notify(context: any): any;
+    notify(context: any): void;
 }
 
 interface INotifier {
@@ -356,12 +356,11 @@ class Objects {
 
     draw(camera: Point2d) {
         // Draw all static and movable objects
+        // TODO: Optimize: Draw only objects in the visible area
         this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
         this.getAll().forEach(el => {
             el.draw(camera);
         });
-
-        // TODO: Optimize: Draw only objects in the visible area
     }
 }
 
@@ -413,33 +412,24 @@ class UnitFactory {
     }
 }
 
-abstract class GameObject implements IGameObject {
+abstract class Rect implements IGameObject {
+    public size: Size;
     public position: Point2d;
     protected ctx: CanvasRenderingContext2D;
-
-    constructor(ctx: CanvasRenderingContext2D, position: Point2d) {
-        this.ctx = ctx;
-        this.position = position;
-    }
-
-    abstract draw(camera: Point2d): void;
-    abstract isPointInside(point: Point2d): boolean;
-}
-
-abstract class Rect extends GameObject {
-    public size: Size;
     protected fill: string;
     protected stroke: string;
     protected strokewidth: number;
 
     constructor(ctx: CanvasRenderingContext2D, topLeft: Point2d, size: Size, fill: string, stroke?: string, strokewidth?: number) {
-        super(ctx, topLeft)
+        this.position = topLeft;
         this.ctx = ctx;
         this.size = size;
         this.fill = fill;
         this.stroke = stroke || fill;
         this.strokewidth = strokewidth || 1;
     }
+
+    abstract draw(camera: Point2d): void;
 
     isPointInside(point: Point2d): boolean {
         return (
@@ -499,6 +489,7 @@ class MapProjection implements ISubscriber {
     /// Projected map as an interactive component
     /// Shows the active objects, current camera position
     /// Player can click and move the camera fast
+
     private background: Raster;
     private ctx: CanvasRenderingContext2D;
     private static bgColor: string = '#20262e';
@@ -523,7 +514,7 @@ class MapProjection implements ISubscriber {
 
         // Draw unit's projection on the map
         for (const key in this.objectProjections) {
-            if (this.objectProjections.hasOwnProperty(key)){
+            if (this.objectProjections.hasOwnProperty(key)) {
                 this.objectProjections[key].draw(camera);
             }
         }
@@ -531,7 +522,7 @@ class MapProjection implements ISubscriber {
 
     notify(context: any) {
         // Update the projection when the context object canges its state
-        // TODO: Use notify for objects prop, when the objects uncrease or decrease
+        // TODO: Use notify for this.objects, when the objects uncrease or decrease
         let updatedUnit = <Unit>context;
         this.objectProjections[updatedUnit.id] = this.createProjection(updatedUnit);
     }
