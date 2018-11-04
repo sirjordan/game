@@ -1,7 +1,7 @@
 import IGameObject = require('contracts/iGameObject');
 import ISelectable = require('contracts/iSelectable');
-import Point2d = require('common/point2d');
 import Unit = require('unit');
+import Camera = require('common/camera');
 
 class Objects {
     private ctx: CanvasRenderingContext2D;
@@ -49,7 +49,7 @@ class Objects {
             });
     }
 
-    draw(camera: Point2d) {
+    draw(camera: Camera) {
         // Draw all static and movable objects
         // TODO: Optimize: Draw only objects in the visible area
         this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);

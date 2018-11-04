@@ -6,6 +6,7 @@ import Circle = require('gameObjects/circle');
 import ISubscriber = require('common/contracts/iSubscriber');
 import Point2d = require('common/point2d');
 import Size = require('common/size');
+import Camera = require('common/camera');
 import Map = require('map');
 
 class MapProjection implements ISubscriber {
@@ -31,7 +32,7 @@ class MapProjection implements ISubscriber {
         this.createUnitsProjections(objects.getUnits());
     }
 
-    draw(camera: Point2d): void {
+    draw(camera: Camera): void {
         this.background.draw(camera);
         this.border.draw(camera);
 

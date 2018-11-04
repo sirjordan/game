@@ -1,13 +1,14 @@
 import Map = require('map/map');
 import Size = require('common/size');
 import Point2d = require('common/point2d');
+import Camera = require('common/camera');
 import TerrainObjectsFactory = require('terrainObjectsFactory');
 
 class Terrain {
     private ctx: CanvasRenderingContext2D;
     private map: Map;
     // Used to remember the last camera position
-    private lastCamera: Point2d;
+    private lastCameraPosition: Point2d;
     private objectsFactory: TerrainObjectsFactory;
 
     constructor(ctx: CanvasRenderingContext2D, map: Map, objectsFactory: TerrainObjectsFactory) {
@@ -21,9 +22,9 @@ class Terrain {
         return new Size(this.map.size().width * this.map.rasterSize, this.map.size().height * this.map.rasterSize);
     }
 
-    public draw(camera: Point2d, force: boolean = false) {
+    public draw(camera: Camera, force: boolean = false) {
         // Optimizing the draw() and render only if the camera changes its position
-        if (!force && this.lastCamera && camera.equals(this.lastCamera)) {
+        if (!force && this.lastCameraPosition && camera.position.equals(this.lastCameraPosition)) {
             return;
         }
 
@@ -33,11 +34,11 @@ class Terrain {
 
         this.ctx.clearRect(0, 0, maxRight, maxTop);
 
-        let startPos = new Point2d((camera.x % rasterSize) * - 1, (camera.y % rasterSize) * -1);
+        let startPos = new Point2d((camera.position.x % rasterSize) * - 1, (camera.position.y % rasterSize) * -1);
         let pos = startPos.clone();
 
-        let row = Math.floor(camera.y / rasterSize);
-        let col = Math.floor(camera.x / rasterSize);
+        let row = Math.floor(camera.position.y / rasterSize);
+        let col = Math.floor(camera.position.x / rasterSize);
         let startCol = col;
 
         // Go to the end of the screen Y
@@ -65,7 +66,7 @@ class Terrain {
             pos.y = startPos.y + (i * rasterSize);
         }
 
-        this.lastCamera = camera.clone();
+        this.lastCameraPosition = camera.position.clone();
     }
 }
 

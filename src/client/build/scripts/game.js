@@ -89,6 +89,16 @@ define("common/point2d", ["require", "exports", "common/functions"], function (r
     }());
     return Point2d;
 });
+define("common/camera", ["require", "exports", "common/point2d"], function (require, exports, Point2d) {
+    "use strict";
+    var Camera = /** @class */ (function () {
+        function Camera(position) {
+            this.position = position || Point2d.zero();
+        }
+        return Camera;
+    }());
+    return Camera;
+});
 define("gameObjects/contracts/iGameObject", ["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
@@ -143,7 +153,7 @@ define("gameObjects/selectRect", ["require", "exports", "gameObjects/rect"], fun
             this.ctx.fillStyle = this.fill;
             this.ctx.strokeStyle = this.stroke;
             this.ctx.lineWidth = this.strokewidth;
-            this.ctx.rect(this.position.x - camera.x, this.position.y - camera.y, this.size.width, this.size.height);
+            this.ctx.rect(this.position.x - camera.position.x, this.position.y - camera.position.y, this.size.width, this.size.height);
             this.ctx.stroke();
             this.ctx.fill();
             this.ctx.restore();
@@ -239,7 +249,7 @@ define("gameObjects/unit", ["require", "exports", "common/point2d", "gameObjects
         Unit.prototype.draw = function (camera) {
             this.rect.draw(camera);
             this.ctx.beginPath();
-            this.ctx.arc(this.position.x - camera.x, this.position.y - camera.y, this.size.height / 2, 0, 2 * Math.PI);
+            this.ctx.arc(this.position.x - camera.position.x, this.position.y - camera.position.y, this.size.height / 2, 0, 2 * Math.PI);
             this.ctx.lineWidth = 1;
             this.ctx.fillStyle = this.player.color;
             this.ctx.fill();
@@ -439,17 +449,17 @@ define("map/terrain", ["require", "exports", "common/size", "common/point2d"], f
         Terrain.prototype.draw = function (camera, force) {
             if (force === void 0) { force = false; }
             // Optimizing the draw() and render only if the camera changes its position
-            if (!force && this.lastCamera && camera.equals(this.lastCamera)) {
+            if (!force && this.lastCameraPosition && camera.position.equals(this.lastCameraPosition)) {
                 return;
             }
             var maxRight = this.ctx.canvas.width;
             var maxTop = this.ctx.canvas.height;
             var rasterSize = this.map.rasterSize;
             this.ctx.clearRect(0, 0, maxRight, maxTop);
-            var startPos = new Point2d((camera.x % rasterSize) * -1, (camera.y % rasterSize) * -1);
+            var startPos = new Point2d((camera.position.x % rasterSize) * -1, (camera.position.y % rasterSize) * -1);
             var pos = startPos.clone();
-            var row = Math.floor(camera.y / rasterSize);
-            var col = Math.floor(camera.x / rasterSize);
+            var row = Math.floor(camera.position.y / rasterSize);
+            var col = Math.floor(camera.position.x / rasterSize);
             var startCol = col;
             // Go to the end of the screen Y
             for (var i = 1; i <= Math.ceil(maxTop / rasterSize) + 1; i++) {
@@ -472,7 +482,7 @@ define("map/terrain", ["require", "exports", "common/size", "common/point2d"], f
                 pos.x = startPos.x;
                 pos.y = startPos.y + (i * rasterSize);
             }
-            this.lastCamera = camera.clone();
+            this.lastCameraPosition = camera.position.clone();
         };
         return Terrain;
     }());
@@ -570,7 +580,7 @@ define("map/mapProjection", ["require", "exports", "gameObjects/raster", "gameOb
     }());
     return MapProjection;
 });
-define("game", ["require", "exports", "gameObjects/objects", "gameObjects/unitFactory", "common/functions", "common/size", "common/point2d", "common/player", "common/sequence", "map/map", "map/terrain", "map/mapProjection", "map/terrainObjectsFactory"], function (require, exports, Objects, UnitFactory, Functions, Size, Point2d, Player, Sequence, Map, Terrain, MapProjection, TerrainObjectsFactory) {
+define("game", ["require", "exports", "gameObjects/objects", "gameObjects/unitFactory", "common/functions", "common/size", "common/point2d", "common/player", "common/sequence", "common/camera", "map/map", "map/terrain", "map/mapProjection", "map/terrainObjectsFactory"], function (require, exports, Objects, UnitFactory, Functions, Size, Point2d, Player, Sequence, Camera, Map, Terrain, MapProjection, TerrainObjectsFactory) {
     "use strict";
     var Game = /** @class */ (function () {
         function Game(gameLayer, bgLayer, toolsLayer, rightPanel, bottomPanel) {
@@ -599,7 +609,7 @@ define("game", ["require", "exports", "gameObjects/objects", "gameObjects/unitFa
             this.bottomPanel = bottomPanel;
             this.gameCtx = this.gameLayer.getContext("2d");
             this.objects = new Objects(this.gameCtx);
-            this.camera = Point2d.zero();
+            this.camera = new Camera();
             this.setStageSize();
             document.onkeypress = function (ev) { return _this.keyPress(ev); };
             window.onresize = function (ev) { return _this.resizeWindow(ev); };
@@ -626,20 +636,20 @@ define("game", ["require", "exports", "gameObjects/objects", "gameObjects/unitFa
             var cameraSpeed = 15;
             switch (ev.key) {
                 case 'd':
-                    if (this.camera.x + this.stageMax.width < this.terrain.size().width)
-                        this.camera.x += cameraSpeed;
+                    if (this.camera.position.x + this.stageMax.width < this.terrain.size().width)
+                        this.camera.position.x += cameraSpeed;
                     break;
                 case 'a':
-                    if (this.camera.x > 0)
-                        this.camera.x -= cameraSpeed;
+                    if (this.camera.position.x > 0)
+                        this.camera.position.x -= cameraSpeed;
                     break;
                 case 'w':
-                    if (this.camera.y > 0)
-                        this.camera.y -= cameraSpeed;
+                    if (this.camera.position.y > 0)
+                        this.camera.position.y -= cameraSpeed;
                     break;
                 case 's':
-                    if (this.camera.y + this.stageMax.height < this.terrain.size().height)
-                        this.camera.y += cameraSpeed;
+                    if (this.camera.position.y + this.stageMax.height < this.terrain.size().height)
+                        this.camera.position.y += cameraSpeed;
                     break;
             }
         };
@@ -648,7 +658,7 @@ define("game", ["require", "exports", "gameObjects/objects", "gameObjects/unitFa
             this.terrain.draw(this.camera, true);
         };
         Game.prototype.leftClick = function (args) {
-            var mousePosition = new Point2d(args.clientX, args.clientY).add(this.camera);
+            var mousePosition = new Point2d(args.clientX, args.clientY).add(this.camera.position);
             var selectable = this.objects.getSelectable();
             // Check if any selectable object is at the mouse click position
             for (var _i = 0, selectable_1 = selectable; _i < selectable_1.length; _i++) {
@@ -675,7 +685,7 @@ define("game", ["require", "exports", "gameObjects/objects", "gameObjects/unitFa
             var _this = this;
             args.preventDefault();
             // Move selected objects
-            var mousePosition = new Point2d(args.clientX, args.clientY).add(this.camera);
+            var mousePosition = new Point2d(args.clientX, args.clientY).add(this.camera.position);
             this.objects.getUnits().forEach(function (u) {
                 if (u.isSelected()) {
                     var path = _this.getPath(u.position, mousePosition);

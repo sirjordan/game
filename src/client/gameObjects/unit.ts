@@ -3,11 +3,13 @@ import INotifier = require('common/contracts/iNotifier');
 import Point2d = require('common/point2d');
 import Player = require('common/player');
 import Size = require('common/size');
+import Camera = require('common/camera');
 import ISelectable = require('contracts/iSelectable');
 import IMovable = require('contracts/IMovable');
+import IGameObject = require('contracts/iGameObject');
 import SelectRect = require('selectRect');
 
-class Unit implements ISelectable, IMovable, INotifier {
+class Unit implements IGameObject, ISelectable, IMovable, INotifier {
     public id: number;
     public player: Player;
     // Centered position of the unit
@@ -92,11 +94,11 @@ class Unit implements ISelectable, IMovable, INotifier {
         return this.rect.isSelected();
     }
 
-    draw(camera: Point2d): void {
+    draw(camera: Camera): void {
         this.rect.draw(camera);
 
         this.ctx.beginPath();
-        this.ctx.arc(this.position.x - camera.x, this.position.y - camera.y, this.size.height / 2, 0, 2 * Math.PI);
+        this.ctx.arc(this.position.x - camera.position.x, this.position.y - camera.position.y, this.size.height / 2, 0, 2 * Math.PI);
         this.ctx.lineWidth = 1;
         this.ctx.fillStyle = this.player.color;
         this.ctx.fill();

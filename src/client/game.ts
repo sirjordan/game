@@ -5,6 +5,7 @@ import Size = require('common/size');
 import Point2d = require('common/point2d');
 import Player = require('common/player');
 import Sequence = require('common/sequence');
+import Camera = require('common/camera');
 import Map = require('map/map');
 import Terrain = require('map/terrain');
 import MapProjection = require('map/mapProjection');
@@ -18,7 +19,7 @@ class Game {
     private toolsLayer: HTMLCanvasElement;
     private rightPanel: HTMLElement;
     private bottomPanel: HTMLElement;
-    private camera: Point2d;
+    private camera: Camera;
     private terrain: Terrain;
     private stageMax: Size;
     private mapProjection: MapProjection;
@@ -38,7 +39,7 @@ class Game {
 
         this.gameCtx = this.gameLayer.getContext("2d");
         this.objects = new Objects(this.gameCtx);
-        this.camera = Point2d.zero();
+        this.camera = new Camera();
 
         this.setStageSize();
 
@@ -83,20 +84,20 @@ class Game {
 
         switch (ev.key) {
             case 'd':
-                if (this.camera.x + this.stageMax.width < this.terrain.size().width)
-                    this.camera.x += cameraSpeed;
+                if (this.camera.position.x + this.stageMax.width < this.terrain.size().width)
+                    this.camera.position.x += cameraSpeed;
                 break;
             case 'a':
-                if (this.camera.x > 0)
-                    this.camera.x -= cameraSpeed;
+                if (this.camera.position.x > 0)
+                    this.camera.position.x -= cameraSpeed;
                 break;
             case 'w':
-                if (this.camera.y > 0)
-                    this.camera.y -= cameraSpeed;
+                if (this.camera.position.y > 0)
+                    this.camera.position.y -= cameraSpeed;
                 break;
             case 's':
-                if (this.camera.y + this.stageMax.height < this.terrain.size().height)
-                    this.camera.y += cameraSpeed;
+                if (this.camera.position.y + this.stageMax.height < this.terrain.size().height)
+                    this.camera.position.y += cameraSpeed;
                 break;
         }
     }
@@ -107,7 +108,7 @@ class Game {
     }
 
     private leftClick(args: MouseEvent): void {
-        let mousePosition = new Point2d(args.clientX, args.clientY).add(this.camera);
+        let mousePosition = new Point2d(args.clientX, args.clientY).add(this.camera.position);
         let selectable = this.objects.getSelectable();
 
         // Check if any selectable object is at the mouse click position
@@ -136,7 +137,7 @@ class Game {
         args.preventDefault();
 
         // Move selected objects
-        let mousePosition = new Point2d(args.clientX, args.clientY).add(this.camera);
+        let mousePosition = new Point2d(args.clientX, args.clientY).add(this.camera.position);
         this.objects.getUnits().forEach(u => {
             if (u.isSelected()) {
                 let path = this.getPath(u.position, mousePosition);

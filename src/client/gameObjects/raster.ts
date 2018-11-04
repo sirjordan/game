@@ -1,8 +1,8 @@
 import Rect = require('rect');
-import Point2d = require('common/point2d');
+import Camera = require('common/camera');
 
 class Raster extends Rect {
-    draw(camera: Point2d): void {
+    draw(camera: Camera): void {
         this.ctx.save();
         this.ctx.beginPath();
         this.ctx.fillStyle = this.fill;

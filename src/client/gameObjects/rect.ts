@@ -1,6 +1,7 @@
 import Size = require('common/size');
 import Point2d = require('common/point2d');
 import IGameObject = require('contracts/iGameObject');
+import Camera = require('common/camera');
 
 abstract class Rect implements IGameObject {
     public size: Size;
@@ -19,7 +20,7 @@ abstract class Rect implements IGameObject {
         this.strokewidth = strokewidth || 1;
     }
 
-    abstract draw(camera: Point2d): void;
+    abstract draw(camera: Camera): void;
 
     isPointInside(point: Point2d): boolean {
         return (

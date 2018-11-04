@@ -1,4 +1,5 @@
 import Point2d = require('common/point2d');
+import Camera = require('common/camera');
 import IGameObject = require('contracts/iGameObject');
 
 class Circle implements IGameObject {
@@ -18,7 +19,7 @@ class Circle implements IGameObject {
         this.strokewidth = strokewidth || 1;
     }
 
-    draw(camera: Point2d): void {
+    draw(camera: Camera): void {
         this.ctx.beginPath();
         this.ctx.arc(this.position.x, this.position.y, this.radius, 0, 2 * Math.PI);
         this.ctx.lineWidth = this.strokewidth;
