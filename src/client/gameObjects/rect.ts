@@ -3,7 +3,7 @@ import Point2d = require('common/point2d');
 import IGameObject = require('contracts/iGameObject');
 import Camera = require('common/camera');
 
-abstract class Rect implements IGameObject {
+class Rect implements IGameObject {
     public size: Size;
     public position: Point2d;
     protected ctx: CanvasRenderingContext2D;
@@ -20,7 +20,17 @@ abstract class Rect implements IGameObject {
         this.strokewidth = strokewidth || 1;
     }
 
-    abstract draw(camera: Camera): void;
+    draw(camera: Camera): void{
+        this.ctx.save();
+        this.ctx.beginPath();
+        this.ctx.fillStyle = this.fill;
+        this.ctx.strokeStyle = this.stroke;
+        this.ctx.lineWidth = this.strokewidth;
+        this.ctx.rect(this.position.x - camera.position.x, this.position.y - camera.position.y, this.size.width, this.size.height);
+        this.ctx.stroke();
+        this.ctx.fill();
+        this.ctx.restore();
+    }
 
     isPointInside(point: Point2d): boolean {
         return (

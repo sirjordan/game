@@ -27,15 +27,7 @@ class SelectRect extends Rect implements ISelectable {
 
     draw(camera: Camera): void {
         // TODO: Draw isometric rect or circle
-        this.ctx.save();
-        this.ctx.beginPath();
-        this.ctx.fillStyle = this.fill;
-        this.ctx.strokeStyle = this.stroke;
-        this.ctx.lineWidth = this.strokewidth;
-        this.ctx.rect(this.position.x - camera.position.x, this.position.y - camera.position.y, this.size.width, this.size.height);
-        this.ctx.stroke();
-        this.ctx.fill();
-        this.ctx.restore();
+        super.draw(camera);
     }
 }
 

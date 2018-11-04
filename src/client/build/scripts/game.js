@@ -114,6 +114,17 @@ define("gameObjects/rect", ["require", "exports"], function (require, exports) {
             this.stroke = stroke || fill;
             this.strokewidth = strokewidth || 1;
         }
+        Rect.prototype.draw = function (camera) {
+            this.ctx.save();
+            this.ctx.beginPath();
+            this.ctx.fillStyle = this.fill;
+            this.ctx.strokeStyle = this.stroke;
+            this.ctx.lineWidth = this.strokewidth;
+            this.ctx.rect(this.position.x - camera.position.x, this.position.y - camera.position.y, this.size.width, this.size.height);
+            this.ctx.stroke();
+            this.ctx.fill();
+            this.ctx.restore();
+        };
         Rect.prototype.isPointInside = function (point) {
             return (point.x >= this.position.x &&
                 point.x <= this.position.x + this.size.width &&
@@ -148,15 +159,7 @@ define("gameObjects/selectRect", ["require", "exports", "gameObjects/rect"], fun
         };
         SelectRect.prototype.draw = function (camera) {
             // TODO: Draw isometric rect or circle
-            this.ctx.save();
-            this.ctx.beginPath();
-            this.ctx.fillStyle = this.fill;
-            this.ctx.strokeStyle = this.stroke;
-            this.ctx.lineWidth = this.strokewidth;
-            this.ctx.rect(this.position.x - camera.position.x, this.position.y - camera.position.y, this.size.width, this.size.height);
-            this.ctx.stroke();
-            this.ctx.fill();
-            this.ctx.restore();
+            _super.prototype.draw.call(this, camera);
         };
         return SelectRect;
     }(Rect));
@@ -535,6 +538,7 @@ define("map/mapProjection", ["require", "exports", "gameObjects/raster", "gameOb
                     this.objectProjections[key].draw(camera);
                 }
             }
+            //this.createCameraProjection(camera).draw(camera);
         };
         MapProjection.prototype.notify = function (context) {
             // Update the projection when the context object canges its state
@@ -558,6 +562,13 @@ define("map/mapProjection", ["require", "exports", "gameObjects/raster", "gameOb
             return new Circle(this.ctx, new Point2d(x, y), 3, unit.player.color);
         };
         MapProjection.prototype.createBorder = function () {
+            var size = this.scale(this.background.size);
+            // Get centered position
+            var x = (this.background.size.width - size.width) / 2;
+            var y = (this.background.size.height - size.height) / 2;
+            return new Raster(this.ctx, new Point2d(x, y), size, 'black', MapProjection.borderColor, 1);
+        };
+        MapProjection.prototype.scale = function (size) {
             // Get scaled size based on the map ratio
             var w = this.map.size().width, h = this.map.size().height, scaledW, scaledH;
             if (w >= h) {
@@ -568,11 +579,11 @@ define("map/mapProjection", ["require", "exports", "gameObjects/raster", "gameOb
                 scaledW = w / h;
                 scaledH = 1;
             }
-            var size = new Size(this.background.size.width * scaledW, this.background.size.height * scaledH);
-            // Get centered position
-            var x = (this.background.size.width - size.width) / 2;
-            var y = (this.background.size.height - size.height) / 2;
-            return new Raster(this.ctx, new Point2d(x, y), size, 'black', MapProjection.borderColor, 1);
+            return new Size(size.width * scaledW, size.height * scaledH);
+        };
+        MapProjection.prototype.createCameraProjection = function (camera) {
+            //return new Rect(this.ctx, camera.position, new Size(100, 50), 'black', 'green');
+            throw new Error('not implemented');
         };
         MapProjection.bgColor = '#20262e';
         MapProjection.borderColor = '#2d333b';

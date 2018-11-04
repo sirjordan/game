@@ -3,6 +3,7 @@ import Raster = require('gameObjects/raster');
 import Unit = require('gameObjects/unit');
 import Objects = require('gameObjects/objects');
 import Circle = require('gameObjects/circle');
+import Rect = require('gameObjects/rect');
 import ISubscriber = require('common/contracts/iSubscriber');
 import Point2d = require('common/point2d');
 import Size = require('common/size');
@@ -22,6 +23,7 @@ class MapProjection implements ISubscriber {
     private objects: Objects;
     private border: Raster;
     private objectProjections: { [type: string]: IGameObject; } = {};
+    private cameraProjection: Rect;
 
     constructor(objects: Objects, map: Map, ctx: CanvasRenderingContext2D, topLeft: Point2d, size: Size) {
         this.ctx = ctx;
@@ -42,6 +44,8 @@ class MapProjection implements ISubscriber {
                 this.objectProjections[key].draw(camera);
             }
         }
+
+        //this.createCameraProjection(camera).draw(camera);
     }
 
     notify(context: any) {
@@ -70,6 +74,16 @@ class MapProjection implements ISubscriber {
     }
 
     private createBorder(): Raster {
+        let size = this.scale(this.background.size);
+
+        // Get centered position
+        let x = (this.background.size.width - size.width) / 2;
+        let y = (this.background.size.height - size.height) / 2;
+
+        return new Raster(this.ctx, new Point2d(x, y), size, 'black', MapProjection.borderColor, 1);
+    }
+
+    private scale(size: Size): Size {
         // Get scaled size based on the map ratio
         let w = this.map.size().width,
             h = this.map.size().height,
@@ -84,13 +98,12 @@ class MapProjection implements ISubscriber {
             scaledH = 1;
         }
 
-        let size = new Size(this.background.size.width * scaledW, this.background.size.height * scaledH);
+        return new Size(size.width * scaledW, size.height * scaledH);
+    }
 
-        // Get centered position
-        let x = (this.background.size.width - size.width) / 2;
-        let y = (this.background.size.height - size.height) / 2;
-
-        return new Raster(this.ctx, new Point2d(x, y), size, 'black', MapProjection.borderColor, 1);
+    private createCameraProjection(camera: Camera): Rect{
+        //return new Rect(this.ctx, camera.position, new Size(100, 50), 'black', 'green');
+        throw new Error('not implemented');
     }
 }
 
