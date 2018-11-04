@@ -436,13 +436,14 @@ define("map/terrain", ["require", "exports", "common/size", "common/point2d"], f
             // Size of the terrain in pixels
             return new Size(this.map.size().width * this.map.rasterSize, this.map.size().height * this.map.rasterSize);
         };
-        Terrain.prototype.draw = function (camera) {
+        Terrain.prototype.draw = function (camera, force) {
+            if (force === void 0) { force = false; }
             // Optimizing the draw() and render only if the camera changes its position
-            if (this.lastCamera && camera.equals(this.lastCamera)) {
+            if (!force && this.lastCamera && camera.equals(this.lastCamera)) {
                 return;
             }
-            var maxRight = this.ctx.canvas.height;
-            var maxTop = this.ctx.canvas.width;
+            var maxRight = this.ctx.canvas.width;
+            var maxTop = this.ctx.canvas.height;
             var rasterSize = this.map.rasterSize;
             this.ctx.clearRect(0, 0, maxRight, maxTop);
             var startPos = new Point2d((camera.x % rasterSize) * -1, (camera.y % rasterSize) * -1);
@@ -601,6 +602,7 @@ define("game", ["require", "exports", "gameObjects/objects", "gameObjects/unitFa
             this.camera = Point2d.zero();
             this.setStageSize();
             document.onkeypress = function (ev) { return _this.keyPress(ev); };
+            window.onresize = function (ev) { return _this.resizeWindow(ev); };
             this.gameLayer.onclick = function (args) { return _this.leftClick(args); };
             this.gameLayer.oncontextmenu = function (args) { return _this.rightClick(args); };
         }
@@ -640,6 +642,10 @@ define("game", ["require", "exports", "gameObjects/objects", "gameObjects/unitFa
                         this.camera.y += cameraSpeed;
                     break;
             }
+        };
+        Game.prototype.resizeWindow = function (ev) {
+            this.setStageSize();
+            this.terrain.draw(this.camera, true);
         };
         Game.prototype.leftClick = function (args) {
             var mousePosition = new Point2d(args.clientX, args.clientY).add(this.camera);

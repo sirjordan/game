@@ -21,14 +21,14 @@ class Terrain {
         return new Size(this.map.size().width * this.map.rasterSize, this.map.size().height * this.map.rasterSize);
     }
 
-    public draw(camera: Point2d) {
+    public draw(camera: Point2d, force: boolean = false) {
         // Optimizing the draw() and render only if the camera changes its position
-        if (this.lastCamera && camera.equals(this.lastCamera)) {
+        if (!force && this.lastCamera && camera.equals(this.lastCamera)) {
             return;
         }
 
-        let maxRight = this.ctx.canvas.height;
-        let maxTop = this.ctx.canvas.width;
+        let maxRight = this.ctx.canvas.width;
+        let maxTop = this.ctx.canvas.height;
         let rasterSize = this.map.rasterSize;
 
         this.ctx.clearRect(0, 0, maxRight, maxTop);

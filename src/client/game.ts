@@ -1,7 +1,7 @@
-import Objects = require('gameObjects/objects'); 
-import UnitFactory = require('gameObjects/unitFactory'); 
-import Functions = require('common/functions'); 
-import Size  = require('common/size');
+import Objects = require('gameObjects/objects');
+import UnitFactory = require('gameObjects/unitFactory');
+import Functions = require('common/functions');
+import Size = require('common/size');
 import Point2d = require('common/point2d');
 import Player = require('common/player');
 import Sequence = require('common/sequence');
@@ -43,6 +43,7 @@ class Game {
         this.setStageSize();
 
         document.onkeypress = (ev) => this.keyPress(ev);
+        window.onresize = (ev) => this.resizeWindow(ev);
         this.gameLayer.onclick = (args) => this.leftClick(args);
         this.gameLayer.oncontextmenu = (args) => this.rightClick(args);
     }
@@ -98,6 +99,11 @@ class Game {
                     this.camera.y += cameraSpeed;
                 break;
         }
+    }
+
+    private resizeWindow(ev: UIEvent): void {
+        this.setStageSize();
+        this.terrain.draw(this.camera, true);
     }
 
     private leftClick(args: MouseEvent): void {
