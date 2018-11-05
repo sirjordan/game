@@ -521,7 +521,7 @@ define("map/mapProjection", ["require", "exports", "gameObjects/raster", "common
                 this.cameraProjection.draw(camera);
             else
                 this.cameraProjection = this.projectCamera(camera);
-            this.lastCameraPosition = camera.position;
+            this.lastCameraPosition = camera.position.clone();
             this.cameraProjection.draw(camera);
         };
         MapProjection.prototype.notify = function (context) {
@@ -730,7 +730,6 @@ define("game", ["require", "exports", "gameObjects/objects", "gameObjects/unitFa
         };
         Game.prototype.setStageSize = function () {
             var canvasSize = Functions.calcCanvasSize(this.rightPanel, this.bottomPanel);
-            this.stageMax = canvasSize;
             this.gameLayer.width = canvasSize.width;
             this.gameLayer.height = canvasSize.height;
             this.bgLayer.width = canvasSize.width;

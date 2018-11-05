@@ -49,8 +49,8 @@ class MapProjection implements ISubscriber {
             this.cameraProjection.draw(camera);
         else
             this.cameraProjection = this.projectCamera(camera);
-        this.lastCameraPosition = camera.position;
 
+        this.lastCameraPosition = camera.position.clone();
         this.cameraProjection.draw(camera);
     }
 
