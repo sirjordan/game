@@ -520,7 +520,7 @@ define("map/mapProjection", ["require", "exports", "gameObjects/raster", "common
             if (this.lastCameraPosition && !this.lastCameraPosition.equals(camera.position))
                 this.cameraProjection.draw(camera);
             else
-                this.cameraProjection = this.createCameraProjection(camera);
+                this.cameraProjection = this.projectCamera(camera);
             this.lastCameraPosition = camera.position;
             this.cameraProjection.draw(camera);
         };
@@ -528,21 +528,30 @@ define("map/mapProjection", ["require", "exports", "gameObjects/raster", "common
             // Update the projection when the context object canges its state
             // TODO: Use notify for this.objects, when the objects uncrease or decrease
             var updatedUnit = context;
-            this.objectProjections[updatedUnit.id] = this.createProjection(updatedUnit);
+            this.objectProjections[updatedUnit.id] = this.project(updatedUnit);
+        };
+        MapProjection.prototype.calcAbsolutePosition = function (relativePosition) {
+            var ratioX = relativePosition.x * this.map.sizeInPixels().width;
+            var ratioY = relativePosition.y * this.map.sizeInPixels().height;
+            var x = ratioX / this.border.size.width;
+            var y = ratioY / this.border.size.height;
+            //let borderAbsolute = this.calcAbsolutePosition(this.border.position);
+            var absolute = new Point2d(x, y); //.add(borderAbsolute);
+            return absolute;
         };
         MapProjection.prototype.createUnitsProjections = function (units) {
             var _this = this;
             // Create initial units projections
             units.forEach(function (u) {
-                _this.objectProjections[u.id] = _this.createProjection(u);
+                _this.objectProjections[u.id] = _this.project(u);
                 u.subscribe(_this);
             });
         };
-        MapProjection.prototype.createProjection = function (obj) {
-            return new Raster(this.ctx, this.projectPosition(obj.position), this.scaleSize(obj.size), obj.player.color);
+        MapProjection.prototype.project = function (obj) {
+            return new Raster(this.ctx, this.calcRelativePosition(obj.position), this.scaleSize(obj.size), obj.player.color);
         };
-        MapProjection.prototype.createCameraProjection = function (camera) {
-            return new Raster(this.ctx, this.projectPosition(camera.position), this.scaleSize(camera.size), '', 'orange');
+        MapProjection.prototype.projectCamera = function (camera) {
+            return new Raster(this.ctx, this.calcRelativePosition(camera.position), this.scaleSize(camera.size), '', 'orange');
         };
         MapProjection.prototype.createBorder = function () {
             // Get scaled size based on the map ratio
@@ -566,12 +575,12 @@ define("map/mapProjection", ["require", "exports", "gameObjects/raster", "common
             var ratioY = size.height / this.map.sizeInPixels().height;
             return new Size(this.border.size.width * ratioX, this.border.size.height * ratioY);
         };
-        MapProjection.prototype.projectPosition = function (point) {
-            var ratioX = point.x / this.map.sizeInPixels().width;
-            var ratioY = point.y / this.map.sizeInPixels().height;
-            var x = this.border.position.x + (ratioX * this.border.size.width);
-            var y = this.border.position.y + (ratioY * this.border.size.height);
-            return new Point2d(x, y);
+        MapProjection.prototype.calcRelativePosition = function (absolutePosition) {
+            var ratioX = absolutePosition.x / this.map.sizeInPixels().width;
+            var ratioY = absolutePosition.y / this.map.sizeInPixels().height;
+            var x = ratioX * this.border.size.width;
+            var y = ratioY * this.border.size.height;
+            return new Point2d(x, y).add(this.border.position);
         };
         MapProjection.bgColor = '#20262e';
         MapProjection.borderColor = '#2d333b';
@@ -614,6 +623,7 @@ define("game", ["require", "exports", "gameObjects/objects", "gameObjects/unitFa
             window.onresize = function (ev) { return _this.resizeWindow(ev); };
             this.gameLayer.onclick = function (args) { return _this.leftClick(args); };
             this.gameLayer.oncontextmenu = function (args) { return _this.rightClick(args); };
+            this.toolsLayer.onclick = function (args) { return _this.mapClick(args); };
         }
         Game.prototype.start = function () {
             var bgCtx = this.bgLayer.getContext('2d');
@@ -691,6 +701,13 @@ define("game", ["require", "exports", "gameObjects/objects", "gameObjects/unitFa
                     u.loadMovements(path);
                 }
             });
+        };
+        Game.prototype.mapClick = function (args) {
+            var mousePosition = new Point2d(args.clientX, args.clientY);
+            var offset = Functions.calcOffset(this.toolsLayer);
+            var relative = mousePosition.substract(new Point2d(offset.left, offset.top));
+            var absolute = this.mapProjection.calcAbsolutePosition(relative);
+            console.log(absolute);
         };
         Game.prototype.getPath = function (from, to) {
             var path = new Array();

@@ -61,6 +61,19 @@ class MapProjection implements ISubscriber {
         this.objectProjections[updatedUnit.id] = this.project(updatedUnit);
     }
 
+    calcAbsolutePosition(relativePosition: Point2d){
+        let ratioX = relativePosition.x * this.map.sizeInPixels().width;
+        let ratioY = relativePosition.y * this.map.sizeInPixels().height;
+
+        let x = ratioX / this.border.size.width;
+        let y = ratioY / this.border.size.height;
+
+        //let borderAbsolute = this.calcAbsolutePosition(this.border.position);
+        let absolute = new Point2d(x, y);//.add(borderAbsolute);
+ 
+        return absolute;
+    }
+
     private createUnitsProjections(units: Array<Unit>) {
         // Create initial units projections
         units.forEach(u => {
@@ -70,11 +83,11 @@ class MapProjection implements ISubscriber {
     }
 
     private project(obj: IOwnedObject): IGameObject {
-        return new Raster(this.ctx, this.projectPosition(obj.position), this.scaleSize(obj.size), obj.player.color);
+        return new Raster(this.ctx, this.calcRelativePosition(obj.position), this.scaleSize(obj.size), obj.player.color);
     }
 
     private projectCamera(camera: Camera): Rect {
-        return new Raster(this.ctx, this.projectPosition(camera.position), this.scaleSize(camera.size), '', 'orange');
+        return new Raster(this.ctx, this.calcRelativePosition(camera.position), this.scaleSize(camera.size), '', 'orange');
     }
 
     private createBorder(): Raster {
@@ -108,14 +121,14 @@ class MapProjection implements ISubscriber {
         return new Size(this.border.size.width * ratioX, this.border.size.height * ratioY);
     }
 
-    private projectPosition(point: Point2d): Point2d {
-        let ratioX = point.x / this.map.sizeInPixels().width;
-        let ratioY = point.y / this.map.sizeInPixels().height;
+    private calcRelativePosition(absolutePosition: Point2d): Point2d {
+        let ratioX = absolutePosition.x / this.map.sizeInPixels().width;
+        let ratioY = absolutePosition.y / this.map.sizeInPixels().height;
 
-        let x = this.border.position.x + (ratioX * this.border.size.width);
-        let y = this.border.position.y + (ratioY * this.border.size.height);
+        let x = ratioX * this.border.size.width;
+        let y = ratioY * this.border.size.height;
 
-        return new Point2d(x, y);
+        return new Point2d(x, y).add(this.border.position);
     }
 }
 

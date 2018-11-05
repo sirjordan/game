@@ -47,6 +47,7 @@ class Game {
         window.onresize = (ev) => this.resizeWindow(ev);
         this.gameLayer.onclick = (args) => this.leftClick(args);
         this.gameLayer.oncontextmenu = (args) => this.rightClick(args);
+        this.toolsLayer.onclick = (args) => this.mapClick(args);
     }
 
     public start(): void {
@@ -144,6 +145,14 @@ class Game {
                 u.loadMovements(path);
             }
         });
+    }
+
+    private mapClick(args: MouseEvent): void{
+        let mousePosition = new Point2d(args.clientX, args.clientY);
+        let offset = Functions.calcOffset(this.toolsLayer);
+        let relative = mousePosition.substract(new Point2d(offset.left, offset.top));
+        let absolute =  this.mapProjection.calcAbsolutePosition(relative);
+        console.log(absolute);
     }
 
     private getPath(from: Point2d, to: Point2d): Array<Point2d> {
