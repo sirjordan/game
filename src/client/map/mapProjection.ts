@@ -1,8 +1,8 @@
 import IGameObject = require('gameObjects/contracts/iGameObject');
+import IOwnedObject = require('gameObjects/contracts/iOwnedObject');
 import Raster = require('gameObjects/raster');
 import Unit = require('gameObjects/unit');
 import Objects = require('gameObjects/objects');
-import Circle = require('gameObjects/circle');
 import Rect = require('gameObjects/rect');
 import ISubscriber = require('common/contracts/iSubscriber');
 import Point2d = require('common/point2d');
@@ -48,7 +48,7 @@ class MapProjection implements ISubscriber {
         if (this.lastCameraPosition && !this.lastCameraPosition.equals(camera.position))
             this.cameraProjection.draw(camera);
         else
-            this.cameraProjection = this.createCameraProjection(camera);
+            this.cameraProjection = this.projectCamera(camera);
             this.lastCameraPosition = camera.position;
 
         this.cameraProjection.draw(camera);
@@ -58,19 +58,23 @@ class MapProjection implements ISubscriber {
         // Update the projection when the context object canges its state
         // TODO: Use notify for this.objects, when the objects uncrease or decrease
         let updatedUnit = <Unit>context;
-        this.objectProjections[updatedUnit.id] = this.createProjection(updatedUnit);
+        this.objectProjections[updatedUnit.id] = this.project(updatedUnit);
     }
 
     private createUnitsProjections(units: Array<Unit>) {
         // Create initial units projections
         units.forEach(u => {
-            this.objectProjections[u.id] = this.createProjection(u);
+            this.objectProjections[u.id] = this.project(u);
             u.subscribe(this);
         });
     }
 
-    private createProjection(unit: Unit): IGameObject {
-        return new Raster(this.ctx, this.projectPosition(unit.position), this.scaleSize(unit.getRect().size), unit.player.color);
+    private project(obj: IOwnedObject): IGameObject {
+        return new Raster(this.ctx, this.projectPosition(obj.position), this.scaleSize(obj.size), obj.player.color);
+    }
+
+    private projectCamera(camera: Camera): Rect {
+        return new Raster(this.ctx, this.projectPosition(camera.position), this.scaleSize(camera.size), '', 'orange');
     }
 
     private createBorder(): Raster {
@@ -95,10 +99,6 @@ class MapProjection implements ISubscriber {
         let y = (this.background.size.height - size.height) / 2;
 
         return new Raster(this.ctx, new Point2d(x, y), size, 'black', MapProjection.borderColor, 1);
-    }
-
-    private createCameraProjection(camera: Camera): Rect {
-        return new Raster(this.ctx, this.projectPosition(camera.position), this.scaleSize(camera.size), '', 'orange');
     }
 
     private scaleSize(size: Size): Size {

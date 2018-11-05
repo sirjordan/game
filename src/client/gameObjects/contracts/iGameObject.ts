@@ -4,6 +4,7 @@ import Size = require('common/size');
 
 interface IGameObject {
     position: Point2d;
+    size: Size; 
     draw(camera: Camera): void;
     isPointInside(point: Point2d): boolean;
 }

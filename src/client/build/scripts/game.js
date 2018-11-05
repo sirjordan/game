@@ -193,6 +193,10 @@ define("gameObjects/contracts/IMovable", ["require", "exports"], function (requi
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
 });
+define("gameObjects/contracts/iOwnedObject", ["require", "exports"], function (require, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+});
 define("gameObjects/unit", ["require", "exports", "common/point2d", "gameObjects/selectRect"], function (require, exports, Point2d, SelectRect) {
     "use strict";
     var Unit = /** @class */ (function () {
@@ -493,32 +497,6 @@ define("map/terrain", ["require", "exports", "common/point2d"], function (requir
     }());
     return Terrain;
 });
-define("gameObjects/circle", ["require", "exports"], function (require, exports) {
-    "use strict";
-    var Circle = /** @class */ (function () {
-        function Circle(ctx, center, radius, fill, stroke, strokewidth) {
-            this.ctx = ctx;
-            this.position = center;
-            this.radius = radius;
-            this.fill = fill;
-            this.stroke = stroke || fill;
-            this.strokewidth = strokewidth || 1;
-        }
-        Circle.prototype.draw = function (camera) {
-            this.ctx.beginPath();
-            this.ctx.arc(this.position.x, this.position.y, this.radius, 0, 2 * Math.PI);
-            this.ctx.lineWidth = this.strokewidth;
-            this.ctx.fillStyle = this.fill;
-            this.ctx.fill();
-            this.ctx.stroke();
-        };
-        Circle.prototype.isPointInside = function (point) {
-            throw new Error("Method not implemented.");
-        };
-        return Circle;
-    }());
-    return Circle;
-});
 define("map/mapProjection", ["require", "exports", "gameObjects/raster", "common/point2d", "common/size"], function (require, exports, Raster, Point2d, Size) {
     "use strict";
     var MapProjection = /** @class */ (function () {
@@ -560,8 +538,11 @@ define("map/mapProjection", ["require", "exports", "gameObjects/raster", "common
                 u.subscribe(_this);
             });
         };
-        MapProjection.prototype.createProjection = function (unit) {
-            return new Raster(this.ctx, this.projectPosition(unit.position), this.scaleSize(unit.getRect().size), unit.player.color);
+        MapProjection.prototype.createProjection = function (obj) {
+            return new Raster(this.ctx, this.projectPosition(obj.position), this.scaleSize(obj.size), obj.player.color);
+        };
+        MapProjection.prototype.createCameraProjection = function (camera) {
+            return new Raster(this.ctx, this.projectPosition(camera.position), this.scaleSize(camera.size), '', 'orange');
         };
         MapProjection.prototype.createBorder = function () {
             // Get scaled size based on the map ratio
@@ -579,9 +560,6 @@ define("map/mapProjection", ["require", "exports", "gameObjects/raster", "common
             var x = (this.background.size.width - size.width) / 2;
             var y = (this.background.size.height - size.height) / 2;
             return new Raster(this.ctx, new Point2d(x, y), size, 'black', MapProjection.borderColor, 1);
-        };
-        MapProjection.prototype.createCameraProjection = function (camera) {
-            return new Raster(this.ctx, this.projectPosition(camera.position), this.scaleSize(camera.size), '', 'orange');
         };
         MapProjection.prototype.scaleSize = function (size) {
             var ratioX = size.width / this.map.sizeInPixels().width;
@@ -736,5 +714,31 @@ define("game", ["require", "exports", "gameObjects/objects", "gameObjects/unitFa
         return Game;
     }());
     return Game;
+});
+define("gameObjects/circle", ["require", "exports"], function (require, exports) {
+    "use strict";
+    var Circle = /** @class */ (function () {
+        function Circle(ctx, center, radius, fill, stroke, strokewidth) {
+            this.ctx = ctx;
+            this.position = center;
+            this.radius = radius;
+            this.fill = fill;
+            this.stroke = stroke || fill;
+            this.strokewidth = strokewidth || 1;
+        }
+        Circle.prototype.draw = function (camera) {
+            this.ctx.beginPath();
+            this.ctx.arc(this.position.x, this.position.y, this.radius, 0, 2 * Math.PI);
+            this.ctx.lineWidth = this.strokewidth;
+            this.ctx.fillStyle = this.fill;
+            this.ctx.fill();
+            this.ctx.stroke();
+        };
+        Circle.prototype.isPointInside = function (point) {
+            throw new Error("Method not implemented.");
+        };
+        return Circle;
+    }());
+    return Circle;
 });
 //# sourceMappingURL=game.js.map

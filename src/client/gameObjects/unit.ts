@@ -7,17 +7,18 @@ import Camera = require('common/camera');
 import ISelectable = require('contracts/iSelectable');
 import IMovable = require('contracts/IMovable');
 import IGameObject = require('contracts/iGameObject');
+import IOwnedObject = require('contracts/iOwnedObject');
 import SelectRect = require('selectRect');
 
-class Unit implements IGameObject, ISelectable, IMovable, INotifier {
+class Unit implements IOwnedObject, ISelectable, IMovable, INotifier {
     public id: number;
+    public size: Size;
     public player: Player;
     // Centered position of the unit
     public position: Point2d;
     // The unit's base rect
     private rect: SelectRect;
     private ctx: CanvasRenderingContext2D;
-    private size: Size;
     private movementsQueue: Array<Point2d>;
     private nextStep: Point2d;
     private velocity: Point2d;
