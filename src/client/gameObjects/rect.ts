@@ -11,7 +11,7 @@ class Rect implements IGameObject {
     protected stroke: string;
     protected strokewidth: number;
 
-    constructor(ctx: CanvasRenderingContext2D, topLeft: Point2d, size: Size, fill: string, stroke?: string, strokewidth?: number) {
+    constructor(ctx: CanvasRenderingContext2D, topLeft: Point2d, size: Size, fill?: string, stroke?: string, strokewidth?: number) {
         this.position = topLeft;
         this.ctx = ctx;
         this.size = size;
@@ -28,7 +28,10 @@ class Rect implements IGameObject {
         this.ctx.lineWidth = this.strokewidth;
         this.ctx.rect(this.position.x - camera.position.x, this.position.y - camera.position.y, this.size.width, this.size.height);
         this.ctx.stroke();
-        this.ctx.fill();
+
+        if (this.fill) 
+            this.ctx.fill();
+        
         this.ctx.restore();
     }
 

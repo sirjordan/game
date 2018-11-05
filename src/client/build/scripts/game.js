@@ -92,8 +92,9 @@ define("common/point2d", ["require", "exports", "common/functions"], function (r
 define("common/camera", ["require", "exports", "common/point2d"], function (require, exports, Point2d) {
     "use strict";
     var Camera = /** @class */ (function () {
-        function Camera(position) {
+        function Camera(size, position) {
             this.position = position || Point2d.zero();
+            this.size = size;
         }
         return Camera;
     }());
@@ -122,7 +123,8 @@ define("gameObjects/rect", ["require", "exports"], function (require, exports) {
             this.ctx.lineWidth = this.strokewidth;
             this.ctx.rect(this.position.x - camera.position.x, this.position.y - camera.position.y, this.size.width, this.size.height);
             this.ctx.stroke();
-            this.ctx.fill();
+            if (this.fill)
+                this.ctx.fill();
             this.ctx.restore();
         };
         Rect.prototype.isPointInside = function (point) {
@@ -391,6 +393,9 @@ define("map/map", ["require", "exports", "common/size"], function (require, expo
             // Size of the map in objects (not in pixels)
             return new Size(this.objects[0].length, this.objects.length);
         };
+        Map.prototype.sizeInPixels = function () {
+            return new Size(this.size().width * this.rasterSize, this.size().height * this.rasterSize);
+        };
         return Map;
     }());
     return Map;
@@ -410,7 +415,8 @@ define("gameObjects/raster", ["require", "exports", "gameObjects/rect"], functio
             this.ctx.lineWidth = this.strokewidth;
             this.ctx.rect(this.position.x, this.position.y, this.size.width, this.size.height);
             this.ctx.stroke();
-            this.ctx.fill();
+            if (this.fill)
+                this.ctx.fill();
             this.ctx.restore();
         };
         return Raster;
@@ -437,7 +443,7 @@ define("map/terrainObjectsFactory", ["require", "exports", "common/size", "gameO
     }());
     return TerrainObjectsFactory;
 });
-define("map/terrain", ["require", "exports", "common/size", "common/point2d"], function (require, exports, Size, Point2d) {
+define("map/terrain", ["require", "exports", "common/point2d"], function (require, exports, Point2d) {
     "use strict";
     var Terrain = /** @class */ (function () {
         function Terrain(ctx, map, objectsFactory) {
@@ -445,10 +451,6 @@ define("map/terrain", ["require", "exports", "common/size", "common/point2d"], f
             this.map = map;
             this.objectsFactory = objectsFactory;
         }
-        Terrain.prototype.size = function () {
-            // Size of the terrain in pixels
-            return new Size(this.map.size().width * this.map.rasterSize, this.map.size().height * this.map.rasterSize);
-        };
         Terrain.prototype.draw = function (camera, force) {
             if (force === void 0) { force = false; }
             // Optimizing the draw() and render only if the camera changes its position
@@ -517,7 +519,7 @@ define("gameObjects/circle", ["require", "exports"], function (require, exports)
     }());
     return Circle;
 });
-define("map/mapProjection", ["require", "exports", "gameObjects/raster", "gameObjects/circle", "common/point2d", "common/size"], function (require, exports, Raster, Circle, Point2d, Size) {
+define("map/mapProjection", ["require", "exports", "gameObjects/raster", "common/point2d", "common/size"], function (require, exports, Raster, Point2d, Size) {
     "use strict";
     var MapProjection = /** @class */ (function () {
         function MapProjection(objects, map, ctx, topLeft, size) {
@@ -533,12 +535,16 @@ define("map/mapProjection", ["require", "exports", "gameObjects/raster", "gameOb
             this.background.draw(camera);
             this.border.draw(camera);
             // Draw unit's projection on the map
-            for (var key in this.objectProjections) {
-                if (this.objectProjections.hasOwnProperty(key)) {
+            for (var key in this.objectProjections)
+                if (this.objectProjections.hasOwnProperty(key))
                     this.objectProjections[key].draw(camera);
-                }
-            }
-            //this.createCameraProjection(camera).draw(camera);
+            // Draw the camera and update only if camera change its position
+            if (this.lastCameraPosition && !this.lastCameraPosition.equals(camera.position))
+                this.cameraProjection.draw(camera);
+            else
+                this.cameraProjection = this.createCameraProjection(camera);
+            this.lastCameraPosition = camera.position;
+            this.cameraProjection.draw(camera);
         };
         MapProjection.prototype.notify = function (context) {
             // Update the projection when the context object canges its state
@@ -555,20 +561,9 @@ define("map/mapProjection", ["require", "exports", "gameObjects/raster", "gameOb
             });
         };
         MapProjection.prototype.createProjection = function (unit) {
-            var ratioX = unit.position.x / (this.map.size().width * this.map.rasterSize);
-            var ratioY = unit.position.y / (this.map.size().height * this.map.rasterSize);
-            var x = this.border.position.x + (ratioX * this.border.size.width);
-            var y = this.border.position.y + (ratioY * this.border.size.height);
-            return new Circle(this.ctx, new Point2d(x, y), 3, unit.player.color);
+            return new Raster(this.ctx, this.projectPosition(unit.position), this.scaleSize(unit.getRect().size), unit.player.color);
         };
         MapProjection.prototype.createBorder = function () {
-            var size = this.scale(this.background.size);
-            // Get centered position
-            var x = (this.background.size.width - size.width) / 2;
-            var y = (this.background.size.height - size.height) / 2;
-            return new Raster(this.ctx, new Point2d(x, y), size, 'black', MapProjection.borderColor, 1);
-        };
-        MapProjection.prototype.scale = function (size) {
             // Get scaled size based on the map ratio
             var w = this.map.size().width, h = this.map.size().height, scaledW, scaledH;
             if (w >= h) {
@@ -579,11 +574,26 @@ define("map/mapProjection", ["require", "exports", "gameObjects/raster", "gameOb
                 scaledW = w / h;
                 scaledH = 1;
             }
-            return new Size(size.width * scaledW, size.height * scaledH);
+            var size = new Size(this.background.size.width * scaledW, this.background.size.height * scaledH);
+            // Get centered position
+            var x = (this.background.size.width - size.width) / 2;
+            var y = (this.background.size.height - size.height) / 2;
+            return new Raster(this.ctx, new Point2d(x, y), size, 'black', MapProjection.borderColor, 1);
         };
         MapProjection.prototype.createCameraProjection = function (camera) {
-            //return new Rect(this.ctx, camera.position, new Size(100, 50), 'black', 'green');
-            throw new Error('not implemented');
+            return new Raster(this.ctx, this.projectPosition(camera.position), this.scaleSize(camera.size), '', 'orange');
+        };
+        MapProjection.prototype.scaleSize = function (size) {
+            var ratioX = size.width / this.map.sizeInPixels().width;
+            var ratioY = size.height / this.map.sizeInPixels().height;
+            return new Size(this.border.size.width * ratioX, this.border.size.height * ratioY);
+        };
+        MapProjection.prototype.projectPosition = function (point) {
+            var ratioX = point.x / this.map.sizeInPixels().width;
+            var ratioY = point.y / this.map.sizeInPixels().height;
+            var x = this.border.position.x + (ratioX * this.border.size.width);
+            var y = this.border.position.y + (ratioY * this.border.size.height);
+            return new Point2d(x, y);
         };
         MapProjection.bgColor = '#20262e';
         MapProjection.borderColor = '#2d333b';
@@ -620,7 +630,7 @@ define("game", ["require", "exports", "gameObjects/objects", "gameObjects/unitFa
             this.bottomPanel = bottomPanel;
             this.gameCtx = this.gameLayer.getContext("2d");
             this.objects = new Objects(this.gameCtx);
-            this.camera = new Camera();
+            this.camera = new Camera(Functions.calcCanvasSize(this.rightPanel, this.bottomPanel));
             this.setStageSize();
             document.onkeypress = function (ev) { return _this.keyPress(ev); };
             window.onresize = function (ev) { return _this.resizeWindow(ev); };
@@ -647,7 +657,7 @@ define("game", ["require", "exports", "gameObjects/objects", "gameObjects/unitFa
             var cameraSpeed = 15;
             switch (ev.key) {
                 case 'd':
-                    if (this.camera.position.x + this.stageMax.width < this.terrain.size().width)
+                    if (this.camera.position.x + this.stageMax.width < this.terrain.map.sizeInPixels().width)
                         this.camera.position.x += cameraSpeed;
                     break;
                 case 'a':
@@ -659,7 +669,7 @@ define("game", ["require", "exports", "gameObjects/objects", "gameObjects/unitFa
                         this.camera.position.y -= cameraSpeed;
                     break;
                 case 's':
-                    if (this.camera.position.y + this.stageMax.height < this.terrain.size().height)
+                    if (this.camera.position.y + this.stageMax.height < this.terrain.map.sizeInPixels().height)
                         this.camera.position.y += cameraSpeed;
                     break;
             }
@@ -721,6 +731,7 @@ define("game", ["require", "exports", "gameObjects/objects", "gameObjects/unitFa
             this.bgLayer.height = canvasSize.height;
             this.toolsLayer.width = this.rightPanel.clientWidth;
             this.toolsLayer.height = this.rightPanel.clientHeight;
+            this.camera.size = canvasSize;
         };
         return Game;
     }());

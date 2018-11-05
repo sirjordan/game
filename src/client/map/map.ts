@@ -1,4 +1,4 @@
-import Size  = require('common/size');
+import Size = require('common/size');
 
 class Map {
     public objects: number[][];
@@ -37,6 +37,10 @@ class Map {
     size(): Size {
         // Size of the map in objects (not in pixels)
         return new Size(this.objects[0].length, this.objects.length);
+    }
+
+    sizeInPixels(): Size {
+        return new Size(this.size().width * this.rasterSize, this.size().height * this.rasterSize);
     }
 }
 

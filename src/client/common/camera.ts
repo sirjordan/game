@@ -6,8 +6,9 @@ class Camera {
     public position: Point2d;
     public size: Size;
 
-    constructor(position?: Point2d) {
+    constructor( size: Size, position?: Point2d) {
         this.position = position || Point2d.zero();
+        this.size = size;
     }
 }
 

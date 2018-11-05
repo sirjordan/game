@@ -39,7 +39,7 @@ class Game {
 
         this.gameCtx = this.gameLayer.getContext("2d");
         this.objects = new Objects(this.gameCtx);
-        this.camera = new Camera();
+        this.camera = new Camera(Functions.calcCanvasSize(this.rightPanel, this.bottomPanel));
 
         this.setStageSize();
 
@@ -84,7 +84,7 @@ class Game {
 
         switch (ev.key) {
             case 'd':
-                if (this.camera.position.x + this.stageMax.width < this.terrain.size().width)
+                if (this.camera.position.x + this.stageMax.width < this.terrain.map.sizeInPixels().width)
                     this.camera.position.x += cameraSpeed;
                 break;
             case 'a':
@@ -96,7 +96,7 @@ class Game {
                     this.camera.position.y -= cameraSpeed;
                 break;
             case 's':
-                if (this.camera.position.y + this.stageMax.height < this.terrain.size().height)
+                if (this.camera.position.y + this.stageMax.height < this.terrain.map.sizeInPixels().height)
                     this.camera.position.y += cameraSpeed;
                 break;
         }
@@ -166,6 +166,7 @@ class Game {
         this.bgLayer.height = canvasSize.height;
         this.toolsLayer.width = this.rightPanel.clientWidth;
         this.toolsLayer.height = this.rightPanel.clientHeight;
+        this.camera.size = canvasSize;
     }
 }
 

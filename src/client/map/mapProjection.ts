@@ -24,6 +24,7 @@ class MapProjection implements ISubscriber {
     private border: Raster;
     private objectProjections: { [type: string]: IGameObject; } = {};
     private cameraProjection: Rect;
+    private lastCameraPosition: Point2d;
 
     constructor(objects: Objects, map: Map, ctx: CanvasRenderingContext2D, topLeft: Point2d, size: Size) {
         this.ctx = ctx;
@@ -39,13 +40,18 @@ class MapProjection implements ISubscriber {
         this.border.draw(camera);
 
         // Draw unit's projection on the map
-        for (const key in this.objectProjections) {
-            if (this.objectProjections.hasOwnProperty(key)) {
+        for (const key in this.objectProjections)
+            if (this.objectProjections.hasOwnProperty(key))
                 this.objectProjections[key].draw(camera);
-            }
-        }
 
-        //this.createCameraProjection(camera).draw(camera);
+        // Draw the camera and update only if camera change its position
+        if (this.lastCameraPosition && !this.lastCameraPosition.equals(camera.position))
+            this.cameraProjection.draw(camera);
+        else
+            this.cameraProjection = this.createCameraProjection(camera);
+            this.lastCameraPosition = camera.position;
+
+        this.cameraProjection.draw(camera);
     }
 
     notify(context: any) {
@@ -64,26 +70,10 @@ class MapProjection implements ISubscriber {
     }
 
     private createProjection(unit: Unit): IGameObject {
-        let ratioX = unit.position.x / (this.map.size().width * this.map.rasterSize);
-        let ratioY = unit.position.y / (this.map.size().height * this.map.rasterSize);
-
-        let x = this.border.position.x + (ratioX * this.border.size.width);
-        let y = this.border.position.y + (ratioY * this.border.size.height);
-
-        return new Circle(this.ctx, new Point2d(x, y), 3, unit.player.color);
+        return new Raster(this.ctx, this.projectPosition(unit.position), this.scaleSize(unit.getRect().size), unit.player.color);
     }
 
     private createBorder(): Raster {
-        let size = this.scale(this.background.size);
-
-        // Get centered position
-        let x = (this.background.size.width - size.width) / 2;
-        let y = (this.background.size.height - size.height) / 2;
-
-        return new Raster(this.ctx, new Point2d(x, y), size, 'black', MapProjection.borderColor, 1);
-    }
-
-    private scale(size: Size): Size {
         // Get scaled size based on the map ratio
         let w = this.map.size().width,
             h = this.map.size().height,
@@ -98,12 +88,34 @@ class MapProjection implements ISubscriber {
             scaledH = 1;
         }
 
-        return new Size(size.width * scaledW, size.height * scaledH);
+        let size = new Size(this.background.size.width * scaledW, this.background.size.height * scaledH);
+
+        // Get centered position
+        let x = (this.background.size.width - size.width) / 2;
+        let y = (this.background.size.height - size.height) / 2;
+
+        return new Raster(this.ctx, new Point2d(x, y), size, 'black', MapProjection.borderColor, 1);
     }
 
-    private createCameraProjection(camera: Camera): Rect{
-        //return new Rect(this.ctx, camera.position, new Size(100, 50), 'black', 'green');
-        throw new Error('not implemented');
+    private createCameraProjection(camera: Camera): Rect {
+        return new Raster(this.ctx, this.projectPosition(camera.position), this.scaleSize(camera.size), '', 'orange');
+    }
+
+    private scaleSize(size: Size): Size {
+        let ratioX = size.width / this.map.sizeInPixels().width;
+        let ratioY = size.height / this.map.sizeInPixels().height;
+
+        return new Size(this.border.size.width * ratioX, this.border.size.height * ratioY);
+    }
+
+    private projectPosition(point: Point2d): Point2d {
+        let ratioX = point.x / this.map.sizeInPixels().width;
+        let ratioY = point.y / this.map.sizeInPixels().height;
+
+        let x = this.border.position.x + (ratioX * this.border.size.width);
+        let y = this.border.position.y + (ratioY * this.border.size.height);
+
+        return new Point2d(x, y);
     }
 }
 

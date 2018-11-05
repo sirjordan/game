@@ -10,7 +10,10 @@ class Raster extends Rect {
         this.ctx.lineWidth = this.strokewidth;
         this.ctx.rect(this.position.x, this.position.y, this.size.width, this.size.height);
         this.ctx.stroke();
-        this.ctx.fill();
+
+        if (this.fill)
+            this.ctx.fill();
+            
         this.ctx.restore();
     }
 }

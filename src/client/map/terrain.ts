@@ -5,8 +5,8 @@ import Camera = require('common/camera');
 import TerrainObjectsFactory = require('terrainObjectsFactory');
 
 class Terrain {
+    public map: Map;
     private ctx: CanvasRenderingContext2D;
-    private map: Map;
     // Used to remember the last camera position
     private lastCameraPosition: Point2d;
     private objectsFactory: TerrainObjectsFactory;
@@ -15,11 +15,6 @@ class Terrain {
         this.ctx = ctx;
         this.map = map;
         this.objectsFactory = objectsFactory;
-    }
-
-    public size(): Size {
-        // Size of the terrain in pixels
-        return new Size(this.map.size().width * this.map.rasterSize, this.map.size().height * this.map.rasterSize);
     }
 
     public draw(camera: Camera, force: boolean = false) {

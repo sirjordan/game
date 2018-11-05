@@ -1,9 +1,11 @@
 import Point2d = require('common/point2d');
 import Camera = require('common/camera');
+import Size = require('common/size');
 import IGameObject = require('contracts/iGameObject');
 
 class Circle implements IGameObject {
     public position: Point2d;
+    public size: Size;
     protected ctx: CanvasRenderingContext2D;
     protected fill: string;
     protected stroke: string;
