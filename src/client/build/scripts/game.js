@@ -531,12 +531,11 @@ define("map/mapProjection", ["require", "exports", "gameObjects/raster", "common
             this.objectProjections[updatedUnit.id] = this.project(updatedUnit);
         };
         MapProjection.prototype.calcAbsolutePosition = function (relativePosition) {
-            var ratioX = relativePosition.x * this.map.sizeInPixels().width;
-            var ratioY = relativePosition.y * this.map.sizeInPixels().height;
-            var x = ratioX / this.border.size.width;
-            var y = ratioY / this.border.size.height;
-            //let borderAbsolute = this.calcAbsolutePosition(this.border.position);
-            var absolute = new Point2d(x, y); //.add(borderAbsolute);
+            var ratioX = (relativePosition.x - this.border.position.x) / this.background.size.width;
+            var ratioY = (relativePosition.y - this.border.position.y) / this.background.size.height;
+            var x = ratioX * this.map.sizeInPixels().width;
+            var y = ratioY * this.map.sizeInPixels().height;
+            var absolute = new Point2d(x, y);
             return absolute;
         };
         MapProjection.prototype.createUnitsProjections = function (units) {
@@ -643,24 +642,22 @@ define("game", ["require", "exports", "gameObjects/objects", "gameObjects/unitFa
         Game.prototype.keyPress = function (ev) {
             // TODO: Replace the key with some other
             var cameraSpeed = 15;
+            var newPos = this.camera.position.clone();
             switch (ev.key) {
                 case 'd':
-                    if (this.camera.position.x + this.stageMax.width < this.terrain.map.sizeInPixels().width)
-                        this.camera.position.x += cameraSpeed;
+                    newPos.x += cameraSpeed;
                     break;
                 case 'a':
-                    if (this.camera.position.x > 0)
-                        this.camera.position.x -= cameraSpeed;
+                    newPos.x -= cameraSpeed;
                     break;
                 case 'w':
-                    if (this.camera.position.y > 0)
-                        this.camera.position.y -= cameraSpeed;
+                    newPos.y -= cameraSpeed;
                     break;
                 case 's':
-                    if (this.camera.position.y + this.stageMax.height < this.terrain.map.sizeInPixels().height)
-                        this.camera.position.y += cameraSpeed;
+                    newPos.y += cameraSpeed;
                     break;
             }
+            this.setCameraAtPosition(newPos);
         };
         Game.prototype.resizeWindow = function (ev) {
             this.setStageSize();
@@ -706,8 +703,22 @@ define("game", ["require", "exports", "gameObjects/objects", "gameObjects/unitFa
             var mousePosition = new Point2d(args.clientX, args.clientY);
             var offset = Functions.calcOffset(this.toolsLayer);
             var relative = mousePosition.substract(new Point2d(offset.left, offset.top));
-            var absolute = this.mapProjection.calcAbsolutePosition(relative);
-            console.log(absolute);
+            var moveTo = this.mapProjection.calcAbsolutePosition(relative);
+            // Set the click to be the center of the camera
+            moveTo.x -= this.camera.size.width / 2;
+            moveTo.y -= this.camera.size.height / 2;
+            this.setCameraAtPosition(moveTo);
+        };
+        Game.prototype.setCameraAtPosition = function (position) {
+            if (position.x < 0)
+                position.x = 0;
+            if (position.y < 0)
+                position.y = 0;
+            if (position.x + this.camera.size.width > this.terrain.map.sizeInPixels().width)
+                position.x = this.terrain.map.sizeInPixels().width - this.camera.size.width;
+            if (position.y + this.camera.size.height > this.terrain.map.sizeInPixels().height)
+                position.y = this.terrain.map.sizeInPixels().height - this.camera.size.height;
+            this.camera.position = position;
         };
         Game.prototype.getPath = function (from, to) {
             var path = new Array();

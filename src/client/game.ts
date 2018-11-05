@@ -82,25 +82,24 @@ class Game {
         // TODO: Replace the key with some other
 
         let cameraSpeed = 15;
+        let newPos = this.camera.position.clone();
 
         switch (ev.key) {
             case 'd':
-                if (this.camera.position.x + this.stageMax.width < this.terrain.map.sizeInPixels().width)
-                    this.camera.position.x += cameraSpeed;
+                newPos.x += cameraSpeed;
                 break;
             case 'a':
-                if (this.camera.position.x > 0)
-                    this.camera.position.x -= cameraSpeed;
+                newPos.x -= cameraSpeed;
                 break;
             case 'w':
-                if (this.camera.position.y > 0)
-                    this.camera.position.y -= cameraSpeed;
+                newPos.y -= cameraSpeed;
                 break;
             case 's':
-                if (this.camera.position.y + this.stageMax.height < this.terrain.map.sizeInPixels().height)
-                    this.camera.position.y += cameraSpeed;
+                newPos.y += cameraSpeed;
                 break;
         }
+
+        this.setCameraAtPosition(newPos);
     }
 
     private resizeWindow(ev: UIEvent): void {
@@ -147,12 +146,28 @@ class Game {
         });
     }
 
-    private mapClick(args: MouseEvent): void{
+    private mapClick(args: MouseEvent): void {
         let mousePosition = new Point2d(args.clientX, args.clientY);
         let offset = Functions.calcOffset(this.toolsLayer);
         let relative = mousePosition.substract(new Point2d(offset.left, offset.top));
-        let absolute =  this.mapProjection.calcAbsolutePosition(relative);
-        console.log(absolute);
+        let moveTo = this.mapProjection.calcAbsolutePosition(relative);
+        // Set the click to be the center of the camera
+        moveTo.x -= this.camera.size.width / 2;
+        moveTo.y -= this.camera.size.height / 2
+        this.setCameraAtPosition(moveTo);
+    }
+
+    private setCameraAtPosition(position: Point2d) {
+        if (position.x < 0)
+            position.x = 0;
+        if (position.y < 0)
+            position.y = 0;
+        if (position.x + this.camera.size.width > this.terrain.map.sizeInPixels().width)
+            position.x = this.terrain.map.sizeInPixels().width - this.camera.size.width;
+        if(position.y + this.camera.size.height > this.terrain.map.sizeInPixels().height)
+            position.y = this.terrain.map.sizeInPixels().height - this.camera.size.height;
+
+        this.camera.position = position;
     }
 
     private getPath(from: Point2d, to: Point2d): Array<Point2d> {

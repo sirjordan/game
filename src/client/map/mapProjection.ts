@@ -49,7 +49,7 @@ class MapProjection implements ISubscriber {
             this.cameraProjection.draw(camera);
         else
             this.cameraProjection = this.projectCamera(camera);
-            this.lastCameraPosition = camera.position;
+        this.lastCameraPosition = camera.position;
 
         this.cameraProjection.draw(camera);
     }
@@ -61,16 +61,15 @@ class MapProjection implements ISubscriber {
         this.objectProjections[updatedUnit.id] = this.project(updatedUnit);
     }
 
-    calcAbsolutePosition(relativePosition: Point2d){
-        let ratioX = relativePosition.x * this.map.sizeInPixels().width;
-        let ratioY = relativePosition.y * this.map.sizeInPixels().height;
+    calcAbsolutePosition(relativePosition: Point2d) {
+        let ratioX = (relativePosition.x - this.border.position.x) / this.background.size.width;
+        let ratioY = (relativePosition.y - this.border.position.y) / this.background.size.height;
 
-        let x = ratioX / this.border.size.width;
-        let y = ratioY / this.border.size.height;
+        let x = ratioX * this.map.sizeInPixels().width;
+        let y = ratioY * this.map.sizeInPixels().height;
 
-        //let borderAbsolute = this.calcAbsolutePosition(this.border.position);
-        let absolute = new Point2d(x, y);//.add(borderAbsolute);
- 
+        let absolute = new Point2d(x, y);
+
         return absolute;
     }
 
