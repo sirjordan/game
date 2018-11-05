@@ -21,7 +21,6 @@ class Game {
     private bottomPanel: HTMLElement;
     private camera: Camera;
     private terrain: Terrain;
-    private stageMax: Size;
     private mapProjection: MapProjection;
 
     constructor(gameLayer: HTMLCanvasElement, bgLayer: HTMLCanvasElement, toolsLayer: HTMLCanvasElement, rightPanel: HTMLElement, bottomPanel: HTMLElement) {
@@ -183,7 +182,6 @@ class Game {
 
     private setStageSize(): void {
         let canvasSize = Functions.calcCanvasSize(this.rightPanel, this.bottomPanel);
-        this.stageMax = canvasSize;
         this.gameLayer.width = canvasSize.width;
         this.gameLayer.height = canvasSize.height;
         this.bgLayer.width = canvasSize.width;
