@@ -1,0 +1,63 @@
+$bg_Color: #20262e;
+$border:  1px solid #2d333b;
+$rightPanel_width: 225px;
+$bottom_panel_height: 150px;
+$map_height: 225px;
+$main_color: #f9c731;
+
+* {
+  margin: 0;
+  padding: 0;
+  font-family: "Lucida Console", Monaco, monospace;
+}
+
+canvas {
+  position: fixed;
+}
+
+.panel {
+  background-color: $bg_Color;
+  position: fixed;
+}
+
+#right-panel {
+  z-index: 15;
+  width: $rightPanel_width;
+  height: 100%;
+  right: 0;
+  border-left: $border;
+}
+
+#bottom-panel {
+  z-index: 15;
+  height: $bottom_panel_height;
+  width: 100%;
+  bottom: 0;
+  border-top: $border;
+}
+
+#actions{
+  position: absolute;
+  top: $map_height;
+  color: $main_color;
+  width: 100%;
+}
+
+#actions .action-tabs{
+  font-size: xx-small;
+  width: 100%;
+  border-top: 1px solid $main_color;
+}
+
+#game-layer {
+  z-index: 10;
+}
+
+#background-layer {
+  z-index: 5;
+  background-color: $bg_Color;
+}
+
+#map-layer{
+  border-bottom: $border;
+}

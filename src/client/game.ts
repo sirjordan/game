@@ -16,23 +16,23 @@ class Game {
     private gameLayer: HTMLCanvasElement;
     private gameCtx: CanvasRenderingContext2D;
     private bgLayer: HTMLCanvasElement;
-    private toolsLayer: HTMLCanvasElement;
+    private mapProjectionLayer: HTMLCanvasElement;
     private rightPanel: HTMLElement;
     private bottomPanel: HTMLElement;
     private camera: Camera;
     private terrain: Terrain;
     private mapProjection: MapProjection;
 
-    constructor(gameLayer: HTMLCanvasElement, bgLayer: HTMLCanvasElement, toolsLayer: HTMLCanvasElement, rightPanel: HTMLElement, bottomPanel: HTMLElement) {
+    constructor(gameLayer: HTMLCanvasElement, bgLayer: HTMLCanvasElement, mapProjectionLayer: HTMLCanvasElement, rightPanel: HTMLElement, bottomPanel: HTMLElement) {
         if (!gameLayer) throw new Error('Missing argument: gameLayer');
         if (!rightPanel) throw new Error('Missing argument: rightPanel');
         if (!rightPanel) throw new Error('Missing argument: rightPanel');
         if (!bottomPanel) throw new Error('Missing argument: bottomPanel');
-        if (!toolsLayer) throw new Error('Missing argument: toolsLayer');
+        if (!mapProjectionLayer) throw new Error('Missing argument: toolsLayer');
 
         this.gameLayer = gameLayer;
         this.bgLayer = bgLayer;
-        this.toolsLayer = toolsLayer;
+        this.mapProjectionLayer = mapProjectionLayer;
         this.rightPanel = rightPanel;
         this.bottomPanel = bottomPanel;
 
@@ -46,7 +46,7 @@ class Game {
         window.onresize = (ev) => this.resizeWindow(ev);
         this.gameLayer.onclick = (args) => this.leftClick(args);
         this.gameLayer.oncontextmenu = (args) => this.rightClick(args);
-        this.toolsLayer.onclick = (args) => this.mapClick(args);
+        this.mapProjectionLayer.onclick = (args) => this.mapClick(args);
     }
 
     public start(): void {
@@ -61,7 +61,7 @@ class Game {
         this.objects.add(unitFactory.baseUnit(new Point2d(50, 50)));
         this.objects.add(unitFactory.baseUnit(new Point2d(100, 100)));
 
-        let toolsCtx = this.toolsLayer.getContext('2d');
+        let toolsCtx = this.mapProjectionLayer.getContext('2d');
         this.mapProjection = new MapProjection(this.objects, map, toolsCtx, Point2d.zero(), new Size(this.rightPanel.clientWidth, this.rightPanel.clientWidth));
 
         // Start the game loop
@@ -147,7 +147,7 @@ class Game {
 
     private mapClick(args: MouseEvent): void {
         let mousePosition = new Point2d(args.clientX, args.clientY);
-        let offset = Functions.calcOffset(this.toolsLayer);
+        let offset = Functions.calcOffset(this.mapProjectionLayer);
         let relative = mousePosition.substract(new Point2d(offset.left, offset.top));
         let moveTo = this.mapProjection.calcAbsolutePosition(relative);
         // Set the click to be the center of the camera
@@ -186,8 +186,8 @@ class Game {
         this.gameLayer.height = canvasSize.height;
         this.bgLayer.width = canvasSize.width;
         this.bgLayer.height = canvasSize.height;
-        this.toolsLayer.width = this.rightPanel.clientWidth;
-        this.toolsLayer.height = this.rightPanel.clientHeight;
+        //this.mapProjectionLayer.width = this.rightPanel.clientWidth;
+        //this.mapProjectionLayer.height = this.rightPanel.clientHeight;
         this.camera.size = canvasSize;
     }
 }

@@ -590,7 +590,7 @@ define("map/mapProjection", ["require", "exports", "gameObjects/raster", "common
 define("game", ["require", "exports", "gameObjects/objects", "gameObjects/unitFactory", "common/functions", "common/size", "common/point2d", "common/player", "common/sequence", "common/camera", "map/map", "map/terrain", "map/mapProjection", "map/terrainObjectsFactory"], function (require, exports, Objects, UnitFactory, Functions, Size, Point2d, Player, Sequence, Camera, Map, Terrain, MapProjection, TerrainObjectsFactory) {
     "use strict";
     var Game = /** @class */ (function () {
-        function Game(gameLayer, bgLayer, toolsLayer, rightPanel, bottomPanel) {
+        function Game(gameLayer, bgLayer, mapProjectionLayer, rightPanel, bottomPanel) {
             var _this = this;
             this.update = function () {
                 _this.terrain.draw(_this.camera);
@@ -607,11 +607,11 @@ define("game", ["require", "exports", "gameObjects/objects", "gameObjects/unitFa
                 throw new Error('Missing argument: rightPanel');
             if (!bottomPanel)
                 throw new Error('Missing argument: bottomPanel');
-            if (!toolsLayer)
+            if (!mapProjectionLayer)
                 throw new Error('Missing argument: toolsLayer');
             this.gameLayer = gameLayer;
             this.bgLayer = bgLayer;
-            this.toolsLayer = toolsLayer;
+            this.mapProjectionLayer = mapProjectionLayer;
             this.rightPanel = rightPanel;
             this.bottomPanel = bottomPanel;
             this.gameCtx = this.gameLayer.getContext("2d");
@@ -622,7 +622,7 @@ define("game", ["require", "exports", "gameObjects/objects", "gameObjects/unitFa
             window.onresize = function (ev) { return _this.resizeWindow(ev); };
             this.gameLayer.onclick = function (args) { return _this.leftClick(args); };
             this.gameLayer.oncontextmenu = function (args) { return _this.rightClick(args); };
-            this.toolsLayer.onclick = function (args) { return _this.mapClick(args); };
+            this.mapProjectionLayer.onclick = function (args) { return _this.mapClick(args); };
         }
         Game.prototype.start = function () {
             var bgCtx = this.bgLayer.getContext('2d');
@@ -633,7 +633,7 @@ define("game", ["require", "exports", "gameObjects/objects", "gameObjects/unitFa
             var unitFactory = new UnitFactory(this.gameCtx, player, new Sequence());
             this.objects.add(unitFactory.baseUnit(new Point2d(50, 50)));
             this.objects.add(unitFactory.baseUnit(new Point2d(100, 100)));
-            var toolsCtx = this.toolsLayer.getContext('2d');
+            var toolsCtx = this.mapProjectionLayer.getContext('2d');
             this.mapProjection = new MapProjection(this.objects, map, toolsCtx, Point2d.zero(), new Size(this.rightPanel.clientWidth, this.rightPanel.clientWidth));
             // Start the game loop
             this.update();
@@ -701,7 +701,7 @@ define("game", ["require", "exports", "gameObjects/objects", "gameObjects/unitFa
         };
         Game.prototype.mapClick = function (args) {
             var mousePosition = new Point2d(args.clientX, args.clientY);
-            var offset = Functions.calcOffset(this.toolsLayer);
+            var offset = Functions.calcOffset(this.mapProjectionLayer);
             var relative = mousePosition.substract(new Point2d(offset.left, offset.top));
             var moveTo = this.mapProjection.calcAbsolutePosition(relative);
             // Set the click to be the center of the camera
@@ -734,8 +734,8 @@ define("game", ["require", "exports", "gameObjects/objects", "gameObjects/unitFa
             this.gameLayer.height = canvasSize.height;
             this.bgLayer.width = canvasSize.width;
             this.bgLayer.height = canvasSize.height;
-            this.toolsLayer.width = this.rightPanel.clientWidth;
-            this.toolsLayer.height = this.rightPanel.clientHeight;
+            //this.mapProjectionLayer.width = this.rightPanel.clientWidth;
+            //this.mapProjectionLayer.height = this.rightPanel.clientHeight;
             this.camera.size = canvasSize;
         };
         return Game;

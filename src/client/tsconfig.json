@@ -4,6 +4,6 @@
         "target": "es5",
         "sourceMap": true,
         "outDir": "./build",
-        "outFile": "./build/scripts/game.js",
+        "outFile": "./build/scripts/game.js"
     }
 }

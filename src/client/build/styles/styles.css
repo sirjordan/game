@@ -1,0 +1,46 @@
+* {
+  margin: 0;
+  padding: 0;
+  font-family: "Lucida Console", Monaco, monospace; }
+
+canvas {
+  position: fixed; }
+
+.panel {
+  background-color: #20262e;
+  position: fixed; }
+
+#right-panel {
+  z-index: 15;
+  width: 225px;
+  height: 100%;
+  right: 0;
+  border-left: 1px solid #2d333b; }
+
+#bottom-panel {
+  z-index: 15;
+  height: 150px;
+  width: 100%;
+  bottom: 0;
+  border-top: 1px solid #2d333b; }
+
+#actions {
+  position: absolute;
+  top: 225px;
+  color: #f9c731;
+  width: 100%; }
+
+#actions .action-tabs {
+  font-size: xx-small;
+  width: 100%;
+  border-top: 1px solid #f9c731; }
+
+#game-layer {
+  z-index: 10; }
+
+#background-layer {
+  z-index: 5;
+  background-color: #20262e; }
+
+#map-layer {
+  border-bottom: 1px solid #2d333b; }

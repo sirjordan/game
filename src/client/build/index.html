@@ -6,51 +6,20 @@
     <meta name="viewport" content="width=900, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Synthwave - Cyberpunk</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-        }
-
-        canvas {
-            position: fixed;
-        }
-
-        .panel {
-            background-color: #20262e;
-            position: fixed;
-        }
-
-        #right-panel {
-            z-index: 15;
-            width: 225px;
-            height: 100%;
-            right: 0;
-            border-left: 1px solid #2d333b;
-        }
-
-        #bottom-panel {
-            z-index: 15;
-            height: 150px;
-            width: 100%;
-            bottom: 0;
-            border-top: 1px solid #2d333b;
-        }
-
-        #game-layer {
-            z-index: 10;
-        }
-
-        #background-layer {
-            z-index: 5;
-            background-color: #20262e;
-        }
-    </style>
+    <link rel="stylesheet" href="styles/styles.css">
 </head>
 
 <body>
     <div id="right-panel" class="panel">
-        <canvas id="tools-layer"></canvas>
+        <canvas id="map-layer" width="225" , height="225"></canvas>
+        <div id="actions">
+            <table class="action-tabs">
+                <tr>
+                    <td>Build</td>
+                    <td>Actions</td>
+                </tr>
+            </table>
+        </div>
     </div>
     <div id="bottom-panel" class="panel"></div>
     <div id="stage">
@@ -62,11 +31,11 @@
         require(["game"], Game => {
             let gameLayer = document.getElementById('game-layer');
             let bgLayer = document.getElementById('background-layer');
-            let toolsLayer = document.getElementById('tools-layer');
+            let mapLayer = document.getElementById('map-layer');
             let rightPanel = document.getElementById('right-panel');
             let bottomPanel = document.getElementById('bottom-panel');
 
-            var game = new Game(gameLayer, bgLayer, toolsLayer, rightPanel, bottomPanel);
+            var game = new Game(gameLayer, bgLayer, mapLayer, rightPanel, bottomPanel);
             game.start();
         });
     </script>
