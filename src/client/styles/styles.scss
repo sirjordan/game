@@ -47,6 +47,22 @@ canvas {
   font-size: xx-small;
   width: 100%;
   border-top: 1px solid $main_color;
+  border-collapse: collapse;
+  background-color: rgba($main_color, 0.1);
+}
+
+#actions .action-tabs td {
+  padding: 4px;    
+  width: 50%;
+}
+
+#actions .action-tabs td:hover{
+  background-color: rgba($main_color, 0.2);
+  cursor: pointer;
+}
+
+#tab-build{
+  border-right: 1px solid $main_color;
 }
 
 #game-layer {

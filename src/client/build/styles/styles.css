@@ -33,7 +33,20 @@ canvas {
 #actions .action-tabs {
   font-size: xx-small;
   width: 100%;
-  border-top: 1px solid #f9c731; }
+  border-top: 1px solid #f9c731;
+  border-collapse: collapse;
+  background-color: rgba(249, 199, 49, 0.1); }
+
+#actions .action-tabs td {
+  padding: 4px;
+  width: 50%; }
+
+#actions .action-tabs td:hover {
+  background-color: rgba(249, 199, 49, 0.2);
+  cursor: pointer; }
+
+#tab-build {
+  border-right: 1px solid #f9c731; }
 
 #game-layer {
   z-index: 10; }
