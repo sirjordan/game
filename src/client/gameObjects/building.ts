@@ -30,7 +30,7 @@ class Building implements IOwnedObject, ISelectable {
         this.ctx.fillStyle = this.player.color;
         this.ctx.strokeStyle = this.player.color;
         this.ctx.lineWidth = 1;
-        this.ctx.rect(this.position.x - camera.position.x, this.position.y - camera.position.y, this.size.width, this.size.height);
+        this.ctx.rect(this.position.x - camera.position.x - this.size.width / 2, this.position.y - camera.position.y - this.size.height / 2, this.size.width, this.size.height);
         this.ctx.stroke();
         this.ctx.fill();
         this.ctx.restore();
@@ -41,15 +41,15 @@ class Building implements IOwnedObject, ISelectable {
     }
 
     isSelected(): boolean {
-        throw new Error("Method not implemented.");
+        return this.rect.isSelected();
     }
 
     select(): void {
-        throw new Error("Method not implemented.");
+       this.rect.select();
     }
 
     unSelect(): void {
-        throw new Error("Method not implemented.");
+       this.rect.unSelect();
     }
 
     getRect(): SelectRect {

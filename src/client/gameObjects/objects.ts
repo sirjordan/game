@@ -35,7 +35,7 @@ class Objects {
     }
 
     getSelectable(): Array<ISelectable> {
-        return new Array<ISelectable>(this.getUnits(), this.getBuildings());
+        return new Array<ISelectable>(...this.getUnits(), ...this.getBuildings());
     }
 
     getBuildings(): Array<Building>{
