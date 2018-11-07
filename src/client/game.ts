@@ -106,7 +106,7 @@ class Game {
 
     private resizeWindow(ev: UIEvent): void {
         this.setStageSize();
-        this.terrain.draw(this.camera, true);
+        this.terrain.reDraw(this.camera);
     }
 
     private leftClick(args: MouseEvent): void {

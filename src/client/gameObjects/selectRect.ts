@@ -10,11 +10,11 @@ class SelectRect extends Rect implements ISelectable {
     private _isSelected: boolean
     private selectionDrawingObject: Circle;
 
-    constructor(ctx: CanvasRenderingContext2D, center: Point2d, size: Size) {
-        super(ctx, center, size);
+    constructor(ctx: CanvasRenderingContext2D, topLeft: Point2d, size: Size) {
+        super(ctx, topLeft, size);
 
         let radius = Math.sqrt(Math.pow(size.width, 2) + Math.pow(size.height, 2)) / 2;
-        this.selectionDrawingObject = new Circle(ctx, center, radius, Settings.MAIN_COLOR);
+        this.selectionDrawingObject = new Circle(ctx, topLeft.toCenter(size), radius, Settings.MAIN_COLOR);
     }
 
     isSelected(): boolean {

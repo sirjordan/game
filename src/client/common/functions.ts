@@ -1,4 +1,4 @@
-import Size = require('./size');
+import Size = require('size');
 
 class Functions {
     static lerp(v0: number, v1: number, t: number): number {

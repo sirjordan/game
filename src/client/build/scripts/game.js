@@ -85,6 +85,12 @@ define("common/point2d", ["require", "exports", "common/functions"], function (r
         Point2d.prototype.equals = function (other) {
             return this.x === other.x && this.y === other.y;
         };
+        Point2d.prototype.toCenter = function (size) {
+            return new Point2d(this.x + size.width / 2, this.y + size.height / 2);
+        };
+        Point2d.prototype.toTopLeft = function (size) {
+            return new Point2d(this.x - size.width / 2, this.y - size.height / 2);
+        };
         return Point2d;
     }());
     return Point2d;
@@ -181,10 +187,10 @@ define("gameObjects/selectRect", ["require", "exports", "gameObjects/rect", "gam
     "use strict";
     var SelectRect = /** @class */ (function (_super) {
         __extends(SelectRect, _super);
-        function SelectRect(ctx, center, size) {
-            var _this = _super.call(this, ctx, center, size) || this;
+        function SelectRect(ctx, topLeft, size) {
+            var _this = _super.call(this, ctx, topLeft, size) || this;
             var radius = Math.sqrt(Math.pow(size.width, 2) + Math.pow(size.height, 2)) / 2;
-            _this.selectionDrawingObject = new Circle(ctx, center, radius, Settings.MAIN_COLOR);
+            _this.selectionDrawingObject = new Circle(ctx, topLeft.toCenter(size), radius, Settings.MAIN_COLOR);
             return _this;
         }
         SelectRect.prototype.isSelected = function () {
@@ -252,7 +258,7 @@ define("gameObjects/unit", ["require", "exports", "gameObjects/selectRect"], fun
             this.position = center;
             this.speed = speed;
             this.movementsQueue = new Array();
-            this.rect = new SelectRect(ctx, center, size);
+            this.rect = new SelectRect(ctx, center.toTopLeft(size), size);
         }
         Unit.prototype.subscribe = function (subscriber) {
             this.stateUpdateSubscribers.push(subscriber);
@@ -282,6 +288,7 @@ define("gameObjects/unit", ["require", "exports", "gameObjects/selectRect"], fun
             if (Math.abs(this.position.y - this.nextStep.y) < Math.abs(this.velocity.y))
                 this.position.y = this.nextStep.y;
             this.notifyStateUpdate();
+            //this.rect.position = this.position.toTopLeft(this.size);
             // Step is over
             if (this.isPointInside(this.nextStep))
                 this.nextStep = null;
@@ -329,7 +336,7 @@ define("gameObjects/building", ["require", "exports", "gameObjects/selectRect"],
             this.position = center;
             this.size = size;
             this.player = player;
-            this.rect = new SelectRect(ctx, center, size);
+            this.rect = new SelectRect(ctx, center.toTopLeft(size), size);
         }
         Building.prototype.draw = function (camera) {
             this.rect.draw(camera);
@@ -550,10 +557,9 @@ define("map/terrain", ["require", "exports", "common/point2d"], function (requir
             this.map = map;
             this.objectsFactory = objectsFactory;
         }
-        Terrain.prototype.draw = function (camera, force) {
-            if (force === void 0) { force = false; }
+        Terrain.prototype.draw = function (camera) {
             // Optimizing the draw() and render only if the camera changes its position
-            if (!force && this.lastCameraPosition && camera.position.equals(this.lastCameraPosition)) {
+            if (this.lastCameraPosition && camera.position.equals(this.lastCameraPosition)) {
                 return;
             }
             var maxRight = this.ctx.canvas.width;
@@ -587,6 +593,11 @@ define("map/terrain", ["require", "exports", "common/point2d"], function (requir
                 pos.y = startPos.y + (i * rasterSize);
             }
             this.lastCameraPosition = camera.position.clone();
+        };
+        Terrain.prototype.reDraw = function (camera) {
+            // Force the terrain to redraw
+            this.lastCameraPosition = null;
+            this.draw(camera);
         };
         return Terrain;
     }());
@@ -758,7 +769,7 @@ define("game", ["require", "exports", "gameObjects/objects", "gameObjects/unitFa
         };
         Game.prototype.resizeWindow = function (ev) {
             this.setStageSize();
-            this.terrain.draw(this.camera, true);
+            this.terrain.reDraw(this.camera);
         };
         Game.prototype.leftClick = function (args) {
             var mousePosition = new Point2d(args.clientX, args.clientY).add(this.camera.position);

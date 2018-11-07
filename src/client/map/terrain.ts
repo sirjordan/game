@@ -17,9 +17,9 @@ class Terrain {
         this.objectsFactory = objectsFactory;
     }
 
-    public draw(camera: Camera, force: boolean = false) {
+    public draw(camera: Camera) {
         // Optimizing the draw() and render only if the camera changes its position
-        if (!force && this.lastCameraPosition && camera.position.equals(this.lastCameraPosition)) {
+        if (this.lastCameraPosition && camera.position.equals(this.lastCameraPosition)) {
             return;
         }
 
@@ -62,6 +62,12 @@ class Terrain {
         }
 
         this.lastCameraPosition = camera.position.clone();
+    }
+
+    reDraw(camera: Camera){
+        // Force the terrain to redraw
+        this.lastCameraPosition = null;
+        this.draw(camera);
     }
 }
 

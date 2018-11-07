@@ -1,4 +1,5 @@
 import Functions = require('common/functions'); 
+import Size = require('size');
 
 class Point2d {
     public x: number;
@@ -45,6 +46,14 @@ class Point2d {
 
     equals(other: Point2d): boolean {
         return this.x === other.x && this.y === other.y;
+    }
+
+    toCenter(size: Size): Point2d{
+        return new Point2d(this.x + size.width / 2 , this.y + size.height / 2)
+    }
+
+    toTopLeft(size: Size): Point2d{
+        return new Point2d(this.x - size.width / 2 , this.y - size.height / 2)
     }
 }
 

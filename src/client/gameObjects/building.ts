@@ -19,7 +19,7 @@ class Building implements IOwnedObject, ISelectable {
         this.position = center;
         this.size = size;
         this.player = player;
-        this.rect = new SelectRect(ctx, center, size);
+        this.rect = new SelectRect(ctx, center.toTopLeft(size), size);
     }
 
     draw(camera: Camera): void {

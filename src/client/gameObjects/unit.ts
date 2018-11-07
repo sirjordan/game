@@ -34,7 +34,8 @@ class Unit implements IOwnedObject, ISelectable, IMovable, INotifier {
         this.position = center;
         this.speed = speed;
         this.movementsQueue = new Array<Point2d>();
-        this.rect = new SelectRect(ctx, center, size);
+        
+        this.rect = new SelectRect(ctx, center.toTopLeft(size), size);
     }
 
     subscribe(subscriber: ISubscriber): void {
