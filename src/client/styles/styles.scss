@@ -1,9 +1,11 @@
-$bg_Color: #20262e;
-$border:  1px solid #2d333b;
-$rightPanel_width: 225px;
+$panel_bg_Color: #20262e;
+$panel_border:  1px solid #2d333b;
+$right_panel_width: 225px;
 $bottom_panel_height: 150px;
 $map_height: 225px;
 $main_color: #f9c731;
+$btn_bg_color: rgba($main_color, 0.1);
+$btn_bg_color_hover: rgba($main_color, 0.2);
 
 * {
   margin: 0;
@@ -16,16 +18,16 @@ canvas {
 }
 
 .panel {
-  background-color: $bg_Color;
+  background-color: $panel_bg_Color;
   position: fixed;
 }
 
 #right-panel {
   z-index: 15;
-  width: $rightPanel_width;
+  width: $right_panel_width;
   height: 100%;
   right: 0;
-  border-left: $border;
+  border-left: $panel_border;
 }
 
 #bottom-panel {
@@ -33,35 +35,52 @@ canvas {
   height: $bottom_panel_height;
   width: 100%;
   bottom: 0;
-  border-top: $border;
+  border-top: $panel_border;
 }
 
-#actions{
+#commands{
   position: absolute;
   top: $map_height;
   color: $main_color;
   width: 100%;
 }
 
-#actions .action-tabs{
+#commands .commands-tabs{
   font-size: xx-small;
   width: 100%;
   border-top: 1px solid $main_color;
   border-collapse: collapse;
-  background-color: rgba($main_color, 0.1);
 }
 
-#actions .action-tabs td {
+#commands .commands-tabs td {
   padding: 4px;    
   width: 50%;
 }
 
-#actions .action-tabs td:hover{
-  background-color: rgba($main_color, 0.2);
-  cursor: pointer;
+.btn{
+  background-color: $btn_bg_color;
 }
 
-#tab-build{
+.btn:hover{
+  cursor: pointer;
+  background-color: $btn_bg_color_hover;
+}
+
+#commands .commands-table{
+  width: 100%;
+  text-align: center;
+  margin-top: 5px;
+}
+
+#commands .command-btn{
+  display: inline-block;
+  width: 45px;
+  height: 45px;
+  border: 1px solid $main_color;
+  border-radius: 2px;
+}
+
+#btn-build{
   border-right: 1px solid $main_color;
 }
 
@@ -71,9 +90,9 @@ canvas {
 
 #background-layer {
   z-index: 5;
-  background-color: $bg_Color;
+  background-color: $panel_bg_Color;
 }
 
 #map-layer{
-  border-bottom: $border;
+  border-bottom: $panel_border;
 }

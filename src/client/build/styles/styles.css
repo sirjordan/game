@@ -24,28 +24,42 @@ canvas {
   bottom: 0;
   border-top: 1px solid #2d333b; }
 
-#actions {
+#commands {
   position: absolute;
   top: 225px;
   color: #f9c731;
   width: 100%; }
 
-#actions .action-tabs {
+#commands .commands-tabs {
   font-size: xx-small;
   width: 100%;
   border-top: 1px solid #f9c731;
-  border-collapse: collapse;
-  background-color: rgba(249, 199, 49, 0.1); }
+  border-collapse: collapse; }
 
-#actions .action-tabs td {
+#commands .commands-tabs td {
   padding: 4px;
   width: 50%; }
 
-#actions .action-tabs td:hover {
-  background-color: rgba(249, 199, 49, 0.2);
-  cursor: pointer; }
+.btn {
+  background-color: rgba(249, 199, 49, 0.1); }
 
-#tab-build {
+.btn:hover {
+  cursor: pointer;
+  background-color: rgba(249, 199, 49, 0.2); }
+
+#commands .commands-table {
+  width: 100%;
+  text-align: center;
+  margin-top: 5px; }
+
+#commands .command-btn {
+  display: inline-block;
+  width: 45px;
+  height: 45px;
+  border: 1px solid #f9c731;
+  border-radius: 2px; }
+
+#btn-build {
   border-right: 1px solid #f9c731; }
 
 #game-layer {
