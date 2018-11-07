@@ -9,6 +9,7 @@ import Point2d = require('common/point2d');
 import Size = require('common/size');
 import Camera = require('common/camera');
 import Map = require('map');
+import Settings = require('settings');
 
 class MapProjection implements ISubscriber {
     /// Projected map as an interactive component
@@ -86,7 +87,7 @@ class MapProjection implements ISubscriber {
     }
 
     private projectCamera(camera: Camera): Rect {
-        return new Raster(this.ctx, this.calcRelativePosition(camera.position), this.scaleSize(camera.size), '', 'orange');
+        return new Raster(this.ctx, this.calcRelativePosition(camera.position), this.scaleSize(camera.size), '', Settings.MAIN_COLOR);
     }
 
     private createBorder(): Raster {

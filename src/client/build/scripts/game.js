@@ -497,7 +497,17 @@ define("map/terrain", ["require", "exports", "common/point2d"], function (requir
     }());
     return Terrain;
 });
-define("map/mapProjection", ["require", "exports", "gameObjects/raster", "common/point2d", "common/size"], function (require, exports, Raster, Point2d, Size) {
+define("settings", ["require", "exports"], function (require, exports) {
+    "use strict";
+    var Settings = /** @class */ (function () {
+        function Settings() {
+        }
+        Settings.MAIN_COLOR = '#f9c731';
+        return Settings;
+    }());
+    return Settings;
+});
+define("map/mapProjection", ["require", "exports", "gameObjects/raster", "common/point2d", "common/size", "settings"], function (require, exports, Raster, Point2d, Size, Settings) {
     "use strict";
     var MapProjection = /** @class */ (function () {
         function MapProjection(objects, map, ctx, topLeft, size) {
@@ -550,7 +560,7 @@ define("map/mapProjection", ["require", "exports", "gameObjects/raster", "common
             return new Raster(this.ctx, this.calcRelativePosition(obj.position), this.scaleSize(obj.size), obj.player.color);
         };
         MapProjection.prototype.projectCamera = function (camera) {
-            return new Raster(this.ctx, this.calcRelativePosition(camera.position), this.scaleSize(camera.size), '', 'orange');
+            return new Raster(this.ctx, this.calcRelativePosition(camera.position), this.scaleSize(camera.size), '', Settings.MAIN_COLOR);
         };
         MapProjection.prototype.createBorder = function () {
             // Get scaled size based on the map ratio

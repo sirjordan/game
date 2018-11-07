@@ -4,6 +4,15 @@
     "version": "2.0.0",
     "tasks": [
         {
+            "label": "TypeScript Compile",
+            "type": "typescript",
+            "tsconfig": "src\\client\\tsconfig.json",
+            "group": "build",
+            "problemMatcher": [
+                "$tsc"
+            ],
+        },
+        {
             "label": "Sass Compile",
             "type": "shell",
             "command": "node-sass ./src/client/styles/styles.scss ./src/client/build/styles/styles.css",
