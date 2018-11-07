@@ -2,6 +2,7 @@ import IGameObject = require('contracts/iGameObject');
 import ISelectable = require('contracts/iSelectable');
 import Unit = require('unit');
 import Camera = require('common/camera');
+import Building = require('building');
 
 class Objects {
     private ctx: CanvasRenderingContext2D;
@@ -34,7 +35,11 @@ class Objects {
     }
 
     getSelectable(): Array<ISelectable> {
-        return this.getUnits();
+        return new Array<ISelectable>(this.getUnits(), this.getBuildings());
+    }
+
+    getBuildings(): Array<Building>{
+        return <Array<Building>>this.objects[(<any>Building).name] || [];
     }
 
     getUnits(): Array<Unit> {

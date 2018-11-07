@@ -321,7 +321,48 @@ define("gameObjects/unit", ["require", "exports", "gameObjects/selectRect"], fun
     }());
     return Unit;
 });
-define("gameObjects/objects", ["require", "exports", "gameObjects/unit"], function (require, exports, Unit) {
+define("gameObjects/building", ["require", "exports", "gameObjects/selectRect"], function (require, exports, SelectRect) {
+    "use strict";
+    var Building = /** @class */ (function () {
+        function Building(ctx, center, size, player) {
+            this.ctx = ctx;
+            this.position = center;
+            this.size = size;
+            this.player = player;
+            this.rect = new SelectRect(ctx, center, size);
+        }
+        Building.prototype.draw = function (camera) {
+            this.rect.draw(camera);
+            this.ctx.save();
+            this.ctx.beginPath();
+            this.ctx.fillStyle = this.player.color;
+            this.ctx.strokeStyle = this.player.color;
+            this.ctx.lineWidth = 1;
+            this.ctx.rect(this.position.x - camera.position.x, this.position.y - camera.position.y, this.size.width, this.size.height);
+            this.ctx.stroke();
+            this.ctx.fill();
+            this.ctx.restore();
+        };
+        Building.prototype.isPointInside = function (point) {
+            return this.rect.isPointInside(point);
+        };
+        Building.prototype.isSelected = function () {
+            throw new Error("Method not implemented.");
+        };
+        Building.prototype.select = function () {
+            throw new Error("Method not implemented.");
+        };
+        Building.prototype.unSelect = function () {
+            throw new Error("Method not implemented.");
+        };
+        Building.prototype.getRect = function () {
+            return this.rect;
+        };
+        return Building;
+    }());
+    return Building;
+});
+define("gameObjects/objects", ["require", "exports", "gameObjects/unit", "gameObjects/building"], function (require, exports, Unit, Building) {
     "use strict";
     var Objects = /** @class */ (function () {
         function Objects(ctx) {
@@ -345,7 +386,10 @@ define("gameObjects/objects", ["require", "exports", "gameObjects/unit"], functi
             return all;
         };
         Objects.prototype.getSelectable = function () {
-            return this.getUnits();
+            return new Array(this.getUnits(), this.getBuildings());
+        };
+        Objects.prototype.getBuildings = function () {
+            return this.objects[Building.name] || [];
         };
         Objects.prototype.getUnits = function () {
             return this.objects[Unit.name] || [];
@@ -398,47 +442,6 @@ define("gameObjects/unitFactory", ["require", "exports", "gameObjects/unit", "co
         return UnitFactory;
     }());
     return UnitFactory;
-});
-define("gameObjects/building", ["require", "exports", "gameObjects/selectRect"], function (require, exports, SelectRect) {
-    "use strict";
-    var Building = /** @class */ (function () {
-        function Building(ctx, center, size, player) {
-            this.ctx = ctx;
-            this.position = center;
-            this.size = size;
-            this.player = player;
-            this.rect = new SelectRect(ctx, center, size);
-        }
-        Building.prototype.draw = function (camera) {
-            this.rect.draw(camera);
-            this.ctx.save();
-            this.ctx.beginPath();
-            this.ctx.fillStyle = this.player.color;
-            this.ctx.strokeStyle = this.player.color;
-            this.ctx.lineWidth = 1;
-            this.ctx.rect(this.position.x - camera.position.x, this.position.y - camera.position.y, this.size.width, this.size.height);
-            this.ctx.stroke();
-            this.ctx.fill();
-            this.ctx.restore();
-        };
-        Building.prototype.isPointInside = function (point) {
-            return this.rect.isPointInside(point);
-        };
-        Building.prototype.isSelected = function () {
-            throw new Error("Method not implemented.");
-        };
-        Building.prototype.select = function () {
-            throw new Error("Method not implemented.");
-        };
-        Building.prototype.unSelect = function () {
-            throw new Error("Method not implemented.");
-        };
-        Building.prototype.getRect = function () {
-            return this.rect;
-        };
-        return Building;
-    }());
-    return Building;
 });
 define("gameObjects/buildingFactory", ["require", "exports", "common/size", "gameObjects/building"], function (require, exports, Size, Building) {
     "use strict";
