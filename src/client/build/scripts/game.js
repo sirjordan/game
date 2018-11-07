@@ -137,31 +137,73 @@ define("gameObjects/rect", ["require", "exports"], function (require, exports) {
     }());
     return Rect;
 });
-define("gameObjects/selectRect", ["require", "exports", "gameObjects/rect"], function (require, exports, Rect) {
+define("gameObjects/circle", ["require", "exports"], function (require, exports) {
+    "use strict";
+    var Circle = /** @class */ (function () {
+        function Circle(ctx, center, radius, stroke, fill, strokewidth) {
+            this.ctx = ctx;
+            this.position = center;
+            this.radius = radius;
+            this.fill = fill;
+            this.stroke = stroke;
+            this.strokewidth = strokewidth || 1;
+        }
+        Circle.prototype.draw = function (camera) {
+            this.ctx.save();
+            this.ctx.beginPath();
+            this.ctx.arc(this.position.x - camera.position.x, this.position.y - camera.position.y, this.radius, 0, 2 * Math.PI);
+            this.ctx.lineWidth = this.strokewidth;
+            this.ctx.fillStyle = this.fill;
+            this.ctx.strokeStyle = this.stroke;
+            if (this.fill)
+                this.ctx.fill();
+            this.ctx.stroke();
+            this.ctx.restore();
+        };
+        Circle.prototype.isPointInside = function (point) {
+            throw new Error("Method not implemented.");
+        };
+        return Circle;
+    }());
+    return Circle;
+});
+define("settings", ["require", "exports"], function (require, exports) {
+    "use strict";
+    var Settings = /** @class */ (function () {
+        function Settings() {
+        }
+        Settings.MAIN_COLOR = '#f9c731';
+        return Settings;
+    }());
+    return Settings;
+});
+define("gameObjects/selectRect", ["require", "exports", "gameObjects/rect", "gameObjects/circle", "settings"], function (require, exports, Rect, Circle, Settings) {
     "use strict";
     var SelectRect = /** @class */ (function (_super) {
         __extends(SelectRect, _super);
-        function SelectRect() {
-            return _super !== null && _super.apply(this, arguments) || this;
+        function SelectRect(ctx, center, size) {
+            var _this = _super.call(this, ctx, center, size) || this;
+            var radius = Math.sqrt(Math.pow(size.width, 2) + Math.pow(size.height, 2)) / 2;
+            _this.selectionDrawingObject = new Circle(ctx, center, radius, Settings.MAIN_COLOR);
+            return _this;
         }
         SelectRect.prototype.isSelected = function () {
             return this._isSelected;
         };
         SelectRect.prototype.select = function () {
-            this.originalStroke = this.stroke;
-            this.stroke = 'orange';
+            this.stroke = Settings.MAIN_COLOR;
             this._isSelected = true;
         };
         SelectRect.prototype.unSelect = function () {
-            this.stroke = this.originalStroke;
             this._isSelected = false;
         };
         SelectRect.prototype.getRect = function () {
             return this;
         };
         SelectRect.prototype.draw = function (camera) {
-            // TODO: Draw isometric rect or circle
-            _super.prototype.draw.call(this, camera);
+            if (this._isSelected) {
+                this.selectionDrawingObject.draw(camera);
+            }
         };
         return SelectRect;
     }(Rect));
@@ -197,7 +239,7 @@ define("gameObjects/contracts/iOwnedObject", ["require", "exports"], function (r
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
 });
-define("gameObjects/unit", ["require", "exports", "common/point2d", "gameObjects/selectRect"], function (require, exports, Point2d, SelectRect) {
+define("gameObjects/unit", ["require", "exports", "gameObjects/selectRect"], function (require, exports, SelectRect) {
     "use strict";
     var Unit = /** @class */ (function () {
         function Unit(id, ctx, center, size, speed, player) {
@@ -210,8 +252,7 @@ define("gameObjects/unit", ["require", "exports", "common/point2d", "gameObjects
             this.position = center;
             this.speed = speed;
             this.movementsQueue = new Array();
-            this.rect = new SelectRect(ctx, Point2d.zero(), size, 'green', 'black', 2);
-            this.positionRect();
+            this.rect = new SelectRect(ctx, center, size);
         }
         Unit.prototype.subscribe = function (subscriber) {
             this.stateUpdateSubscribers.push(subscriber);
@@ -240,7 +281,6 @@ define("gameObjects/unit", ["require", "exports", "common/point2d", "gameObjects
                 this.position.x = this.nextStep.x;
             if (Math.abs(this.position.y - this.nextStep.y) < Math.abs(this.velocity.y))
                 this.position.y = this.nextStep.y;
-            this.positionRect();
             this.notifyStateUpdate();
             // Step is over
             if (this.isPointInside(this.nextStep))
@@ -269,9 +309,6 @@ define("gameObjects/unit", ["require", "exports", "common/point2d", "gameObjects
         };
         Unit.prototype.unSelect = function () {
             this.rect.unSelect();
-        };
-        Unit.prototype.positionRect = function () {
-            this.rect.position = new Point2d((this.position.x - this.size.width / 2), (this.position.y - this.size.height / 2));
         };
         Unit.prototype.notifyStateUpdate = function () {
             var _this = this;
@@ -361,6 +398,61 @@ define("gameObjects/unitFactory", ["require", "exports", "gameObjects/unit", "co
         return UnitFactory;
     }());
     return UnitFactory;
+});
+define("gameObjects/building", ["require", "exports", "gameObjects/selectRect"], function (require, exports, SelectRect) {
+    "use strict";
+    var Building = /** @class */ (function () {
+        function Building(ctx, center, size, player) {
+            this.ctx = ctx;
+            this.position = center;
+            this.size = size;
+            this.player = player;
+            this.rect = new SelectRect(ctx, center, size);
+        }
+        Building.prototype.draw = function (camera) {
+            this.rect.draw(camera);
+            this.ctx.save();
+            this.ctx.beginPath();
+            this.ctx.fillStyle = this.player.color;
+            this.ctx.strokeStyle = this.player.color;
+            this.ctx.lineWidth = 1;
+            this.ctx.rect(this.position.x - camera.position.x, this.position.y - camera.position.y, this.size.width, this.size.height);
+            this.ctx.stroke();
+            this.ctx.fill();
+            this.ctx.restore();
+        };
+        Building.prototype.isPointInside = function (point) {
+            return this.rect.isPointInside(point);
+        };
+        Building.prototype.isSelected = function () {
+            throw new Error("Method not implemented.");
+        };
+        Building.prototype.select = function () {
+            throw new Error("Method not implemented.");
+        };
+        Building.prototype.unSelect = function () {
+            throw new Error("Method not implemented.");
+        };
+        Building.prototype.getRect = function () {
+            return this.rect;
+        };
+        return Building;
+    }());
+    return Building;
+});
+define("gameObjects/buildingFactory", ["require", "exports", "common/size", "gameObjects/building"], function (require, exports, Size, Building) {
+    "use strict";
+    var BuildingFactory = /** @class */ (function () {
+        function BuildingFactory(ctx, player) {
+            this.ctx = ctx;
+            this.player = player;
+        }
+        BuildingFactory.prototype.baseBuilding = function (position) {
+            return new Building(this.ctx, position, new Size(120, 60), this.player);
+        };
+        return BuildingFactory;
+    }());
+    return BuildingFactory;
 });
 define("map/map", ["require", "exports", "common/size"], function (require, exports, Size) {
     "use strict";
@@ -497,16 +589,6 @@ define("map/terrain", ["require", "exports", "common/point2d"], function (requir
     }());
     return Terrain;
 });
-define("settings", ["require", "exports"], function (require, exports) {
-    "use strict";
-    var Settings = /** @class */ (function () {
-        function Settings() {
-        }
-        Settings.MAIN_COLOR = '#f9c731';
-        return Settings;
-    }());
-    return Settings;
-});
 define("map/mapProjection", ["require", "exports", "gameObjects/raster", "common/point2d", "common/size", "settings"], function (require, exports, Raster, Point2d, Size, Settings) {
     "use strict";
     var MapProjection = /** @class */ (function () {
@@ -597,7 +679,7 @@ define("map/mapProjection", ["require", "exports", "gameObjects/raster", "common
     }());
     return MapProjection;
 });
-define("game", ["require", "exports", "gameObjects/objects", "gameObjects/unitFactory", "common/functions", "common/size", "common/point2d", "common/player", "common/sequence", "common/camera", "map/map", "map/terrain", "map/mapProjection", "map/terrainObjectsFactory"], function (require, exports, Objects, UnitFactory, Functions, Size, Point2d, Player, Sequence, Camera, Map, Terrain, MapProjection, TerrainObjectsFactory) {
+define("game", ["require", "exports", "gameObjects/objects", "gameObjects/unitFactory", "gameObjects/buildingFactory", "common/functions", "common/size", "common/point2d", "common/player", "common/sequence", "common/camera", "map/map", "map/terrain", "map/mapProjection", "map/terrainObjectsFactory"], function (require, exports, Objects, UnitFactory, BuildingFactory, Functions, Size, Point2d, Player, Sequence, Camera, Map, Terrain, MapProjection, TerrainObjectsFactory) {
     "use strict";
     var Game = /** @class */ (function () {
         function Game(gameLayer, bgLayer, mapProjectionLayer, rightPanel, bottomPanel) {
@@ -641,8 +723,10 @@ define("game", ["require", "exports", "gameObjects/objects", "gameObjects/unitFa
             this.terrain = new Terrain(bgCtx, map, terrainObjectsFactory);
             var player = new Player('red');
             var unitFactory = new UnitFactory(this.gameCtx, player, new Sequence());
+            var buildings = new BuildingFactory(this.gameCtx, player);
             this.objects.add(unitFactory.baseUnit(new Point2d(50, 50)));
             this.objects.add(unitFactory.baseUnit(new Point2d(100, 100)));
+            this.objects.add(buildings.baseBuilding(new Point2d(216, 217)));
             var toolsCtx = this.mapProjectionLayer.getContext('2d');
             this.mapProjection = new MapProjection(this.objects, map, toolsCtx, Point2d.zero(), new Size(this.rightPanel.clientWidth, this.rightPanel.clientWidth));
             // Start the game loop
@@ -751,31 +835,5 @@ define("game", ["require", "exports", "gameObjects/objects", "gameObjects/unitFa
         return Game;
     }());
     return Game;
-});
-define("gameObjects/circle", ["require", "exports"], function (require, exports) {
-    "use strict";
-    var Circle = /** @class */ (function () {
-        function Circle(ctx, center, radius, fill, stroke, strokewidth) {
-            this.ctx = ctx;
-            this.position = center;
-            this.radius = radius;
-            this.fill = fill;
-            this.stroke = stroke || fill;
-            this.strokewidth = strokewidth || 1;
-        }
-        Circle.prototype.draw = function (camera) {
-            this.ctx.beginPath();
-            this.ctx.arc(this.position.x, this.position.y, this.radius, 0, 2 * Math.PI);
-            this.ctx.lineWidth = this.strokewidth;
-            this.ctx.fillStyle = this.fill;
-            this.ctx.fill();
-            this.ctx.stroke();
-        };
-        Circle.prototype.isPointInside = function (point) {
-            throw new Error("Method not implemented.");
-        };
-        return Circle;
-    }());
-    return Circle;
 });
 //# sourceMappingURL=game.js.map

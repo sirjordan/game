@@ -6,7 +6,6 @@ import Size = require('common/size');
 import Camera = require('common/camera');
 import ISelectable = require('contracts/iSelectable');
 import IMovable = require('contracts/IMovable');
-import IGameObject = require('contracts/iGameObject');
 import IOwnedObject = require('contracts/iOwnedObject');
 import SelectRect = require('selectRect');
 
@@ -16,6 +15,7 @@ class Unit implements IOwnedObject, ISelectable, IMovable, INotifier {
     public player: Player;
     // Centered position of the unit
     public position: Point2d;
+
     // The unit's base rect
     private rect: SelectRect;
     private ctx: CanvasRenderingContext2D;
@@ -34,8 +34,7 @@ class Unit implements IOwnedObject, ISelectable, IMovable, INotifier {
         this.position = center;
         this.speed = speed;
         this.movementsQueue = new Array<Point2d>();
-        this.rect = new SelectRect(ctx, Point2d.zero(), size, 'green', 'black', 2);
-        this.positionRect();
+        this.rect = new SelectRect(ctx, center, size);
     }
 
     subscribe(subscriber: ISubscriber): void {
@@ -75,7 +74,6 @@ class Unit implements IOwnedObject, ISelectable, IMovable, INotifier {
         if (Math.abs(this.position.y - this.nextStep.y) < Math.abs(this.velocity.y))
             this.position.y = this.nextStep.y;
 
-        this.positionRect();
         this.notifyStateUpdate();
 
         // Step is over
@@ -112,10 +110,6 @@ class Unit implements IOwnedObject, ISelectable, IMovable, INotifier {
 
     unSelect(): void {
         this.rect.unSelect();
-    }
-
-    private positionRect(): void {
-        this.rect.position = new Point2d((this.position.x - this.size.width / 2), (this.position.y - this.size.height / 2))
     }
 
     private notifyStateUpdate() {

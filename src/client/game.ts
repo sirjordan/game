@@ -1,5 +1,6 @@
 import Objects = require('gameObjects/objects');
 import UnitFactory = require('gameObjects/unitFactory');
+import BuildingFactory = require('gameObjects/buildingFactory');
 import Functions = require('common/functions');
 import Size = require('common/size');
 import Point2d = require('common/point2d');
@@ -57,9 +58,11 @@ class Game {
 
         let player = new Player('red');
         let unitFactory = new UnitFactory(this.gameCtx, player, new Sequence());
+        let buildings = new BuildingFactory(this.gameCtx, player);
 
         this.objects.add(unitFactory.baseUnit(new Point2d(50, 50)));
         this.objects.add(unitFactory.baseUnit(new Point2d(100, 100)));
+        this.objects.add(buildings.baseBuilding(new Point2d(216, 217)));
 
         let toolsCtx = this.mapProjectionLayer.getContext('2d');
         this.mapProjection = new MapProjection(this.objects, map, toolsCtx, Point2d.zero(), new Size(this.rightPanel.clientWidth, this.rightPanel.clientWidth));

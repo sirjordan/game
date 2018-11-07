@@ -12,22 +12,28 @@ class Circle implements IGameObject {
     protected strokewidth: number;
     protected radius: number;
 
-    constructor(ctx: CanvasRenderingContext2D, center: Point2d, radius: number, fill: string, stroke?: string, strokewidth?: number) {
+    constructor(ctx: CanvasRenderingContext2D, center: Point2d, radius: number, stroke: string, fill?: string, strokewidth?: number) {
         this.ctx = ctx;
         this.position = center;
         this.radius = radius;
         this.fill = fill;
-        this.stroke = stroke || fill;
+        this.stroke = stroke;
         this.strokewidth = strokewidth || 1;
     }
 
     draw(camera: Camera): void {
+        this.ctx.save();
         this.ctx.beginPath();
-        this.ctx.arc(this.position.x, this.position.y, this.radius, 0, 2 * Math.PI);
+        this.ctx.arc(this.position.x - camera.position.x, this.position.y - camera.position.y, this.radius, 0, 2 * Math.PI);
         this.ctx.lineWidth = this.strokewidth;
         this.ctx.fillStyle = this.fill;
-        this.ctx.fill();
+        this.ctx.strokeStyle = this.stroke;
+
+        if (this.fill)
+            this.ctx.fill();
+
         this.ctx.stroke();
+        this.ctx.restore();
     }
 
     isPointInside(point: Point2d): boolean {
