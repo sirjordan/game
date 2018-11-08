@@ -4,7 +4,7 @@ import Raster = require('gameObjects/raster');
 import Rect = require('gameObjects/rect');
 import Texture = require('texture');
 
-class TerrainObjectsFactory {
+class TerrainFactory {
     private ctx: CanvasRenderingContext2D;
     private textureSprite: HTMLImageElement;
 
@@ -20,16 +20,11 @@ class TerrainObjectsFactory {
             console.error(error);
             return new Raster(this.ctx, position, new Size(size, size), '#0f0b04');
         }
+    }
 
-        switch (textureNumber) {
-            case 0:
-                return new Raster(this.ctx, position, new Size(size, size), '#66440b');
-            case 1:
-                return new Raster(this.ctx, position, new Size(size, size), '#3d3321');
-            default:
-                return new Raster(this.ctx, position, new Size(size, size), '#0f0b04');
-        }
+    obsticle(){
+        throw new Error('not implemented');
     }
 }
 
-export = TerrainObjectsFactory;
+export = TerrainFactory;

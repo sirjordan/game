@@ -1,16 +1,16 @@
 import Map = require('map/map');
 import Point2d = require('common/point2d');
 import Camera = require('common/camera');
-import TerrainObjectsFactory = require('terrainObjectsFactory');
+import TerrainFactory = require('terrainFactory');
 
 class Terrain {
     public map: Map;
     private ctx: CanvasRenderingContext2D;
     // Used to remember the last camera position
     private lastCameraPosition: Point2d;
-    private terrainObjects: TerrainObjectsFactory;
+    private terrainObjects: TerrainFactory;
 
-    constructor(ctx: CanvasRenderingContext2D, map: Map, terrainObjects: TerrainObjectsFactory) {
+    constructor(ctx: CanvasRenderingContext2D, map: Map, terrainObjects: TerrainFactory) {
         this.ctx = ctx;
         this.map = map;
         this.terrainObjects = terrainObjects;

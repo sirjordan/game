@@ -31,7 +31,7 @@ class Texture extends Rect {
         let spriteCols = textureSprite.width / Settings.TERRAIN_TEXTURE_SIZE.width;
         let spriteRows = textureSprite.height / Settings.TERRAIN_TEXTURE_SIZE.height;
 
-        let textureRow = Math.ceil(id / spriteCols) - 1;
+        let textureRow = Math.ceil(id / spriteCols);
         let textureCol = id % spriteCols;
 
         if (textureRow > spriteRows - 1 || textureCol > spriteCols - 1)

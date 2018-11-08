@@ -10,7 +10,7 @@ import Camera = require('common/camera');
 import Map = require('map/map');
 import Terrain = require('map/terrain');
 import MapProjection = require('map/mapProjection');
-import TerrainObjectsFactory = require('map/terrainObjectsFactory');
+import TerrainFactory = require('./map/terrainFactory');
 
 class Game {
     private objects: Objects;
@@ -55,16 +55,16 @@ class Game {
         terrainTextures.src = 'imgs/textures.jpg';
         terrainTextures.onload = () => {
             let bgCtx = this.bgLayer.getContext('2d');
-            let terrainObjectsFactory = new TerrainObjectsFactory(bgCtx, terrainTextures);
+            let terrainObjects = new TerrainFactory(bgCtx, terrainTextures);
             let map = new Map();
-            this.terrain = new Terrain(bgCtx, map, terrainObjectsFactory);
+            this.terrain = new Terrain(bgCtx, map, terrainObjects);
 
             let player = new Player('red');
-            let unitFactory = new UnitFactory(this.gameCtx, player, new Sequence());
+            let units = new UnitFactory(this.gameCtx, player, new Sequence());
             let buildings = new BuildingFactory(this.gameCtx, player);
 
-            this.objects.add(unitFactory.baseUnit(new Point2d(50, 50)));
-            this.objects.add(unitFactory.baseUnit(new Point2d(100, 100)));
+            this.objects.add(units.baseUnit(new Point2d(50, 50)));
+            this.objects.add(units.baseUnit(new Point2d(100, 100)));
             this.objects.add(buildings.baseBuilding(new Point2d(216, 217)));
 
             let toolsCtx = this.mapProjectionLayer.getContext('2d');
