@@ -51,24 +51,28 @@ class Game {
     }
 
     public start(): void {
-        let bgCtx = this.bgLayer.getContext('2d');
-        let terrainObjectsFactory = new TerrainObjectsFactory(bgCtx);
-        let map = new Map();
-        this.terrain = new Terrain(bgCtx, map, terrainObjectsFactory);
+        let terrainTextures = new Image();
+        terrainTextures.src = 'imgs/textures.jpg';
+        terrainTextures.onload = () => {
+            let bgCtx = this.bgLayer.getContext('2d');
+            let terrainObjectsFactory = new TerrainObjectsFactory(bgCtx, terrainTextures);
+            let map = new Map();
+            this.terrain = new Terrain(bgCtx, map, terrainObjectsFactory);
 
-        let player = new Player('red');
-        let unitFactory = new UnitFactory(this.gameCtx, player, new Sequence());
-        let buildings = new BuildingFactory(this.gameCtx, player);
+            let player = new Player('red');
+            let unitFactory = new UnitFactory(this.gameCtx, player, new Sequence());
+            let buildings = new BuildingFactory(this.gameCtx, player);
 
-        this.objects.add(unitFactory.baseUnit(new Point2d(50, 50)));
-        this.objects.add(unitFactory.baseUnit(new Point2d(100, 100)));
-        this.objects.add(buildings.baseBuilding(new Point2d(216, 217)));
+            this.objects.add(unitFactory.baseUnit(new Point2d(50, 50)));
+            this.objects.add(unitFactory.baseUnit(new Point2d(100, 100)));
+            this.objects.add(buildings.baseBuilding(new Point2d(216, 217)));
 
-        let toolsCtx = this.mapProjectionLayer.getContext('2d');
-        this.mapProjection = new MapProjection(this.objects, map, toolsCtx, Point2d.zero(), new Size(this.rightPanel.clientWidth, this.rightPanel.clientWidth));
+            let toolsCtx = this.mapProjectionLayer.getContext('2d');
+            this.mapProjection = new MapProjection(this.objects, map, toolsCtx, Point2d.zero(), new Size(this.rightPanel.clientWidth, this.rightPanel.clientWidth));
 
-        // Start the game loop
-        this.update();
+            // Start the game loop
+            this.update();
+        };
     };
 
     private update = () => {
@@ -189,8 +193,6 @@ class Game {
         this.gameLayer.height = canvasSize.height;
         this.bgLayer.width = canvasSize.width;
         this.bgLayer.height = canvasSize.height;
-        //this.mapProjectionLayer.width = this.rightPanel.clientWidth;
-        //this.mapProjectionLayer.height = this.rightPanel.clientHeight;
         this.camera.size = canvasSize;
     }
 }

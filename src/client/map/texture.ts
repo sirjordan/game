@@ -6,9 +6,9 @@ import Settings = require('settings');
 
 class Texture extends Rect {
     private spritePosition: Point2d;
-    private textureSprite: ImageBitmap;
+    private textureSprite: HTMLImageElement;
 
-    constructor(id: number, textureSprite: ImageBitmap, ctx: CanvasRenderingContext2D, drawAtPosition: Point2d, outputSize: Size) {
+    constructor(id: number, textureSprite: HTMLImageElement, ctx: CanvasRenderingContext2D, drawAtPosition: Point2d, outputSize: Size) {
         super(ctx, drawAtPosition, outputSize);
         this.textureSprite = textureSprite;
         this.spritePosition = this.calcSpritePosition(id, textureSprite);
@@ -27,7 +27,7 @@ class Texture extends Rect {
             this.size.height);
     }
 
-    private calcSpritePosition(id: number, textureSprite: ImageBitmap): Point2d {
+    private calcSpritePosition(id: number, textureSprite: HTMLImageElement): Point2d {
         let spriteCols = textureSprite.width / Settings.TERRAIN_TEXTURE_SIZE.width;
         let spriteRows = textureSprite.height / Settings.TERRAIN_TEXTURE_SIZE.height;
 
