@@ -288,7 +288,6 @@ define("gameObjects/unit", ["require", "exports", "gameObjects/selectRect"], fun
             if (Math.abs(this.position.y - this.nextStep.y) < Math.abs(this.velocity.y))
                 this.position.y = this.nextStep.y;
             this.notifyStateUpdate();
-            //this.rect.position = this.position.toTopLeft(this.size);
             // Step is over
             if (this.isPointInside(this.nextStep))
                 this.nextStep = null;

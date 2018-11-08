@@ -1,5 +1,4 @@
 import Map = require('map/map');
-import Size = require('common/size');
 import Point2d = require('common/point2d');
 import Camera = require('common/camera');
 import TerrainObjectsFactory = require('terrainObjectsFactory');
@@ -9,12 +8,12 @@ class Terrain {
     private ctx: CanvasRenderingContext2D;
     // Used to remember the last camera position
     private lastCameraPosition: Point2d;
-    private objectsFactory: TerrainObjectsFactory;
+    private terrainObjects: TerrainObjectsFactory;
 
-    constructor(ctx: CanvasRenderingContext2D, map: Map, objectsFactory: TerrainObjectsFactory) {
+    constructor(ctx: CanvasRenderingContext2D, map: Map, terrainObjects: TerrainObjectsFactory) {
         this.ctx = ctx;
         this.map = map;
-        this.objectsFactory = objectsFactory;
+        this.terrainObjects = terrainObjects;
     }
 
     public draw(camera: Camera) {
@@ -47,7 +46,7 @@ class Terrain {
                 if (!(this.map.objects[row][col] >= 0)) break;
 
                 let rasterCode = this.map.objects[row][col];
-                let terrainObject = this.objectsFactory.create(rasterCode, pos, rasterSize);
+                let terrainObject = this.terrainObjects.texture(rasterCode, pos, rasterSize);
 
                 terrainObject.draw(camera);
 

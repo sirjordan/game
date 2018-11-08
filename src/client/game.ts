@@ -166,7 +166,7 @@ class Game {
             position.y = 0;
         if (position.x + this.camera.size.width > this.terrain.map.sizeInPixels().width)
             position.x = this.terrain.map.sizeInPixels().width - this.camera.size.width;
-        if(position.y + this.camera.size.height > this.terrain.map.sizeInPixels().height)
+        if (position.y + this.camera.size.height > this.terrain.map.sizeInPixels().height)
             position.y = this.terrain.map.sizeInPixels().height - this.camera.size.height;
 
         this.camera.position = position;

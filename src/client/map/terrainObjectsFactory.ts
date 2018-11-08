@@ -1,6 +1,7 @@
 import Point2d = require('common/point2d');
 import Size = require('common/size');
 import Raster = require('gameObjects/raster');
+import Rect = require('gameObjects/rect');
 
 class TerrainObjectsFactory {
     private ctx: CanvasRenderingContext2D;
@@ -9,7 +10,7 @@ class TerrainObjectsFactory {
         this.ctx = ctx;
     }
 
-    create(rasterCode: number, position: Point2d, size: number): Raster {
+    texture(rasterCode: number, position: Point2d, size: number): Rect {
         switch (rasterCode) {
             case 0:
                 return new Raster(this.ctx, position, new Size(size, size), '#66440b');
