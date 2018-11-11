@@ -1,36 +1,12 @@
-import ISelectable = require('contracts/iSelectable');
-import IOwnedObject = require('contracts/iOwnedObject');
+import ActiveObject = require('activeObject');
 import Point2d = require('common/point2d');
 import Player = require('common/player');
 import Size = require('common/size');
 import Camera = require('common/camera');
-import SelectRect = require('selectRect');
 
-class Building implements IOwnedObject, ISelectable {
-    public player: Player;
-    protected size: Size;
-    protected center: Point2d;
-    private rect: SelectRect;
-    private ctx: CanvasRenderingContext2D;
-
-    constructor(ctx: CanvasRenderingContext2D, center: Point2d, size: Size, player: Player) {
-        this.ctx = ctx;
-        this.center = center;
-        this.size = size;
-        this.player = player;
-        this.rect = new SelectRect(ctx, center.toTopLeft(size), size);
-    }
-
-    getSize(): Size {
-        return this.size;
-    }
-
-    setPosition(point: Point2d): void {
-        this.center = point;
-    }
-
-    getPosition(): Point2d {
-        return this.center;
+class Building extends ActiveObject {
+    constructor(id: number, ctx: CanvasRenderingContext2D, center: Point2d, size: Size, player: Player) {
+        super(id, ctx, center, size, player)
     }
 
     draw(camera: Camera): void {
@@ -49,22 +25,6 @@ class Building implements IOwnedObject, ISelectable {
 
     isPointInside(point: Point2d): boolean {
         return this.rect.isPointInside(point);
-    }
-
-    isSelected(): boolean {
-        return this.rect.isSelected();
-    }
-
-    select(): void {
-       this.rect.select();
-    }
-
-    unSelect(): void {
-       this.rect.unSelect();
-    }
-
-    getRect(): SelectRect {
-        return this.rect;
     }
 }
 

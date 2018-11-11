@@ -114,7 +114,7 @@ define("gameObjects/rect", ["require", "exports"], function (require, exports) {
     "use strict";
     var Rect = /** @class */ (function () {
         function Rect(ctx, topLeft, size, fill, stroke, strokewidth) {
-            this.position = topLeft;
+            this.topLeft = topLeft;
             this.ctx = ctx;
             this.size = size;
             this.fill = fill;
@@ -125,10 +125,10 @@ define("gameObjects/rect", ["require", "exports"], function (require, exports) {
             return this.size;
         };
         Rect.prototype.setPosition = function (point) {
-            this.position = point;
+            this.topLeft = point;
         };
         Rect.prototype.getPosition = function () {
-            return this.position;
+            return this.topLeft;
         };
         Rect.prototype.draw = function (camera) {
             this.ctx.save();
@@ -136,17 +136,17 @@ define("gameObjects/rect", ["require", "exports"], function (require, exports) {
             this.ctx.fillStyle = this.fill;
             this.ctx.strokeStyle = this.stroke;
             this.ctx.lineWidth = this.strokewidth;
-            this.ctx.rect(this.position.x - camera.position.x, this.position.y - camera.position.y, this.size.width, this.size.height);
+            this.ctx.rect(this.topLeft.x - camera.position.x, this.topLeft.y - camera.position.y, this.size.width, this.size.height);
             this.ctx.stroke();
             if (this.fill)
                 this.ctx.fill();
             this.ctx.restore();
         };
         Rect.prototype.isPointInside = function (point) {
-            return (point.x >= this.position.x &&
-                point.x <= this.position.x + this.size.width &&
-                point.y >= this.position.y &&
-                point.y <= this.position.y + this.size.height);
+            return (point.x >= this.topLeft.x &&
+                point.x <= this.topLeft.x + this.size.width &&
+                point.y >= this.topLeft.y &&
+                point.y <= this.topLeft.y + this.size.height);
         };
         return Rect;
     }());
@@ -214,7 +214,7 @@ define("gameObjects/selectRect", ["require", "exports", "gameObjects/rect", "gam
         }
         SelectRect.prototype.setPosition = function (point) {
             _super.prototype.setPosition.call(this, point);
-            this.selectionDrawingObject.setPosition(this.position.toCenter(this.size));
+            this.selectionDrawingObject.setPosition(this.topLeft.toCenter(this.size));
         };
         SelectRect.prototype.isSelected = function () {
             return this._isSelected;
@@ -242,14 +242,6 @@ define("gameObjects/contracts/iSelectable", ["require", "exports"], function (re
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
 });
-define("common/contracts/iSubscriber", ["require", "exports"], function (require, exports) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-});
-define("common/contracts/iNotifier", ["require", "exports"], function (require, exports) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-});
 define("common/player", ["require", "exports"], function (require, exports) {
     "use strict";
     var Player = /** @class */ (function () {
@@ -264,41 +256,83 @@ define("gameObjects/contracts/IMovable", ["require", "exports"], function (requi
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
 });
-define("gameObjects/contracts/iOwnedObject", ["require", "exports"], function (require, exports) {
+define("gameObjects/contracts/iActiveObject", ["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
 });
-define("gameObjects/unit", ["require", "exports", "gameObjects/selectRect"], function (require, exports, SelectRect) {
+define("common/contracts/iSubscriber", ["require", "exports"], function (require, exports) {
     "use strict";
-    var Unit = /** @class */ (function () {
-        function Unit(id, ctx, center, size, speed, player) {
+    Object.defineProperty(exports, "__esModule", { value: true });
+});
+define("common/contracts/iNotifier", ["require", "exports"], function (require, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+});
+define("gameObjects/activeObject", ["require", "exports", "gameObjects/selectRect"], function (require, exports, SelectRect) {
+    "use strict";
+    var ActiveObject = /** @class */ (function () {
+        function ActiveObject(id, ctx, center, size, player) {
             // List of subscriber that are notified when the object state updates
             this.stateUpdateSubscribers = new Array();
             this.id = id;
             this.player = player;
             this.ctx = ctx;
             this.size = size;
-            this.position = center;
-            this.speed = speed;
-            this.movementsQueue = new Array();
+            this.center = center;
             this.rect = new SelectRect(ctx, center.toTopLeft(size), size);
         }
-        Unit.prototype.getSize = function () {
-            return this.size;
+        ActiveObject.prototype.isSelected = function () {
+            return this.rect.isSelected();
         };
-        Unit.prototype.setPosition = function (point) {
-            this.position = point;
-            this.rect.setPosition(this.position.toTopLeft(this.size));
+        ActiveObject.prototype.select = function () {
+            this.rect.select();
         };
-        Unit.prototype.getPosition = function () {
-            return this.position;
+        ActiveObject.prototype.unSelect = function () {
+            this.rect.unSelect();
         };
-        Unit.prototype.subscribe = function (subscriber) {
-            this.stateUpdateSubscribers.push(subscriber);
-        };
-        Unit.prototype.getRect = function () {
+        ActiveObject.prototype.getRect = function () {
             return this.rect;
         };
+        ActiveObject.prototype.getPlayer = function () {
+            return this.player;
+        };
+        ActiveObject.prototype.getId = function () {
+            return this.id;
+        };
+        ActiveObject.prototype.getSize = function () {
+            return this.size;
+        };
+        ActiveObject.prototype.subscribe = function (subscriber) {
+            this.stateUpdateSubscribers.push(subscriber);
+        };
+        ActiveObject.prototype.notifyStateUpdate = function () {
+            var _this = this;
+            // Notify the subscribers, that the state has been updated
+            this.stateUpdateSubscribers.forEach(function (sc) {
+                sc.notify(_this);
+            });
+        };
+        ActiveObject.prototype.setPosition = function (point) {
+            this.center = point;
+            this.rect.setPosition(this.center.toTopLeft(this.size));
+        };
+        ActiveObject.prototype.getPosition = function () {
+            return this.center;
+        };
+        return ActiveObject;
+    }());
+    return ActiveObject;
+});
+define("gameObjects/unit", ["require", "exports", "gameObjects/activeObject"], function (require, exports, ActiveObject) {
+    "use strict";
+    var Unit = /** @class */ (function (_super) {
+        __extends(Unit, _super);
+        function Unit(id, ctx, center, size, speed, player) {
+            var _this = _super.call(this, id, ctx, center, size, player) || this;
+            _this.speed = speed;
+            _this.movementsQueue = new Array();
+            return _this;
+        }
         Unit.prototype.loadMovements = function (path) {
             this.movementsQueue = path;
         };
@@ -309,76 +343,48 @@ define("gameObjects/unit", ["require", "exports", "gameObjects/selectRect"], fun
                     return;
                 this.nextStep = this.movementsQueue.shift().clone();
                 // First step in the movement queue is the current - skip it
-                if (this.position.x === this.nextStep.x && this.position.y === this.nextStep.y) {
+                if (this.center.x === this.nextStep.x && this.center.y === this.nextStep.y) {
                     this.nextStep = this.movementsQueue.shift().clone();
                 }
-                this.velocity = this.position.calcVelocity(this.nextStep, this.speed);
+                this.velocity = this.center.calcVelocity(this.nextStep, this.speed);
             }
-            this.setPosition(this.position.add(this.velocity));
+            this.setPosition(this.center.add(this.velocity));
             // If the position is closer than a velocity unit, the next step will jump over the position
-            if (Math.abs(this.position.x - this.nextStep.x) < Math.abs(this.velocity.x))
-                this.position.x = this.nextStep.x;
-            if (Math.abs(this.position.y - this.nextStep.y) < Math.abs(this.velocity.y))
-                this.position.y = this.nextStep.y;
+            if (Math.abs(this.center.x - this.nextStep.x) < Math.abs(this.velocity.x))
+                this.center.x = this.nextStep.x;
+            if (Math.abs(this.center.y - this.nextStep.y) < Math.abs(this.velocity.y))
+                this.center.y = this.nextStep.y;
             this.notifyStateUpdate();
             // Step is over
             if (this.isPointInside(this.nextStep))
                 this.nextStep = null;
         };
         Unit.prototype.isPointInside = function (other) {
-            return this.position.x === other.x && this.position.y === other.y;
+            return this.center.equals(other); // this.center.x === other.x && this.center.y === other.y;
         };
         Unit.prototype.stop = function () {
             // TODO: Implement
         };
-        Unit.prototype.isSelected = function () {
-            return this.rect.isSelected();
-        };
         Unit.prototype.draw = function (camera) {
             this.rect.draw(camera);
             this.ctx.beginPath();
-            this.ctx.arc(this.position.x - camera.position.x, this.position.y - camera.position.y, this.size.height / 2, 0, 2 * Math.PI);
+            this.ctx.arc(this.center.x - camera.position.x, this.center.y - camera.position.y, this.size.height / 2, 0, 2 * Math.PI);
             this.ctx.lineWidth = 1;
             this.ctx.fillStyle = this.player.color;
             this.ctx.fill();
             this.ctx.stroke();
         };
-        Unit.prototype.select = function () {
-            this.rect.select();
-        };
-        Unit.prototype.unSelect = function () {
-            this.rect.unSelect();
-        };
-        Unit.prototype.notifyStateUpdate = function () {
-            var _this = this;
-            // Notify the subscribers, that the state has been updated
-            this.stateUpdateSubscribers.forEach(function (sc) {
-                sc.notify(_this);
-            });
-        };
         return Unit;
-    }());
+    }(ActiveObject));
     return Unit;
 });
-define("gameObjects/building", ["require", "exports", "gameObjects/selectRect"], function (require, exports, SelectRect) {
+define("gameObjects/building", ["require", "exports", "gameObjects/activeObject"], function (require, exports, ActiveObject) {
     "use strict";
-    var Building = /** @class */ (function () {
-        function Building(ctx, center, size, player) {
-            this.ctx = ctx;
-            this.position = center;
-            this.size = size;
-            this.player = player;
-            this.rect = new SelectRect(ctx, center.toTopLeft(size), size);
+    var Building = /** @class */ (function (_super) {
+        __extends(Building, _super);
+        function Building(id, ctx, center, size, player) {
+            return _super.call(this, id, ctx, center, size, player) || this;
         }
-        Building.prototype.getSize = function () {
-            return this.size;
-        };
-        Building.prototype.setPosition = function (point) {
-            this.position = point;
-        };
-        Building.prototype.getPosition = function () {
-            return this.position;
-        };
         Building.prototype.draw = function (camera) {
             this.rect.draw(camera);
             this.ctx.save();
@@ -386,7 +392,7 @@ define("gameObjects/building", ["require", "exports", "gameObjects/selectRect"],
             this.ctx.fillStyle = this.player.color;
             this.ctx.strokeStyle = this.player.color;
             this.ctx.lineWidth = 1;
-            this.ctx.rect(this.position.x - camera.position.x - this.size.width / 2, this.position.y - camera.position.y - this.size.height / 2, this.size.width, this.size.height);
+            this.ctx.rect(this.center.x - camera.position.x - this.size.width / 2, this.center.y - camera.position.y - this.size.height / 2, this.size.width, this.size.height);
             this.ctx.stroke();
             this.ctx.fill();
             this.ctx.restore();
@@ -394,20 +400,8 @@ define("gameObjects/building", ["require", "exports", "gameObjects/selectRect"],
         Building.prototype.isPointInside = function (point) {
             return this.rect.isPointInside(point);
         };
-        Building.prototype.isSelected = function () {
-            return this.rect.isSelected();
-        };
-        Building.prototype.select = function () {
-            this.rect.select();
-        };
-        Building.prototype.unSelect = function () {
-            this.rect.unSelect();
-        };
-        Building.prototype.getRect = function () {
-            return this.rect;
-        };
         return Building;
-    }());
+    }(ActiveObject));
     return Building;
 });
 define("gameObjects/objects", ["require", "exports", "gameObjects/unit", "gameObjects/building"], function (require, exports, Unit, Building) {
@@ -434,6 +428,9 @@ define("gameObjects/objects", ["require", "exports", "gameObjects/unit", "gameOb
             return all;
         };
         Objects.prototype.getSelectable = function () {
+            return new (Array.bind.apply(Array, [void 0].concat(this.getUnits(), this.getBuildings())))();
+        };
+        Objects.prototype.getActiveObjects = function () {
             return new (Array.bind.apply(Array, [void 0].concat(this.getUnits(), this.getBuildings())))();
         };
         Objects.prototype.getBuildings = function () {
@@ -494,12 +491,13 @@ define("gameObjects/unitFactory", ["require", "exports", "gameObjects/unit", "co
 define("gameObjects/buildingFactory", ["require", "exports", "common/size", "gameObjects/building"], function (require, exports, Size, Building) {
     "use strict";
     var BuildingFactory = /** @class */ (function () {
-        function BuildingFactory(ctx, player) {
+        function BuildingFactory(ctx, player, sequence) {
             this.ctx = ctx;
             this.player = player;
+            this.sequence = sequence;
         }
         BuildingFactory.prototype.baseBuilding = function (position) {
-            return new Building(this.ctx, position, new Size(120, 60), this.player);
+            return new Building(this.sequence.getNext(), this.ctx, position, new Size(120, 60), this.player);
         };
         return BuildingFactory;
     }());
@@ -567,7 +565,7 @@ define("gameObjects/raster", ["require", "exports", "gameObjects/rect"], functio
             this.ctx.fillStyle = this.fill;
             this.ctx.strokeStyle = this.stroke;
             this.ctx.lineWidth = this.strokewidth;
-            this.ctx.rect(this.position.x, this.position.y, this.size.width, this.size.height);
+            this.ctx.rect(this.topLeft.x, this.topLeft.y, this.size.width, this.size.height);
             this.ctx.stroke();
             if (this.fill)
                 this.ctx.fill();
@@ -588,7 +586,7 @@ define("map/texture", ["require", "exports", "gameObjects/rect", "common/point2d
             return _this;
         }
         Texture.prototype.draw = function (camera) {
-            this.ctx.drawImage(this.textureSprite, this.spritePosition.x, this.spritePosition.y, Settings.TERRAIN_TEXTURE_SIZE.width, Settings.TERRAIN_TEXTURE_SIZE.height, this.position.x, this.position.y, this.size.width, this.size.height);
+            this.ctx.drawImage(this.textureSprite, this.spritePosition.x, this.spritePosition.y, Settings.TERRAIN_TEXTURE_SIZE.width, Settings.TERRAIN_TEXTURE_SIZE.height, this.topLeft.x, this.topLeft.y, this.size.width, this.size.height);
         };
         Texture.prototype.calcSpritePosition = function (id, textureSprite) {
             var spriteCols = textureSprite.width / Settings.TERRAIN_TEXTURE_SIZE.width;
@@ -695,7 +693,7 @@ define("map/mapProjection", ["require", "exports", "gameObjects/raster", "common
             this.map = map;
             this.objects = objects;
             this.border = this.createBorder();
-            this.createUnitsProjections(objects.getUnits());
+            this.createInitialProjections(objects.getActiveObjects());
         }
         MapProjection.prototype.draw = function (camera) {
             this.background.draw(camera);
@@ -716,7 +714,7 @@ define("map/mapProjection", ["require", "exports", "gameObjects/raster", "common
             // Update the projection when the context object canges its state
             // TODO: Use notify for this.objects, when the objects uncrease or decrease
             var updatedUnit = context;
-            this.objectProjections[updatedUnit.id] = this.project(updatedUnit);
+            this.objectProjections[updatedUnit.getId()] = this.project(updatedUnit);
         };
         MapProjection.prototype.calcAbsolutePosition = function (relativePosition) {
             var ratioX = (relativePosition.x - this.border.getPosition().x) / this.background.getSize().width;
@@ -726,16 +724,15 @@ define("map/mapProjection", ["require", "exports", "gameObjects/raster", "common
             var absolute = new Point2d(x, y);
             return absolute;
         };
-        MapProjection.prototype.createUnitsProjections = function (units) {
+        MapProjection.prototype.createInitialProjections = function (units) {
             var _this = this;
-            // Create initial units projections
             units.forEach(function (u) {
-                _this.objectProjections[u.id] = _this.project(u);
+                _this.objectProjections[u.getId()] = _this.project(u);
                 u.subscribe(_this);
             });
         };
         MapProjection.prototype.project = function (obj) {
-            return new Raster(this.ctx, this.calcRelativePosition(obj.getPosition()), this.scaleSize(obj.getSize()), obj.player.color);
+            return new Raster(this.ctx, this.calcRelativePosition(obj.getPosition()), this.scaleSize(obj.getSize()), obj.getPlayer().color);
         };
         MapProjection.prototype.projectCamera = function (camera) {
             return new Raster(this.ctx, this.calcRelativePosition(camera.position), this.scaleSize(camera.size), '', Settings.MAIN_COLOR);
@@ -822,8 +819,9 @@ define("game", ["require", "exports", "gameObjects/objects", "gameObjects/unitFa
                 var map = new Map();
                 _this.terrain = new Terrain(bgCtx, map, terrainObjects);
                 var player = new Player('red');
-                var units = new UnitFactory(_this.gameCtx, player, new Sequence());
-                var buildings = new BuildingFactory(_this.gameCtx, player);
+                var sequence = new Sequence();
+                var units = new UnitFactory(_this.gameCtx, player, sequence);
+                var buildings = new BuildingFactory(_this.gameCtx, player, sequence);
                 _this.objects.add(units.baseUnit(new Point2d(50, 50)));
                 _this.objects.add(units.baseUnit(new Point2d(100, 100)));
                 _this.objects.add(buildings.baseBuilding(new Point2d(216, 217)));

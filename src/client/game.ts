@@ -60,8 +60,10 @@ class Game {
             this.terrain = new Terrain(bgCtx, map, terrainObjects);
 
             let player = new Player('red');
-            let units = new UnitFactory(this.gameCtx, player, new Sequence());
-            let buildings = new BuildingFactory(this.gameCtx, player);
+            let sequence = new Sequence();
+
+            let units = new UnitFactory(this.gameCtx, player, sequence);
+            let buildings = new BuildingFactory(this.gameCtx, player, sequence);
 
             this.objects.add(units.baseUnit(new Point2d(50, 50)));
             this.objects.add(units.baseUnit(new Point2d(100, 100)));

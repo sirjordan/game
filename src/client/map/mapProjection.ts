@@ -1,5 +1,5 @@
 import IGameObject = require('gameObjects/contracts/iGameObject');
-import IOwnedObject = require('gameObjects/contracts/iOwnedObject');
+import ActiveObject = require('gameObjects/activeObject');
 import Raster = require('gameObjects/raster');
 import Unit = require('gameObjects/unit');
 import Objects = require('gameObjects/objects');
@@ -33,7 +33,7 @@ class MapProjection implements ISubscriber {
         this.map = map;
         this.objects = objects;
         this.border = this.createBorder();
-        this.createUnitsProjections(objects.getUnits());
+        this.createInitialProjections(objects.getActiveObjects());
     }
 
     draw(camera: Camera): void {
@@ -59,7 +59,7 @@ class MapProjection implements ISubscriber {
         // Update the projection when the context object canges its state
         // TODO: Use notify for this.objects, when the objects uncrease or decrease
         let updatedUnit = <Unit>context;
-        this.objectProjections[updatedUnit.id] = this.project(updatedUnit);
+        this.objectProjections[updatedUnit.getId()] = this.project(updatedUnit);
     }
 
     calcAbsolutePosition(relativePosition: Point2d) {
@@ -74,16 +74,15 @@ class MapProjection implements ISubscriber {
         return absolute;
     }
 
-    private createUnitsProjections(units: Array<Unit>) {
-        // Create initial units projections
+    private createInitialProjections(units: Array<ActiveObject>) {
         units.forEach(u => {
-            this.objectProjections[u.id] = this.project(u);
+            this.objectProjections[u.getId()] = this.project(u);
             u.subscribe(this);
         });
     }
 
-    private project(obj: IOwnedObject): IGameObject {
-        return new Raster(this.ctx, this.calcRelativePosition(obj.getPosition()), this.scaleSize(obj.getSize()), obj.player.color);
+    private project(obj: ActiveObject): IGameObject {
+        return new Raster(this.ctx, this.calcRelativePosition(obj.getPosition()), this.scaleSize(obj.getSize()), obj.getPlayer().color);
     }
 
     private projectCamera(camera: Camera): Rect {
