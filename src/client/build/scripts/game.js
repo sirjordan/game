@@ -121,6 +121,15 @@ define("gameObjects/rect", ["require", "exports"], function (require, exports) {
             this.stroke = stroke || fill;
             this.strokewidth = strokewidth || 1;
         }
+        Rect.prototype.getSize = function () {
+            return this.size;
+        };
+        Rect.prototype.setPosition = function (point) {
+            this.position = point;
+        };
+        Rect.prototype.getPosition = function () {
+            return this.position;
+        };
         Rect.prototype.draw = function (camera) {
             this.ctx.save();
             this.ctx.beginPath();
@@ -154,6 +163,15 @@ define("gameObjects/circle", ["require", "exports"], function (require, exports)
             this.stroke = stroke;
             this.strokewidth = strokewidth || 1;
         }
+        Circle.prototype.getSize = function () {
+            return this.size;
+        };
+        Circle.prototype.setPosition = function (point) {
+            this.position = point;
+        };
+        Circle.prototype.getPosition = function () {
+            return this.position;
+        };
         Circle.prototype.draw = function (camera) {
             this.ctx.save();
             this.ctx.beginPath();
@@ -194,6 +212,10 @@ define("gameObjects/selectRect", ["require", "exports", "gameObjects/rect", "gam
             _this.selectionDrawingObject = new Circle(ctx, topLeft.toCenter(size), radius, Settings.MAIN_COLOR);
             return _this;
         }
+        SelectRect.prototype.setPosition = function (point) {
+            _super.prototype.setPosition.call(this, point);
+            this.selectionDrawingObject.setPosition(this.position.toCenter(this.size));
+        };
         SelectRect.prototype.isSelected = function () {
             return this._isSelected;
         };
@@ -261,6 +283,16 @@ define("gameObjects/unit", ["require", "exports", "gameObjects/selectRect"], fun
             this.movementsQueue = new Array();
             this.rect = new SelectRect(ctx, center.toTopLeft(size), size);
         }
+        Unit.prototype.getSize = function () {
+            return this.size;
+        };
+        Unit.prototype.setPosition = function (point) {
+            this.position = point;
+            this.rect.setPosition(this.position.toTopLeft(this.size));
+        };
+        Unit.prototype.getPosition = function () {
+            return this.position;
+        };
         Unit.prototype.subscribe = function (subscriber) {
             this.stateUpdateSubscribers.push(subscriber);
         };
@@ -282,7 +314,7 @@ define("gameObjects/unit", ["require", "exports", "gameObjects/selectRect"], fun
                 }
                 this.velocity = this.position.calcVelocity(this.nextStep, this.speed);
             }
-            this.position.add(this.velocity);
+            this.setPosition(this.position.add(this.velocity));
             // If the position is closer than a velocity unit, the next step will jump over the position
             if (Math.abs(this.position.x - this.nextStep.x) < Math.abs(this.velocity.x))
                 this.position.x = this.nextStep.x;
@@ -338,6 +370,15 @@ define("gameObjects/building", ["require", "exports", "gameObjects/selectRect"],
             this.player = player;
             this.rect = new SelectRect(ctx, center.toTopLeft(size), size);
         }
+        Building.prototype.getSize = function () {
+            return this.size;
+        };
+        Building.prototype.setPosition = function (point) {
+            this.position = point;
+        };
+        Building.prototype.getPosition = function () {
+            return this.position;
+        };
         Building.prototype.draw = function (camera) {
             this.rect.draw(camera);
             this.ctx.save();
@@ -470,34 +511,41 @@ define("map/map", ["require", "exports", "common/size"], function (require, expo
         function Map() {
             this.rasterSize = 50;
             this.objects = [
-                [0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 2, 0, 0, 0, 1, 0, 0, 0, 0, 2, 1, 2, 0, 0, 0, 1, 0, 1, 0, 2],
-                [0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 2, 0, 0, 0, 1, 0, 0, 0, 0, 2, 1, 0, 0, 0, 0, 0, 0, 1, 0, 2],
-                [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 2, 0, 0, 1, 0, 0, 1, 0, 2],
-                [0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 2, 0, 2, 0, 0, 0, 0, 0, 1, 0, 0],
-                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 2],
-                [0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 2, 1, 0, 0, 0, 0, 1, 0, 2],
-                [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 2, 1, 2, 0, 0, 1, 0, 0, 1, 0, 2],
-                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0],
-                [0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 2, 0, 0, 0, 1, 0, 2],
-                [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 0, 0, 0, 0, 0, 1, 0, 0],
-                [0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 1, 2, 1, 0, 0, 0, 0, 0, 0, 2],
-                [0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 2, 0, 1, 0, 2],
-                [0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 2, 0, 0, 0, 0, 0, 1, 0, 0],
-                [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 2, 1, 1, 0, 0, 0, 0, 0, 1, 0, 2],
-                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 0, 0, 1, 0, 0, 1, 0, 2],
-                [0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 2, 0, 0, 0, 0, 0, 1, 0, 0],
-                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 2, 0, 0, 0, 0, 0, 0, 0, 2],
-                [0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 2, 0, 0, 0, 0, 0, 1, 0, 2],
-                [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 2, 0, 1, 0, 0, 0, 1, 0, 0],
-                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 2],
-                [0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 2, 0, 0, 0, 0, 0, 1, 0, 2],
-                [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 0, 1, 0, 0, 0, 0, 0, 0],
-                [0, 0, 0, 0, 0, 0, 1, 0, 2, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 2],
+                [1, 1, 2, 1, 2, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 2, 1, 3],
+                [1, 1, 2, 1, 2, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 2, 1, 3],
+                [2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 2, 1, 3],
+                [1, 1, 1, 1, 2, 1, 1, 2, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 2, 1, 1],
+                [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 1, 1, 3],
+                [1, 1, 2, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 3, 2, 1, 1, 1, 1, 2, 1, 3],
+                [1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 3, 2, 3, 1, 1, 2, 1, 1, 2, 1, 3],
+                [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 1, 1, 1, 1, 1, 2, 1, 1],
+                [1, 2, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 3, 1, 3, 1, 1, 1, 2, 1, 3],
+                [2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 3, 1, 1, 1, 1, 1, 2, 1, 1],
+                [1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 2, 1, 2, 3, 2, 1, 1, 1, 1, 1, 1, 3],
+                [1, 1, 1, 3, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 2, 1, 1, 1, 3, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 2, 1, 2, 1, 1, 1, 1, 3, 1, 2, 1, 3],
+                [1, 1, 2, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 1, 1, 1, 1, 1, 2, 1, 1],
+                [1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 3, 2, 2, 1, 1, 1, 1, 1, 2, 1, 3],
+                [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 3, 1, 1, 2, 1, 1, 2, 1, 3],
+                [1, 2, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 2, 3, 1, 1, 1, 1, 1, 2, 1, 1],
+                [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 2, 1, 2, 3, 1, 1, 1, 1, 1, 1, 1, 3],
+                [1, 1, 2, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 1, 1, 1, 1, 1, 2, 1, 3],
+                [1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 2, 3, 1, 2, 1, 1, 1, 2, 1, 1],
+                [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 3],
+                [1, 2, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 2, 3, 1, 1, 1, 1, 1, 2, 1, 3],
+                [2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 3, 1, 2, 1, 1, 1, 1, 1, 1],
+                [1, 1, 1, 1, 1, 1, 2, 1, 3, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 2, 1, 3, 1, 1, 1, 1, 1, 2, 1, 2, 2, 1, 1, 1, 1, 1, 2, 1, 3],
+                [1, 2, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 2, 3, 1, 1, 1, 1, 1, 2, 1, 1],
+                [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 2, 1, 2, 3, 1, 1, 1, 1, 1, 1, 1, 3],
+                [1, 1, 2, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 1, 1, 1, 1, 1, 2, 1, 3],
+                [1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 2, 3, 1, 2, 1, 1, 1, 2, 1, 1],
+                [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 3],
+                [1, 2, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 2, 3, 1, 1, 1, 1, 1, 2, 1, 3],
+                [2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 3, 1, 2, 1, 1, 1, 1, 1, 1],
             ];
         }
         Map.prototype.size = function () {
             // Size of the map in objects (not in pixels)
-            return new Size(this.objects[0].length, this.objects.length);
+            return new Size(this.objects[1].length, this.objects.length);
         };
         Map.prototype.sizeInPixels = function () {
             return new Size(this.size().width * this.rasterSize, this.size().height * this.rasterSize);
@@ -545,7 +593,7 @@ define("map/texture", ["require", "exports", "gameObjects/rect", "common/point2d
         Texture.prototype.calcSpritePosition = function (id, textureSprite) {
             var spriteCols = textureSprite.width / Settings.TERRAIN_TEXTURE_SIZE.width;
             var spriteRows = textureSprite.height / Settings.TERRAIN_TEXTURE_SIZE.height;
-            var textureRow = Math.ceil(id / spriteCols);
+            var textureRow = Math.ceil(id / spriteCols) - 1;
             var textureCol = id % spriteCols;
             if (textureRow > spriteRows - 1 || textureCol > spriteCols - 1)
                 throw new Error('Requested texture number [' + id + '] on [' + textureRow + ', ' + textureCol + '] does not exists.');
@@ -563,13 +611,18 @@ define("map/terrainFactory", ["require", "exports", "common/size", "gameObjects/
             this.textureSprite = textureSprite;
         }
         TerrainFactory.prototype.texture = function (textureNumber, position, size) {
+            if (textureNumber <= 0)
+                return this.default(position, size);
             try {
                 return new Texture(textureNumber, this.textureSprite, this.ctx, position, new Size(size, size));
             }
             catch (error) {
                 console.error(error);
-                return new Raster(this.ctx, position, new Size(size, size), '#0f0b04');
+                return this.default(position, size);
             }
+        };
+        TerrainFactory.prototype.default = function (position, size) {
+            return new Raster(this.ctx, position, new Size(size, size), '#0f0b04');
         };
         TerrainFactory.prototype.obsticle = function () {
             throw new Error('not implemented');
@@ -666,8 +719,8 @@ define("map/mapProjection", ["require", "exports", "gameObjects/raster", "common
             this.objectProjections[updatedUnit.id] = this.project(updatedUnit);
         };
         MapProjection.prototype.calcAbsolutePosition = function (relativePosition) {
-            var ratioX = (relativePosition.x - this.border.position.x) / this.background.size.width;
-            var ratioY = (relativePosition.y - this.border.position.y) / this.background.size.height;
+            var ratioX = (relativePosition.x - this.border.getPosition().x) / this.background.getSize().width;
+            var ratioY = (relativePosition.y - this.border.getPosition().y) / this.background.getSize().height;
             var x = ratioX * this.map.sizeInPixels().width;
             var y = ratioY * this.map.sizeInPixels().height;
             var absolute = new Point2d(x, y);
@@ -682,7 +735,7 @@ define("map/mapProjection", ["require", "exports", "gameObjects/raster", "common
             });
         };
         MapProjection.prototype.project = function (obj) {
-            return new Raster(this.ctx, this.calcRelativePosition(obj.position), this.scaleSize(obj.size), obj.player.color);
+            return new Raster(this.ctx, this.calcRelativePosition(obj.getPosition()), this.scaleSize(obj.getSize()), obj.player.color);
         };
         MapProjection.prototype.projectCamera = function (camera) {
             return new Raster(this.ctx, this.calcRelativePosition(camera.position), this.scaleSize(camera.size), '', Settings.MAIN_COLOR);
@@ -698,23 +751,23 @@ define("map/mapProjection", ["require", "exports", "gameObjects/raster", "common
                 scaledW = w / h;
                 scaledH = 1;
             }
-            var size = new Size(this.background.size.width * scaledW, this.background.size.height * scaledH);
+            var size = new Size(this.background.getSize().width * scaledW, this.background.getSize().height * scaledH);
             // Get centered position
-            var x = (this.background.size.width - size.width) / 2;
-            var y = (this.background.size.height - size.height) / 2;
+            var x = (this.background.getSize().width - size.width) / 2;
+            var y = (this.background.getSize().height - size.height) / 2;
             return new Raster(this.ctx, new Point2d(x, y), size, 'black', MapProjection.borderColor, 1);
         };
         MapProjection.prototype.scaleSize = function (size) {
             var ratioX = size.width / this.map.sizeInPixels().width;
             var ratioY = size.height / this.map.sizeInPixels().height;
-            return new Size(this.border.size.width * ratioX, this.border.size.height * ratioY);
+            return new Size(this.border.getSize().width * ratioX, this.border.getSize().height * ratioY);
         };
         MapProjection.prototype.calcRelativePosition = function (absolutePosition) {
             var ratioX = absolutePosition.x / this.map.sizeInPixels().width;
             var ratioY = absolutePosition.y / this.map.sizeInPixels().height;
-            var x = ratioX * this.border.size.width;
-            var y = ratioY * this.border.size.height;
-            return new Point2d(x, y).add(this.border.position);
+            var x = ratioX * this.border.getSize().width;
+            var y = ratioY * this.border.getSize().height;
+            return new Point2d(x, y).add(this.border.getPosition());
         };
         MapProjection.bgColor = '#20262e';
         MapProjection.borderColor = '#2d333b';
@@ -836,7 +889,7 @@ define("game", ["require", "exports", "gameObjects/objects", "gameObjects/unitFa
             var mousePosition = new Point2d(args.clientX, args.clientY).add(this.camera.position);
             this.objects.getUnits().forEach(function (u) {
                 if (u.isSelected()) {
-                    var path = _this.getPath(u.position, mousePosition);
+                    var path = _this.getPath(u.getPosition(), mousePosition);
                     u.loadMovements(path);
                 }
             });
