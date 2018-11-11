@@ -9,13 +9,13 @@ import SelectRect = require('selectRect');
 class Building implements IOwnedObject, ISelectable {
     public player: Player;
     protected size: Size;
-    protected position: Point2d;
+    protected center: Point2d;
     private rect: SelectRect;
     private ctx: CanvasRenderingContext2D;
 
     constructor(ctx: CanvasRenderingContext2D, center: Point2d, size: Size, player: Player) {
         this.ctx = ctx;
-        this.position = center;
+        this.center = center;
         this.size = size;
         this.player = player;
         this.rect = new SelectRect(ctx, center.toTopLeft(size), size);
@@ -26,11 +26,11 @@ class Building implements IOwnedObject, ISelectable {
     }
 
     setPosition(point: Point2d): void {
-        this.position = point;
+        this.center = point;
     }
 
     getPosition(): Point2d {
-        return this.position;
+        return this.center;
     }
 
     draw(camera: Camera): void {
@@ -41,7 +41,7 @@ class Building implements IOwnedObject, ISelectable {
         this.ctx.fillStyle = this.player.color;
         this.ctx.strokeStyle = this.player.color;
         this.ctx.lineWidth = 1;
-        this.ctx.rect(this.position.x - camera.position.x - this.size.width / 2, this.position.y - camera.position.y - this.size.height / 2, this.size.width, this.size.height);
+        this.ctx.rect(this.center.x - camera.position.x - this.size.width / 2, this.center.y - camera.position.y - this.size.height / 2, this.size.width, this.size.height);
         this.ctx.stroke();
         this.ctx.fill();
         this.ctx.restore();

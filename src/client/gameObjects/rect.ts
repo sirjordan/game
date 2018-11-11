@@ -5,14 +5,14 @@ import Camera = require('common/camera');
 
 class Rect implements IGameObject {
     protected size: Size;
-    protected position: Point2d;
+    protected topLeft: Point2d;
     protected ctx: CanvasRenderingContext2D;
     protected fill: string;
     protected stroke: string;
     protected strokewidth: number;
 
     constructor(ctx: CanvasRenderingContext2D, topLeft: Point2d, size: Size, fill?: string, stroke?: string, strokewidth?: number) {
-        this.position = topLeft;
+        this.topLeft = topLeft;
         this.ctx = ctx;
         this.size = size;
         this.fill = fill;
@@ -25,11 +25,11 @@ class Rect implements IGameObject {
     }
 
     setPosition(point: Point2d): void {
-        this.position = point;
+        this.topLeft = point;
     }
     
     getPosition(): Point2d {
-       return this.position;
+       return this.topLeft;
     }
 
     draw(camera: Camera): void{
@@ -38,7 +38,7 @@ class Rect implements IGameObject {
         this.ctx.fillStyle = this.fill;
         this.ctx.strokeStyle = this.stroke;
         this.ctx.lineWidth = this.strokewidth;
-        this.ctx.rect(this.position.x - camera.position.x, this.position.y - camera.position.y, this.size.width, this.size.height);
+        this.ctx.rect(this.topLeft.x - camera.position.x, this.topLeft.y - camera.position.y, this.size.width, this.size.height);
         this.ctx.stroke();
 
         if (this.fill) 
@@ -49,10 +49,10 @@ class Rect implements IGameObject {
 
     isPointInside(point: Point2d): boolean {
         return (
-            point.x >= this.position.x &&
-            point.x <= this.position.x + this.size.width &&
-            point.y >= this.position.y &&
-            point.y <= this.position.y + this.size.height);
+            point.x >= this.topLeft.x &&
+            point.x <= this.topLeft.x + this.size.width &&
+            point.y >= this.topLeft.y &&
+            point.y <= this.topLeft.y + this.size.height);
     }
 }
 

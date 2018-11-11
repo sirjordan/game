@@ -15,7 +15,7 @@ class Unit implements IOwnedObject, ISelectable, IMovable, INotifier {
 
     protected size: Size;
     // Centered position of the unit
-    protected position: Point2d;
+    protected center: Point2d;
     // The unit's base rect
     private rect: SelectRect;
     private ctx: CanvasRenderingContext2D;
@@ -31,7 +31,7 @@ class Unit implements IOwnedObject, ISelectable, IMovable, INotifier {
         this.player = player;
         this.ctx = ctx;
         this.size = size;
-        this.position = center;
+        this.center = center;
         this.speed = speed;
         this.movementsQueue = new Array<Point2d>();
         
@@ -43,12 +43,12 @@ class Unit implements IOwnedObject, ISelectable, IMovable, INotifier {
     }
     
     setPosition(point: Point2d): void {
-        this.position = point;
-        this.rect.setPosition(this.position.toTopLeft(this.size));
+        this.center = point;
+        this.rect.setPosition(this.center.toTopLeft(this.size));
     }
 
     getPosition(): Point2d {
-        return this.position;
+        return this.center;
     }
 
     subscribe(subscriber: ISubscriber): void {
@@ -72,21 +72,21 @@ class Unit implements IOwnedObject, ISelectable, IMovable, INotifier {
             this.nextStep = this.movementsQueue.shift().clone();
 
             // First step in the movement queue is the current - skip it
-            if (this.position.x === this.nextStep.x && this.position.y === this.nextStep.y) {
+            if (this.center.x === this.nextStep.x && this.center.y === this.nextStep.y) {
                 this.nextStep = this.movementsQueue.shift().clone();
             }
 
-            this.velocity = this.position.calcVelocity(this.nextStep, this.speed);
+            this.velocity = this.center.calcVelocity(this.nextStep, this.speed);
         }
 
-        this.setPosition(this.position.add(this.velocity));
+        this.setPosition(this.center.add(this.velocity));
         
         // If the position is closer than a velocity unit, the next step will jump over the position
-        if (Math.abs(this.position.x - this.nextStep.x) < Math.abs(this.velocity.x))
-            this.position.x = this.nextStep.x;
+        if (Math.abs(this.center.x - this.nextStep.x) < Math.abs(this.velocity.x))
+            this.center.x = this.nextStep.x;
 
-        if (Math.abs(this.position.y - this.nextStep.y) < Math.abs(this.velocity.y))
-            this.position.y = this.nextStep.y;
+        if (Math.abs(this.center.y - this.nextStep.y) < Math.abs(this.velocity.y))
+            this.center.y = this.nextStep.y;
 
         this.notifyStateUpdate();
 
@@ -96,7 +96,7 @@ class Unit implements IOwnedObject, ISelectable, IMovable, INotifier {
     }
 
     isPointInside(other: Point2d) {
-        return this.position.x === other.x && this.position.y === other.y;
+        return this.center.x === other.x && this.center.y === other.y;
     }
 
     stop() {
@@ -111,7 +111,7 @@ class Unit implements IOwnedObject, ISelectable, IMovable, INotifier {
         this.rect.draw(camera);
 
         this.ctx.beginPath();
-        this.ctx.arc(this.position.x - camera.position.x, this.position.y - camera.position.y, this.size.height / 2, 0, 2 * Math.PI);
+        this.ctx.arc(this.center.x - camera.position.x, this.center.y - camera.position.y, this.size.height / 2, 0, 2 * Math.PI);
         this.ctx.lineWidth = 1;
         this.ctx.fillStyle = this.player.color;
         this.ctx.fill();
