@@ -8,9 +8,8 @@ import SelectRect = require('selectRect');
 
 class Building implements IOwnedObject, ISelectable {
     public player: Player;
-    public position: Point2d;
-    public size: Size;
-
+    protected size: Size;
+    protected position: Point2d;
     private rect: SelectRect;
     private ctx: CanvasRenderingContext2D;
 
@@ -20,6 +19,18 @@ class Building implements IOwnedObject, ISelectable {
         this.size = size;
         this.player = player;
         this.rect = new SelectRect(ctx, center.toTopLeft(size), size);
+    }
+
+    getSize(): Size {
+        return this.size;
+    }
+
+    setPosition(point: Point2d): void {
+        this.position = point;
+    }
+
+    getPosition(): Point2d {
+        return this.position;
     }
 
     draw(camera: Camera): void {

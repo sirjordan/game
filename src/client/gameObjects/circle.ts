@@ -4,8 +4,9 @@ import Size = require('common/size');
 import IGameObject = require('contracts/iGameObject');
 
 class Circle implements IGameObject {
-    public position: Point2d;
-    public size: Size;
+
+    protected size: Size;
+    protected position: Point2d;
     protected ctx: CanvasRenderingContext2D;
     protected fill: string;
     protected stroke: string;
@@ -19,6 +20,18 @@ class Circle implements IGameObject {
         this.fill = fill;
         this.stroke = stroke;
         this.strokewidth = strokewidth || 1;
+    }
+
+    getSize(): Size {
+        return this.size;
+    }
+    
+    setPosition(point: Point2d): void {
+        this.position = point;
+    }
+    
+    getPosition(): Point2d {
+        return this.position;
     }
 
     draw(camera: Camera): void {

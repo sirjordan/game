@@ -11,11 +11,11 @@ import SelectRect = require('selectRect');
 
 class Unit implements IOwnedObject, ISelectable, IMovable, INotifier {
     public id: number;
-    public size: Size;
     public player: Player;
-    // Centered position of the unit
-    public position: Point2d;
 
+    protected size: Size;
+    // Centered position of the unit
+    protected position: Point2d;
     // The unit's base rect
     private rect: SelectRect;
     private ctx: CanvasRenderingContext2D;
@@ -36,6 +36,19 @@ class Unit implements IOwnedObject, ISelectable, IMovable, INotifier {
         this.movementsQueue = new Array<Point2d>();
         
         this.rect = new SelectRect(ctx, center.toTopLeft(size), size);
+    }
+
+    getSize(): Size {
+        return this.size;
+    }
+    
+    setPosition(point: Point2d): void {
+        this.position = point;
+        this.rect.setPosition(this.position.toTopLeft(this.size));
+    }
+
+    getPosition(): Point2d {
+        return this.position;
     }
 
     subscribe(subscriber: ISubscriber): void {
@@ -66,8 +79,8 @@ class Unit implements IOwnedObject, ISelectable, IMovable, INotifier {
             this.velocity = this.position.calcVelocity(this.nextStep, this.speed);
         }
 
-        this.position.add(this.velocity);
-
+        this.setPosition(this.position.add(this.velocity));
+        
         // If the position is closer than a velocity unit, the next step will jump over the position
         if (Math.abs(this.position.x - this.nextStep.x) < Math.abs(this.velocity.x))
             this.position.x = this.nextStep.x;

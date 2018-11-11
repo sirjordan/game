@@ -17,6 +17,11 @@ class SelectRect extends Rect implements ISelectable {
         this.selectionDrawingObject = new Circle(ctx, topLeft.toCenter(size), radius, Settings.MAIN_COLOR);
     }
 
+    setPosition(point: Point2d){
+        super.setPosition(point);
+        this.selectionDrawingObject.setPosition(this.position.toCenter(this.size));
+    }
+
     isSelected(): boolean {
         return this._isSelected;
     }

@@ -146,7 +146,7 @@ class Game {
         let mousePosition = new Point2d(args.clientX, args.clientY).add(this.camera.position);
         this.objects.getUnits().forEach(u => {
             if (u.isSelected()) {
-                let path = this.getPath(u.position, mousePosition);
+                let path = this.getPath(u.getPosition(), mousePosition);
                 u.loadMovements(path);
             }
         });

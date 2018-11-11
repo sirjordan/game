@@ -63,8 +63,8 @@ class MapProjection implements ISubscriber {
     }
 
     calcAbsolutePosition(relativePosition: Point2d) {
-        let ratioX = (relativePosition.x - this.border.position.x) / this.background.size.width;
-        let ratioY = (relativePosition.y - this.border.position.y) / this.background.size.height;
+        let ratioX = (relativePosition.x - this.border.getPosition().x) / this.background.getSize().width;
+        let ratioY = (relativePosition.y - this.border.getPosition().y) / this.background.getSize().height;
 
         let x = ratioX * this.map.sizeInPixels().width;
         let y = ratioY * this.map.sizeInPixels().height;
@@ -83,7 +83,7 @@ class MapProjection implements ISubscriber {
     }
 
     private project(obj: IOwnedObject): IGameObject {
-        return new Raster(this.ctx, this.calcRelativePosition(obj.position), this.scaleSize(obj.size), obj.player.color);
+        return new Raster(this.ctx, this.calcRelativePosition(obj.getPosition()), this.scaleSize(obj.getSize()), obj.player.color);
     }
 
     private projectCamera(camera: Camera): Rect {
@@ -105,11 +105,11 @@ class MapProjection implements ISubscriber {
             scaledH = 1;
         }
 
-        let size = new Size(this.background.size.width * scaledW, this.background.size.height * scaledH);
+        let size = new Size(this.background.getSize().width * scaledW, this.background.getSize().height * scaledH);
 
         // Get centered position
-        let x = (this.background.size.width - size.width) / 2;
-        let y = (this.background.size.height - size.height) / 2;
+        let x = (this.background.getSize().width - size.width) / 2;
+        let y = (this.background.getSize().height - size.height) / 2;
 
         return new Raster(this.ctx, new Point2d(x, y), size, 'black', MapProjection.borderColor, 1);
     }
@@ -118,17 +118,17 @@ class MapProjection implements ISubscriber {
         let ratioX = size.width / this.map.sizeInPixels().width;
         let ratioY = size.height / this.map.sizeInPixels().height;
 
-        return new Size(this.border.size.width * ratioX, this.border.size.height * ratioY);
+        return new Size(this.border.getSize().width * ratioX, this.border.getSize().height * ratioY);
     }
 
     private calcRelativePosition(absolutePosition: Point2d): Point2d {
         let ratioX = absolutePosition.x / this.map.sizeInPixels().width;
         let ratioY = absolutePosition.y / this.map.sizeInPixels().height;
 
-        let x = ratioX * this.border.size.width;
-        let y = ratioY * this.border.size.height;
+        let x = ratioX * this.border.getSize().width;
+        let y = ratioY * this.border.getSize().height;
 
-        return new Point2d(x, y).add(this.border.position);
+        return new Point2d(x, y).add(this.border.getPosition());
     }
 }
 

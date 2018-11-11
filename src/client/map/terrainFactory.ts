@@ -14,15 +14,22 @@ class TerrainFactory {
     }
 
     texture(textureNumber: number, position: Point2d, size: number): Rect {
+        if (textureNumber <= 0)
+            return this.default(position, size);
+
         try {
             return new Texture(textureNumber, this.textureSprite, this.ctx, position, new Size(size, size));
         } catch (error) {
             console.error(error);
-            return new Raster(this.ctx, position, new Size(size, size), '#0f0b04');
+            return this.default(position, size);
         }
     }
 
-    obsticle(){
+    default(position: Point2d, size: number): Rect {
+        return new Raster(this.ctx, position, new Size(size, size), '#0f0b04');
+    }
+
+    obsticle() {
         throw new Error('not implemented');
     }
 }
