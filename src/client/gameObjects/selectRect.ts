@@ -19,7 +19,7 @@ class SelectRect extends Rect implements ISelectable {
 
     setPosition(point: Point2d){
         super.setPosition(point);
-        this.selectionDrawingObject.setPosition(this.position.toCenter(this.size));
+        this.selectionDrawingObject.setPosition(this.topLeft.toCenter(this.size));
     }
 
     isSelected(): boolean {

@@ -21,8 +21,8 @@ class Texture extends Rect {
             this.spritePosition.y, 
             Settings.TERRAIN_TEXTURE_SIZE.width, 
             Settings.TERRAIN_TEXTURE_SIZE.height, 
-            this.position.x, 
-            this.position.y, 
+            this.topLeft.x, 
+            this.topLeft.y, 
             this.size.width, 
             this.size.height);
     }

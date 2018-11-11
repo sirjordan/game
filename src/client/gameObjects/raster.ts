@@ -8,7 +8,7 @@ class Raster extends Rect {
         this.ctx.fillStyle = this.fill;
         this.ctx.strokeStyle = this.stroke;
         this.ctx.lineWidth = this.strokewidth;
-        this.ctx.rect(this.position.x, this.position.y, this.size.width, this.size.height);
+        this.ctx.rect(this.topLeft.x, this.topLeft.y, this.size.width, this.size.height);
         this.ctx.stroke();
 
         if (this.fill)
