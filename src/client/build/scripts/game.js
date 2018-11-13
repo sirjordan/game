@@ -360,7 +360,7 @@ define("gameObjects/unit", ["require", "exports", "gameObjects/activeObject"], f
                 this.nextStep = null;
         };
         Unit.prototype.isPointInside = function (other) {
-            return this.center.equals(other); // this.center.x === other.x && this.center.y === other.y;
+            return this.center.equals(other);
         };
         Unit.prototype.stop = function () {
             // TODO: Implement
