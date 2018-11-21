@@ -53,7 +53,7 @@ class Map {
     }
 
     sizeInPixels(): Size {
-        return new Size(this.size().width * Settings.TERRAIN_TEXTURE_SIZE.width, this.size().height * Settings.TERRAIN_TEXTURE_SIZE.height);
+        return new Size(this.size().width * Settings.RASTER_SIZE.width, this.size().height * Settings.RASTER_SIZE.height);
     }
 }
 

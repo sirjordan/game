@@ -197,7 +197,8 @@ define("settings", ["require", "exports", "common/size"], function (require, exp
         function Settings() {
         }
         Settings.MAIN_COLOR = '#f9c731';
-        Settings.TERRAIN_TEXTURE_SIZE = new Size(100, 100);
+        Settings.RASTER_SIZE = new Size(50, 50);
+        Settings.SPRTIES_LOCATION = 'sprites';
         return Settings;
     }());
     return Settings;
@@ -260,11 +261,11 @@ define("gameObjects/contracts/iActiveObject", ["require", "exports"], function (
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
 });
-define("common/contracts/iSubscriber", ["require", "exports"], function (require, exports) {
+define("messaging/iSubscriber", ["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
 });
-define("common/contracts/iNotifier", ["require", "exports"], function (require, exports) {
+define("messaging/iNotifier", ["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
 });
@@ -506,8 +507,6 @@ define("gameObjects/buildingFactory", ["require", "exports", "common/size", "gam
 define("map/map", ["require", "exports", "common/size", "settings"], function (require, exports, Size, Settings) {
     "use strict";
     var Map = /** @class */ (function () {
-        // In pixels
-        //public rasterSize: number;
         function Map() {
             this.textures = [
                 [1, 1, 2, 1, 2, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 2, 1, 3],
@@ -555,7 +554,7 @@ define("map/map", ["require", "exports", "common/size", "settings"], function (r
             return new Size(this.textures[1].length, this.textures.length);
         };
         Map.prototype.sizeInPixels = function () {
-            return new Size(this.size().width * Settings.TERRAIN_TEXTURE_SIZE.width, this.size().height * Settings.TERRAIN_TEXTURE_SIZE.height);
+            return new Size(this.size().width * Settings.RASTER_SIZE.width, this.size().height * Settings.RASTER_SIZE.height);
         };
         return Map;
     }());
@@ -584,28 +583,32 @@ define("gameObjects/raster", ["require", "exports", "gameObjects/rect"], functio
     }(Rect));
     return Raster;
 });
-define("map/texture", ["require", "exports", "gameObjects/rect", "common/point2d", "settings"], function (require, exports, Rect, Point2d, Settings) {
+define("map/texture", ["require", "exports", "gameObjects/rect", "common/size", "common/point2d", "settings"], function (require, exports, Rect, Size, Point2d, Settings) {
     "use strict";
     var Texture = /** @class */ (function (_super) {
         __extends(Texture, _super);
         function Texture(id, textureSprite, ctx, drawAtPosition) {
-            var _this = _super.call(this, ctx, drawAtPosition, Settings.TERRAIN_TEXTURE_SIZE) || this;
+            var _this = 
+            // Using the RASTER_SIZE of the settings as Output size. 
+            _super.call(this, ctx, drawAtPosition, Settings.RASTER_SIZE) || this;
             _this.textureSprite = textureSprite;
             _this.spritePosition = _this.calcSpritePosition(id, textureSprite);
             return _this;
         }
         Texture.prototype.draw = function (camera) {
-            this.ctx.drawImage(this.textureSprite, this.spritePosition.x, this.spritePosition.y, Settings.TERRAIN_TEXTURE_SIZE.width, Settings.TERRAIN_TEXTURE_SIZE.height, this.topLeft.x, this.topLeft.y, this.size.width, this.size.height);
+            this.ctx.drawImage(this.textureSprite, this.spritePosition.x, this.spritePosition.y, Texture.SPRITE_SLICE.width, Texture.SPRITE_SLICE.height, this.topLeft.x, this.topLeft.y, this.size.width, this.size.height);
         };
         Texture.prototype.calcSpritePosition = function (id, textureSprite) {
-            var spriteCols = textureSprite.width / Settings.TERRAIN_TEXTURE_SIZE.width;
-            var spriteRows = textureSprite.height / Settings.TERRAIN_TEXTURE_SIZE.height;
+            var spriteCols = textureSprite.width / Texture.SPRITE_SLICE.width;
+            var spriteRows = textureSprite.height / Texture.SPRITE_SLICE.height;
             var textureRow = Math.ceil(id / spriteCols) - 1;
             var textureCol = id % spriteCols;
             if (textureRow > spriteRows - 1 || textureCol > spriteCols - 1)
                 throw new Error('Requested texture number [' + id + '] on [' + textureRow + ', ' + textureCol + '] does not exists.');
-            return new Point2d(textureCol * Settings.TERRAIN_TEXTURE_SIZE.width, textureRow * Settings.TERRAIN_TEXTURE_SIZE.height);
+            return new Point2d(textureCol * Texture.SPRITE_SLICE.width, textureRow * Texture.SPRITE_SLICE.height);
         };
+        // Defines how is the slice of the sprite designed 
+        Texture.SPRITE_SLICE = new Size(100, 100);
         return Texture;
     }(Rect));
     return Texture;
@@ -632,7 +635,7 @@ define("map/terrainFactory", ["require", "exports", "gameObjects/raster", "map/t
             throw new Error('not implemented');
         };
         TerrainFactory.prototype.default = function (position) {
-            return new Raster(this.ctx, position, Settings.TERRAIN_TEXTURE_SIZE, '#0f0b04');
+            return new Raster(this.ctx, position, Settings.RASTER_SIZE, '#0f0b04');
         };
         return TerrainFactory;
     }());
@@ -653,7 +656,7 @@ define("map/terrain", ["require", "exports", "common/point2d", "settings"], func
             }
             var maxRight = this.ctx.canvas.width;
             var maxTop = this.ctx.canvas.height;
-            var rasterSize = Settings.TERRAIN_TEXTURE_SIZE; //this.map.rasterSize;
+            var rasterSize = Settings.RASTER_SIZE; //this.map.rasterSize;
             this.ctx.clearRect(0, 0, maxRight, maxTop);
             var startPos = new Point2d((camera.position.x % rasterSize.width) * -1, (camera.position.y % rasterSize.height) * -1);
             var pos = startPos.clone();
@@ -821,7 +824,7 @@ define("game", ["require", "exports", "gameObjects/objects", "gameObjects/unitFa
         Game.prototype.start = function () {
             var _this = this;
             var terrainTextures = new Image();
-            terrainTextures.src = 'imgs/textures.jpg';
+            terrainTextures.src = 'sprites/textures.jpg';
             terrainTextures.onload = function () {
                 var bgCtx = _this.bgLayer.getContext('2d');
                 var map = new Map();
@@ -941,5 +944,66 @@ define("game", ["require", "exports", "gameObjects/objects", "gameObjects/unitFa
         return Game;
     }());
     return Game;
+});
+define("assets/iContentLoad", ["require", "exports"], function (require, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+});
+define("assets/contentLoader", ["require", "exports"], function (require, exports) {
+    "use strict";
+    var ContentLoader = /** @class */ (function () {
+        function ContentLoader() {
+            this.completed = 0;
+        }
+        ContentLoader.prototype.load = function (contentLoad) {
+            this.loaded++;
+            contentLoad.load(this.loadComplete);
+            return this;
+        };
+        ContentLoader.prototype.complete = function (callback) {
+            // Happens when all loaded functions are completed
+            this.whenAllComplete = callback;
+        };
+        ContentLoader.prototype.loadComplete = function () {
+            this.completed++;
+            if (this.completed === this.loaded) {
+                this.whenAllComplete();
+            }
+        };
+        return ContentLoader;
+    }());
+    return ContentLoader;
+});
+define("assets/sprite", ["require", "exports", "settings"], function (require, exports, Settings) {
+    "use strict";
+    var Sprite = /** @class */ (function () {
+        function Sprite(name, slice) {
+            this._slice = slice;
+            this.loaded = false;
+            this.name = name;
+        }
+        Sprite.prototype.load = function (loadComplete) {
+            var _this = this;
+            this._content = new Image();
+            this._content.src = Settings.SPRTIES_LOCATION + '/' + this.name;
+            this._content.onload = function () {
+                _this.loaded = true;
+                loadComplete();
+            };
+        };
+        Sprite.prototype.content = function () {
+            if (this.loaded) {
+                return this._content;
+            }
+            else {
+                throw new Error('Content of [' + this.name + '] is not loaded!');
+            }
+        };
+        Sprite.prototype.slice = function () {
+            return this._slice;
+        };
+        return Sprite;
+    }());
+    return Sprite;
 });
 //# sourceMappingURL=game.js.map

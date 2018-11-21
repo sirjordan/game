@@ -31,7 +31,7 @@ class TerrainFactory {
     }
 
     default(position: Point2d): Rect {
-        return new Raster(this.ctx, position, Settings.TERRAIN_TEXTURE_SIZE, '#0f0b04');
+        return new Raster(this.ctx, position, Settings.RASTER_SIZE, '#0f0b04');
     }
 }
 

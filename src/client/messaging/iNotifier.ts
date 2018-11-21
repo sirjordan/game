@@ -1,4 +1,4 @@
-import ISubscriber = require('contracts/iSubscriber');
+import ISubscriber = require('./iSubscriber');
 
 interface INotifier {
     subscribe(subscriber: ISubscriber): void;

@@ -1,5 +1,5 @@
 import IActiveObject = require('contracts/iActiveObject');
-import ISubscriber = require('common/contracts/iSubscriber');
+import ISubscriber = require('../messaging/iSubscriber');
 import Point2d = require('common/point2d');
 import Player = require('common/player');
 import Size = require('common/size');
@@ -7,7 +7,7 @@ import Camera = require('common/camera');
 import ISelectable = require('contracts/iSelectable');
 import SelectRect = require('selectRect');
 import IGameObject = require('contracts/iGameObject');
-import INotifier = require('common/contracts/iNotifier');
+import INotifier = require('../messaging/iNotifier');
 
 abstract class ActiveObject implements IActiveObject, ISelectable, INotifier, IGameObject {
     protected id: number;

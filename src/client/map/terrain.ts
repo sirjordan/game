@@ -25,7 +25,7 @@ class Terrain {
 
         let maxRight = this.ctx.canvas.width;
         let maxTop = this.ctx.canvas.height;
-        let rasterSize = Settings.TERRAIN_TEXTURE_SIZE; //this.map.rasterSize;
+        let rasterSize = Settings.RASTER_SIZE; //this.map.rasterSize;
 
         this.ctx.clearRect(0, 0, maxRight, maxTop);
 

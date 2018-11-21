@@ -52,7 +52,7 @@ class Game {
 
     public start(): void {
         let terrainTextures = new Image();
-        terrainTextures.src = 'imgs/textures.jpg';
+        terrainTextures.src = 'sprites/textures.jpg';
         terrainTextures.onload = () => {
             let bgCtx = this.bgLayer.getContext('2d');
             let map = new Map();
