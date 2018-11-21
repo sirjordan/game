@@ -1,13 +1,12 @@
 import Size = require('common/size');
+import Settings = require('settings');
 
 class Map {
-    public objects: number[][];
-    // In pixels
-    public rasterSize: number;
+    public textures: number[][];
+    public obsticles: number[][];
 
     constructor() {
-        this.rasterSize = 50;
-        this.objects = [
+        this.textures = [
             [1, 1, 2, 1, 2, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 2, 1, 3],
             [1, 1, 2, 1, 2, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 2, 1, 3],
             [2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 2, 1, 3],
@@ -39,15 +38,22 @@ class Map {
             [1, 2, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 2, 3, 1, 1, 1, 1, 1, 2, 1, 3],
             [2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 3, 1, 2, 1, 1, 1, 1, 1, 1],
         ];
+        this.obsticles = [
+            [0, 2, 0, 0, 0, 1, 2, 1, 0, 0, 0, 4],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 4, 0, 0, 0, 1, 0, 1, 0, 0, 3, 0],
+            [0, 0, 0, 2, 0, 0, 2, 1, 0, 0, 0, 0],           
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 2, 0, 0, 0, 1, 0, 1, 0, 0, 3, 0]];
     }
 
     size(): Size {
-        // Size of the map in objects (not in pixels)
-        return new Size(this.objects[1].length, this.objects.length);
+        // Size of the map in texture objects (not in pixels)
+        return new Size(this.textures[1].length, this.textures.length);
     }
 
     sizeInPixels(): Size {
-        return new Size(this.size().width * this.rasterSize, this.size().height * this.rasterSize);
+        return new Size(this.size().width * Settings.TERRAIN_TEXTURE_SIZE.width, this.size().height * Settings.TERRAIN_TEXTURE_SIZE.height);
     }
 }
 

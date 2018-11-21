@@ -2,6 +2,7 @@ import Map = require('map/map');
 import Point2d = require('common/point2d');
 import Camera = require('common/camera');
 import TerrainFactory = require('terrainFactory');
+import Settings = require('settings');
 
 class Terrain {
     public map: Map;
@@ -24,40 +25,40 @@ class Terrain {
 
         let maxRight = this.ctx.canvas.width;
         let maxTop = this.ctx.canvas.height;
-        let rasterSize = this.map.rasterSize;
+        let rasterSize = Settings.TERRAIN_TEXTURE_SIZE; //this.map.rasterSize;
 
         this.ctx.clearRect(0, 0, maxRight, maxTop);
 
-        let startPos = new Point2d((camera.position.x % rasterSize) * - 1, (camera.position.y % rasterSize) * -1);
+        let startPos = new Point2d((camera.position.x % rasterSize.width) * - 1, (camera.position.y % rasterSize.height) * -1);
         let pos = startPos.clone();
 
-        let row = Math.floor(camera.position.y / rasterSize);
-        let col = Math.floor(camera.position.x / rasterSize);
+        let row = Math.floor(camera.position.y / rasterSize.height);
+        let col = Math.floor(camera.position.x / rasterSize.width);
         let startCol = col;
 
         // Go to the end of the screen Y
-        for (let i = 1; i <= Math.ceil(maxTop / rasterSize) + 1; i++) {
+        for (let i = 1; i <= Math.ceil(maxTop / rasterSize.height) + 1; i++) {
             // No more map rows
-            if (!this.map.objects[row]) break;
+            if (!this.map.textures[row]) break;
 
             // Go to the end of the screen X
-            for (let j = 1; j <= Math.ceil(maxRight / rasterSize); j++) {
+            for (let j = 1; j <= Math.ceil(maxRight / rasterSize.width); j++) {
                 // No more map columns
-                if (!(this.map.objects[row][col] >= 0)) break;
+                if (!(this.map.textures[row][col] >= 0)) break;
 
-                let rasterCode = this.map.objects[row][col];
-                let terrainObject = this.terrainObjects.texture(rasterCode, pos, rasterSize);
+                let rasterCode = this.map.textures[row][col];
+                let terrainObject = this.terrainObjects.texture(rasterCode, pos);
 
                 terrainObject.draw(camera);
 
                 col++;
-                pos.x = startPos.x + (j * rasterSize);
+                pos.x = startPos.x + (j * rasterSize.width);
             }
 
             col = startCol;
             row++;
             pos.x = startPos.x;
-            pos.y = startPos.y + (i * rasterSize);
+            pos.y = startPos.y + (i * rasterSize.height);
         }
 
         this.lastCameraPosition = camera.position.clone();

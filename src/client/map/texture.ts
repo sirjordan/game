@@ -8,8 +8,8 @@ class Texture extends Rect {
     private spritePosition: Point2d;
     private textureSprite: HTMLImageElement;
 
-    constructor(id: number, textureSprite: HTMLImageElement, ctx: CanvasRenderingContext2D, drawAtPosition: Point2d, outputSize: Size) {
-        super(ctx, drawAtPosition, outputSize);
+    constructor(id: number, textureSprite: HTMLImageElement, ctx: CanvasRenderingContext2D, drawAtPosition: Point2d) {
+        super(ctx, drawAtPosition, Settings.TERRAIN_TEXTURE_SIZE);
         this.textureSprite = textureSprite;
         this.spritePosition = this.calcSpritePosition(id, textureSprite);
     }

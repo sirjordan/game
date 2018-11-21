@@ -503,12 +503,13 @@ define("gameObjects/buildingFactory", ["require", "exports", "common/size", "gam
     }());
     return BuildingFactory;
 });
-define("map/map", ["require", "exports", "common/size"], function (require, exports, Size) {
+define("map/map", ["require", "exports", "common/size", "settings"], function (require, exports, Size, Settings) {
     "use strict";
     var Map = /** @class */ (function () {
+        // In pixels
+        //public rasterSize: number;
         function Map() {
-            this.rasterSize = 50;
-            this.objects = [
+            this.textures = [
                 [1, 1, 2, 1, 2, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 2, 1, 3],
                 [1, 1, 2, 1, 2, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 2, 1, 3],
                 [2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 2, 1, 3],
@@ -540,13 +541,21 @@ define("map/map", ["require", "exports", "common/size"], function (require, expo
                 [1, 2, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 2, 3, 1, 1, 1, 1, 1, 2, 1, 3],
                 [2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 3, 1, 2, 1, 1, 1, 1, 1, 1],
             ];
+            this.obsticles = [
+                [0, 2, 0, 0, 0, 1, 2, 1, 0, 0, 0, 4],
+                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                [0, 4, 0, 0, 0, 1, 0, 1, 0, 0, 3, 0],
+                [0, 0, 0, 2, 0, 0, 2, 1, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                [0, 2, 0, 0, 0, 1, 0, 1, 0, 0, 3, 0]
+            ];
         }
         Map.prototype.size = function () {
-            // Size of the map in objects (not in pixels)
-            return new Size(this.objects[1].length, this.objects.length);
+            // Size of the map in texture objects (not in pixels)
+            return new Size(this.textures[1].length, this.textures.length);
         };
         Map.prototype.sizeInPixels = function () {
-            return new Size(this.size().width * this.rasterSize, this.size().height * this.rasterSize);
+            return new Size(this.size().width * Settings.TERRAIN_TEXTURE_SIZE.width, this.size().height * Settings.TERRAIN_TEXTURE_SIZE.height);
         };
         return Map;
     }());
@@ -579,8 +588,8 @@ define("map/texture", ["require", "exports", "gameObjects/rect", "common/point2d
     "use strict";
     var Texture = /** @class */ (function (_super) {
         __extends(Texture, _super);
-        function Texture(id, textureSprite, ctx, drawAtPosition, outputSize) {
-            var _this = _super.call(this, ctx, drawAtPosition, outputSize) || this;
+        function Texture(id, textureSprite, ctx, drawAtPosition) {
+            var _this = _super.call(this, ctx, drawAtPosition, Settings.TERRAIN_TEXTURE_SIZE) || this;
             _this.textureSprite = textureSprite;
             _this.spritePosition = _this.calcSpritePosition(id, textureSprite);
             return _this;
@@ -601,35 +610,35 @@ define("map/texture", ["require", "exports", "gameObjects/rect", "common/point2d
     }(Rect));
     return Texture;
 });
-define("map/terrainFactory", ["require", "exports", "common/size", "gameObjects/raster", "map/texture"], function (require, exports, Size, Raster, Texture) {
+define("map/terrainFactory", ["require", "exports", "gameObjects/raster", "map/texture", "settings"], function (require, exports, Raster, Texture, Settings) {
     "use strict";
     var TerrainFactory = /** @class */ (function () {
         function TerrainFactory(ctx, textureSprite) {
             this.ctx = ctx;
             this.textureSprite = textureSprite;
         }
-        TerrainFactory.prototype.texture = function (textureNumber, position, size) {
+        TerrainFactory.prototype.texture = function (textureNumber, position) {
             if (textureNumber <= 0)
-                return this.default(position, size);
+                return this.default(position);
             try {
-                return new Texture(textureNumber, this.textureSprite, this.ctx, position, new Size(size, size));
+                return new Texture(textureNumber, this.textureSprite, this.ctx, position);
             }
             catch (error) {
                 console.error(error);
-                return this.default(position, size);
+                return this.default(position);
             }
         };
-        TerrainFactory.prototype.default = function (position, size) {
-            return new Raster(this.ctx, position, new Size(size, size), '#0f0b04');
-        };
-        TerrainFactory.prototype.obsticle = function () {
+        TerrainFactory.prototype.obsticle = function (obsticleNumber, position) {
             throw new Error('not implemented');
+        };
+        TerrainFactory.prototype.default = function (position) {
+            return new Raster(this.ctx, position, Settings.TERRAIN_TEXTURE_SIZE, '#0f0b04');
         };
         return TerrainFactory;
     }());
     return TerrainFactory;
 });
-define("map/terrain", ["require", "exports", "common/point2d"], function (require, exports, Point2d) {
+define("map/terrain", ["require", "exports", "common/point2d", "settings"], function (require, exports, Point2d, Settings) {
     "use strict";
     var Terrain = /** @class */ (function () {
         function Terrain(ctx, map, terrainObjects) {
@@ -644,33 +653,33 @@ define("map/terrain", ["require", "exports", "common/point2d"], function (requir
             }
             var maxRight = this.ctx.canvas.width;
             var maxTop = this.ctx.canvas.height;
-            var rasterSize = this.map.rasterSize;
+            var rasterSize = Settings.TERRAIN_TEXTURE_SIZE; //this.map.rasterSize;
             this.ctx.clearRect(0, 0, maxRight, maxTop);
-            var startPos = new Point2d((camera.position.x % rasterSize) * -1, (camera.position.y % rasterSize) * -1);
+            var startPos = new Point2d((camera.position.x % rasterSize.width) * -1, (camera.position.y % rasterSize.height) * -1);
             var pos = startPos.clone();
-            var row = Math.floor(camera.position.y / rasterSize);
-            var col = Math.floor(camera.position.x / rasterSize);
+            var row = Math.floor(camera.position.y / rasterSize.height);
+            var col = Math.floor(camera.position.x / rasterSize.width);
             var startCol = col;
             // Go to the end of the screen Y
-            for (var i = 1; i <= Math.ceil(maxTop / rasterSize) + 1; i++) {
+            for (var i = 1; i <= Math.ceil(maxTop / rasterSize.height) + 1; i++) {
                 // No more map rows
-                if (!this.map.objects[row])
+                if (!this.map.textures[row])
                     break;
                 // Go to the end of the screen X
-                for (var j = 1; j <= Math.ceil(maxRight / rasterSize); j++) {
+                for (var j = 1; j <= Math.ceil(maxRight / rasterSize.width); j++) {
                     // No more map columns
-                    if (!(this.map.objects[row][col] >= 0))
+                    if (!(this.map.textures[row][col] >= 0))
                         break;
-                    var rasterCode = this.map.objects[row][col];
-                    var terrainObject = this.terrainObjects.texture(rasterCode, pos, rasterSize);
+                    var rasterCode = this.map.textures[row][col];
+                    var terrainObject = this.terrainObjects.texture(rasterCode, pos);
                     terrainObject.draw(camera);
                     col++;
-                    pos.x = startPos.x + (j * rasterSize);
+                    pos.x = startPos.x + (j * rasterSize.width);
                 }
                 col = startCol;
                 row++;
                 pos.x = startPos.x;
-                pos.y = startPos.y + (i * rasterSize);
+                pos.y = startPos.y + (i * rasterSize.height);
             }
             this.lastCameraPosition = camera.position.clone();
         };
@@ -815,8 +824,8 @@ define("game", ["require", "exports", "gameObjects/objects", "gameObjects/unitFa
             terrainTextures.src = 'imgs/textures.jpg';
             terrainTextures.onload = function () {
                 var bgCtx = _this.bgLayer.getContext('2d');
-                var terrainObjects = new TerrainFactory(bgCtx, terrainTextures);
                 var map = new Map();
+                var terrainObjects = new TerrainFactory(bgCtx, terrainTextures);
                 _this.terrain = new Terrain(bgCtx, map, terrainObjects);
                 var player = new Player('red');
                 var sequence = new Sequence();

@@ -55,8 +55,8 @@ class Game {
         terrainTextures.src = 'imgs/textures.jpg';
         terrainTextures.onload = () => {
             let bgCtx = this.bgLayer.getContext('2d');
-            let terrainObjects = new TerrainFactory(bgCtx, terrainTextures);
             let map = new Map();
+            let terrainObjects = new TerrainFactory(bgCtx, terrainTextures);
             this.terrain = new Terrain(bgCtx, map, terrainObjects);
 
             let player = new Player('red');
