@@ -81,31 +81,6 @@ class Game {
                 // Start the game loop
                 this.update();
             });
-
-        // let terrainTextures = new Image();
-        // terrainTextures.src = 'sprites/textures.jpg';
-        // terrainTextures.onload = () => {
-        //     let bgCtx = this.bgLayer.getContext('2d');
-        //     let map = new Map();
-        //     let terrainObjects = new TerrainFactory(bgCtx, terrainTextures);
-        //     this.terrain = new Terrain(bgCtx, map, terrainObjects);
-
-        //     let player = new Player('red');
-        //     let sequence = new Sequence();
-
-        //     let units = new UnitFactory(this.gameCtx, player, sequence);
-        //     let buildings = new BuildingFactory(this.gameCtx, player, sequence);
-
-        //     this.objects.add(units.baseUnit(new Point2d(50, 50)));
-        //     this.objects.add(units.baseUnit(new Point2d(100, 100)));
-        //     this.objects.add(buildings.baseBuilding(new Point2d(216, 217)));
-
-        //     let toolsCtx = this.mapProjectionLayer.getContext('2d');
-        //     this.mapProjection = new MapProjection(this.objects, map, toolsCtx, Point2d.zero(), new Size(this.rightPanel.clientWidth, this.rightPanel.clientWidth));
-
-        //     // Start the game loop
-        //     this.update();
-        // };
     };
 
     private update = () => {
