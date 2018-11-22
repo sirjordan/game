@@ -1,7 +1,7 @@
 import Map = require('map/map');
 import Point2d = require('common/point2d');
 import Camera = require('common/camera');
-import TerrainFactory = require('terrainFactory');
+import TerrainObjectsFactory = require('./terrainObjectsFactory');
 import Settings = require('settings');
 
 class Terrain {
@@ -9,9 +9,9 @@ class Terrain {
     private ctx: CanvasRenderingContext2D;
     // Used to remember the last camera position
     private lastCameraPosition: Point2d;
-    private terrainObjects: TerrainFactory;
+    private terrainObjects: TerrainObjectsFactory;
 
-    constructor(ctx: CanvasRenderingContext2D, map: Map, terrainObjects: TerrainFactory) {
+    constructor(ctx: CanvasRenderingContext2D, map: Map, terrainObjects: TerrainObjectsFactory) {
         this.ctx = ctx;
         this.map = map;
         this.terrainObjects = terrainObjects;
@@ -25,7 +25,7 @@ class Terrain {
 
         let maxRight = this.ctx.canvas.width;
         let maxTop = this.ctx.canvas.height;
-        let rasterSize = Settings.RASTER_SIZE; //this.map.rasterSize;
+        let rasterSize = Settings.RASTER_SIZE;
 
         this.ctx.clearRect(0, 0, maxRight, maxTop);
 
@@ -46,10 +46,19 @@ class Terrain {
                 // No more map columns
                 if (!(this.map.textures[row][col] >= 0)) break;
 
-                let rasterCode = this.map.textures[row][col];
-                let terrainObject = this.terrainObjects.texture(rasterCode, pos);
+                // Draw the texture
+                let textureCode = this.map.textures[row][col];
+                let texture = this.terrainObjects.texture(textureCode, pos);
+                texture.draw(camera);
 
-                terrainObject.draw(camera);
+                // Draw an obsticle if any
+                if (this.map.obsticles[row]) {
+                    let obsticleCode = this.map.obsticles[row][col];
+                    let obsticle = this.terrainObjects.obsticle(obsticleCode, pos);
+                    if (obsticle) {
+                        obsticle.draw(camera);
+                    }
+                }
 
                 col++;
                 pos.x = startPos.x + (j * rasterSize.width);
@@ -64,7 +73,7 @@ class Terrain {
         this.lastCameraPosition = camera.position.clone();
     }
 
-    reDraw(camera: Camera){
+    reDraw(camera: Camera) {
         // Force the terrain to redraw
         this.lastCameraPosition = null;
         this.draw(camera);

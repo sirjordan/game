@@ -583,63 +583,115 @@ define("gameObjects/raster", ["require", "exports", "gameObjects/rect"], functio
     }(Rect));
     return Raster;
 });
-define("map/texture", ["require", "exports", "gameObjects/rect", "common/size", "common/point2d", "settings"], function (require, exports, Rect, Size, Point2d, Settings) {
+define("assets/iContentLoad", ["require", "exports"], function (require, exports) {
     "use strict";
-    var Texture = /** @class */ (function (_super) {
-        __extends(Texture, _super);
-        function Texture(id, textureSprite, ctx, drawAtPosition) {
+    Object.defineProperty(exports, "__esModule", { value: true });
+});
+define("assets/sprite", ["require", "exports", "common/size", "settings"], function (require, exports, Size, Settings) {
+    "use strict";
+    var Sprite = /** @class */ (function () {
+        function Sprite(src, slice) {
+            this._slice = slice;
+            this.loaded = false;
+            this.src = src;
+        }
+        Sprite.textures = function () {
+            return new Sprite(Settings.SPRTIES_LOCATION + '/' + 'textures.jpg', new Size(100, 100));
+        };
+        Sprite.obsticles = function () {
+            return new Sprite(Settings.SPRTIES_LOCATION + '/' + 'obsticles.png', new Size(100, 100));
+        };
+        Sprite.prototype.load = function (loadComplete) {
+            var _this = this;
+            this._content = new Image();
+            this._content.src = this.src;
+            this._content.onload = function () {
+                _this.loaded = true;
+                loadComplete();
+            };
+        };
+        Sprite.prototype.content = function () {
+            if (this.loaded) {
+                return this._content;
+            }
+            else {
+                throw new Error('Content of [' + this.src + '] is not loaded!');
+            }
+        };
+        Sprite.prototype.sliceSize = function () {
+            return this._slice;
+        };
+        Sprite.prototype.size = function () {
+            return new Size(this._content.width, this._content.height);
+        };
+        return Sprite;
+    }());
+    return Sprite;
+});
+define("map/staticMapSlice", ["require", "exports", "gameObjects/rect", "common/point2d", "settings"], function (require, exports, Rect, Point2d, Settings) {
+    "use strict";
+    var StaticMapSlice = /** @class */ (function (_super) {
+        __extends(StaticMapSlice, _super);
+        function StaticMapSlice(id, sprite, ctx, drawAtPosition) {
             var _this = 
             // Using the RASTER_SIZE of the settings as Output size. 
             _super.call(this, ctx, drawAtPosition, Settings.RASTER_SIZE) || this;
-            _this.textureSprite = textureSprite;
-            _this.spritePosition = _this.calcSpritePosition(id, textureSprite);
+            _this.sprite = sprite;
+            _this.spritePosition = _this.calcSpritePosition(id, sprite);
             return _this;
         }
-        Texture.prototype.draw = function (camera) {
-            this.ctx.drawImage(this.textureSprite, this.spritePosition.x, this.spritePosition.y, Texture.SPRITE_SLICE.width, Texture.SPRITE_SLICE.height, this.topLeft.x, this.topLeft.y, this.size.width, this.size.height);
+        StaticMapSlice.prototype.draw = function (camera) {
+            this.ctx.drawImage(this.sprite.content(), this.spritePosition.x, this.spritePosition.y, this.sprite.sliceSize().width, this.sprite.sliceSize().height, this.topLeft.x, this.topLeft.y, this.size.width, this.size.height);
         };
-        Texture.prototype.calcSpritePosition = function (id, textureSprite) {
-            var spriteCols = textureSprite.width / Texture.SPRITE_SLICE.width;
-            var spriteRows = textureSprite.height / Texture.SPRITE_SLICE.height;
+        StaticMapSlice.prototype.calcSpritePosition = function (id, sprite) {
+            var spriteCols = sprite.size().width / sprite.sliceSize().width;
+            var spriteRows = sprite.size().height / sprite.sliceSize().height;
             var textureRow = Math.ceil(id / spriteCols) - 1;
             var textureCol = id % spriteCols;
             if (textureRow > spriteRows - 1 || textureCol > spriteCols - 1)
-                throw new Error('Requested texture number [' + id + '] on [' + textureRow + ', ' + textureCol + '] does not exists.');
-            return new Point2d(textureCol * Texture.SPRITE_SLICE.width, textureRow * Texture.SPRITE_SLICE.height);
+                throw new Error('Requested slice number [' + id + '] on [' + textureRow + ', ' + textureCol + '] does not exists.');
+            return new Point2d(textureCol * sprite.sliceSize().width, textureRow * sprite.sliceSize().height);
         };
-        // Defines how is the slice of the sprite designed 
-        Texture.SPRITE_SLICE = new Size(100, 100);
-        return Texture;
+        return StaticMapSlice;
     }(Rect));
-    return Texture;
+    return StaticMapSlice;
 });
-define("map/terrainFactory", ["require", "exports", "gameObjects/raster", "map/texture", "settings"], function (require, exports, Raster, Texture, Settings) {
+define("map/terrainObjectsFactory", ["require", "exports", "gameObjects/raster", "map/staticMapSlice", "settings"], function (require, exports, Raster, StaticMapSlice, Settings) {
     "use strict";
-    var TerrainFactory = /** @class */ (function () {
-        function TerrainFactory(ctx, textureSprite) {
+    var TerrainObjectsFactory = /** @class */ (function () {
+        function TerrainObjectsFactory(ctx, textures, obsticles) {
             this.ctx = ctx;
-            this.textureSprite = textureSprite;
+            this.textures = textures;
+            this.obsticles = obsticles;
         }
-        TerrainFactory.prototype.texture = function (textureNumber, position) {
+        TerrainObjectsFactory.prototype.texture = function (textureNumber, position) {
             if (textureNumber <= 0)
                 return this.default(position);
             try {
-                return new Texture(textureNumber, this.textureSprite, this.ctx, position);
+                return new StaticMapSlice(textureNumber, this.textures, this.ctx, position);
             }
             catch (error) {
                 console.error(error);
                 return this.default(position);
             }
         };
-        TerrainFactory.prototype.obsticle = function (obsticleNumber, position) {
-            throw new Error('not implemented');
+        TerrainObjectsFactory.prototype.obsticle = function (obsticleNumber, position) {
+            if (obsticleNumber <= 0)
+                return null;
+            try {
+                return new StaticMapSlice(obsticleNumber, this.obsticles, this.ctx, position);
+            }
+            catch (error) {
+                console.error(error);
+                return null;
+            }
         };
-        TerrainFactory.prototype.default = function (position) {
+        TerrainObjectsFactory.prototype.default = function (position) {
             return new Raster(this.ctx, position, Settings.RASTER_SIZE, '#0f0b04');
         };
-        return TerrainFactory;
+        return TerrainObjectsFactory;
     }());
-    return TerrainFactory;
+    return TerrainObjectsFactory;
 });
 define("map/terrain", ["require", "exports", "common/point2d", "settings"], function (require, exports, Point2d, Settings) {
     "use strict";
@@ -656,7 +708,7 @@ define("map/terrain", ["require", "exports", "common/point2d", "settings"], func
             }
             var maxRight = this.ctx.canvas.width;
             var maxTop = this.ctx.canvas.height;
-            var rasterSize = Settings.RASTER_SIZE; //this.map.rasterSize;
+            var rasterSize = Settings.RASTER_SIZE;
             this.ctx.clearRect(0, 0, maxRight, maxTop);
             var startPos = new Point2d((camera.position.x % rasterSize.width) * -1, (camera.position.y % rasterSize.height) * -1);
             var pos = startPos.clone();
@@ -673,9 +725,18 @@ define("map/terrain", ["require", "exports", "common/point2d", "settings"], func
                     // No more map columns
                     if (!(this.map.textures[row][col] >= 0))
                         break;
-                    var rasterCode = this.map.textures[row][col];
-                    var terrainObject = this.terrainObjects.texture(rasterCode, pos);
-                    terrainObject.draw(camera);
+                    // Draw the texture
+                    var textureCode = this.map.textures[row][col];
+                    var texture = this.terrainObjects.texture(textureCode, pos);
+                    texture.draw(camera);
+                    // Draw an obsticle if any
+                    if (this.map.obsticles[row]) {
+                        var obsticleCode = this.map.obsticles[row][col];
+                        var obsticle = this.terrainObjects.obsticle(obsticleCode, pos);
+                        if (obsticle) {
+                            obsticle.draw(camera);
+                        }
+                    }
                     col++;
                     pos.x = startPos.x + (j * rasterSize.width);
                 }
@@ -784,7 +845,34 @@ define("map/mapProjection", ["require", "exports", "gameObjects/raster", "common
     }());
     return MapProjection;
 });
-define("game", ["require", "exports", "gameObjects/objects", "gameObjects/unitFactory", "gameObjects/buildingFactory", "common/functions", "common/size", "common/point2d", "common/player", "common/sequence", "common/camera", "map/map", "map/terrain", "map/mapProjection", "map/terrainFactory"], function (require, exports, Objects, UnitFactory, BuildingFactory, Functions, Size, Point2d, Player, Sequence, Camera, Map, Terrain, MapProjection, TerrainFactory) {
+define("assets/contentLoader", ["require", "exports"], function (require, exports) {
+    "use strict";
+    var ContentLoader = /** @class */ (function () {
+        function ContentLoader() {
+            var _this = this;
+            this.loadComplete = function () {
+                _this.completed++;
+                if (_this.completed === _this.loaded) {
+                    _this.whenAllComplete();
+                }
+            };
+            this.completed = 0;
+            this.loaded = 0;
+        }
+        ContentLoader.prototype.load = function (contentLoad) {
+            this.loaded++;
+            contentLoad.load(this.loadComplete);
+            return this;
+        };
+        ContentLoader.prototype.complete = function (callback) {
+            // Executes when all loaded stuff are completed
+            this.whenAllComplete = callback;
+        };
+        return ContentLoader;
+    }());
+    return ContentLoader;
+});
+define("game", ["require", "exports", "gameObjects/objects", "gameObjects/unitFactory", "gameObjects/buildingFactory", "common/functions", "common/size", "common/point2d", "common/player", "common/sequence", "common/camera", "map/map", "map/terrain", "map/mapProjection", "map/terrainObjectsFactory", "assets/contentLoader", "assets/sprite"], function (require, exports, Objects, UnitFactory, BuildingFactory, Functions, Size, Point2d, Player, Sequence, Camera, Map, Terrain, MapProjection, TerrainObjectsFactory, ContentLoader, Sprite) {
     "use strict";
     var Game = /** @class */ (function () {
         function Game(gameLayer, bgLayer, mapProjectionLayer, rightPanel, bottomPanel) {
@@ -823,12 +911,15 @@ define("game", ["require", "exports", "gameObjects/objects", "gameObjects/unitFa
         }
         Game.prototype.start = function () {
             var _this = this;
-            var terrainTextures = new Image();
-            terrainTextures.src = 'sprites/textures.jpg';
-            terrainTextures.onload = function () {
+            var textures = Sprite.textures();
+            var obsticles = Sprite.obsticles();
+            new ContentLoader()
+                .load(textures)
+                .load(obsticles)
+                .complete(function () {
                 var bgCtx = _this.bgLayer.getContext('2d');
                 var map = new Map();
-                var terrainObjects = new TerrainFactory(bgCtx, terrainTextures);
+                var terrainObjects = new TerrainObjectsFactory(bgCtx, textures, obsticles);
                 _this.terrain = new Terrain(bgCtx, map, terrainObjects);
                 var player = new Player('red');
                 var sequence = new Sequence();
@@ -841,7 +932,26 @@ define("game", ["require", "exports", "gameObjects/objects", "gameObjects/unitFa
                 _this.mapProjection = new MapProjection(_this.objects, map, toolsCtx, Point2d.zero(), new Size(_this.rightPanel.clientWidth, _this.rightPanel.clientWidth));
                 // Start the game loop
                 _this.update();
-            };
+            });
+            // let terrainTextures = new Image();
+            // terrainTextures.src = 'sprites/textures.jpg';
+            // terrainTextures.onload = () => {
+            //     let bgCtx = this.bgLayer.getContext('2d');
+            //     let map = new Map();
+            //     let terrainObjects = new TerrainFactory(bgCtx, terrainTextures);
+            //     this.terrain = new Terrain(bgCtx, map, terrainObjects);
+            //     let player = new Player('red');
+            //     let sequence = new Sequence();
+            //     let units = new UnitFactory(this.gameCtx, player, sequence);
+            //     let buildings = new BuildingFactory(this.gameCtx, player, sequence);
+            //     this.objects.add(units.baseUnit(new Point2d(50, 50)));
+            //     this.objects.add(units.baseUnit(new Point2d(100, 100)));
+            //     this.objects.add(buildings.baseBuilding(new Point2d(216, 217)));
+            //     let toolsCtx = this.mapProjectionLayer.getContext('2d');
+            //     this.mapProjection = new MapProjection(this.objects, map, toolsCtx, Point2d.zero(), new Size(this.rightPanel.clientWidth, this.rightPanel.clientWidth));
+            //     // Start the game loop
+            //     this.update();
+            // };
         };
         ;
         Game.prototype.keyPress = function (ev) {
@@ -944,66 +1054,5 @@ define("game", ["require", "exports", "gameObjects/objects", "gameObjects/unitFa
         return Game;
     }());
     return Game;
-});
-define("assets/iContentLoad", ["require", "exports"], function (require, exports) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-});
-define("assets/contentLoader", ["require", "exports"], function (require, exports) {
-    "use strict";
-    var ContentLoader = /** @class */ (function () {
-        function ContentLoader() {
-            this.completed = 0;
-        }
-        ContentLoader.prototype.load = function (contentLoad) {
-            this.loaded++;
-            contentLoad.load(this.loadComplete);
-            return this;
-        };
-        ContentLoader.prototype.complete = function (callback) {
-            // Happens when all loaded functions are completed
-            this.whenAllComplete = callback;
-        };
-        ContentLoader.prototype.loadComplete = function () {
-            this.completed++;
-            if (this.completed === this.loaded) {
-                this.whenAllComplete();
-            }
-        };
-        return ContentLoader;
-    }());
-    return ContentLoader;
-});
-define("assets/sprite", ["require", "exports", "settings"], function (require, exports, Settings) {
-    "use strict";
-    var Sprite = /** @class */ (function () {
-        function Sprite(name, slice) {
-            this._slice = slice;
-            this.loaded = false;
-            this.name = name;
-        }
-        Sprite.prototype.load = function (loadComplete) {
-            var _this = this;
-            this._content = new Image();
-            this._content.src = Settings.SPRTIES_LOCATION + '/' + this.name;
-            this._content.onload = function () {
-                _this.loaded = true;
-                loadComplete();
-            };
-        };
-        Sprite.prototype.content = function () {
-            if (this.loaded) {
-                return this._content;
-            }
-            else {
-                throw new Error('Content of [' + this.name + '] is not loaded!');
-            }
-        };
-        Sprite.prototype.slice = function () {
-            return this._slice;
-        };
-        return Sprite;
-    }());
-    return Sprite;
 });
 //# sourceMappingURL=game.js.map

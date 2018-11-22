@@ -7,6 +7,7 @@ class ContentLoader {
     
     constructor() {
         this.completed = 0;
+        this.loaded = 0;
     }
 
     load(contentLoad: IContentLoad): ContentLoader {
@@ -17,11 +18,11 @@ class ContentLoader {
     }
 
     complete(callback: () => any) {
-        // Happens when all loaded functions are completed
+        // Executes when all loaded stuff are completed
         this.whenAllComplete = callback;
     }
 
-    private loadComplete(): void {
+    private loadComplete = () => {
         this.completed++;
 
         if (this.completed === this.loaded) {

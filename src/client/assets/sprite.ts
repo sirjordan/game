@@ -6,17 +6,25 @@ class Sprite implements IContentLoad {
     private _slice: Size;
     private loaded: boolean;
     private _content: HTMLImageElement;
-    private name: string;
+    private src: string;
 
-    constructor(name: string, slice: Size) {
+    constructor(src: string, slice: Size) {
         this._slice = slice;
         this.loaded = false;
-        this.name = name;
+        this.src = src;
+    }
+
+    static textures(): Sprite {
+        return new Sprite(Settings.SPRTIES_LOCATION + '/' + 'textures.jpg', new Size(100, 100));
+    }
+
+    static obsticles(): Sprite {
+        return new Sprite(Settings.SPRTIES_LOCATION + '/' + 'obsticles.png', new Size(100, 100));
     }
 
     load(loadComplete: () => void): void {
         this._content = new Image();
-        this._content.src = Settings.SPRTIES_LOCATION + '/' + this.name;
+        this._content.src = this.src;
         this._content.onload = () => {
             this.loaded = true;
             loadComplete();
@@ -27,12 +35,16 @@ class Sprite implements IContentLoad {
         if (this.loaded) {
             return this._content;
         } else {
-            throw new Error('Content of [' + this.name + '] is not loaded!');
+            throw new Error('Content of [' + this.src + '] is not loaded!');
         }
     }
 
-    slice(): Size {
+    sliceSize(): Size {
         return this._slice;
+    }
+
+    size(): Size {
+        return new Size(this._content.width, this._content.height);
     }
 }
 

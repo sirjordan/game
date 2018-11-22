@@ -10,7 +10,9 @@ import Camera = require('common/camera');
 import Map = require('map/map');
 import Terrain = require('map/terrain');
 import MapProjection = require('map/mapProjection');
-import TerrainFactory = require('./map/terrainFactory');
+import TerrainObjectsFactory = require('./map/terrainObjectsFactory');
+import ContentLoader = require('assets/contentLoader');
+import Sprite = require('assets/sprite');
 
 class Game {
     private objects: Objects;
@@ -51,30 +53,59 @@ class Game {
     }
 
     public start(): void {
-        let terrainTextures = new Image();
-        terrainTextures.src = 'sprites/textures.jpg';
-        terrainTextures.onload = () => {
-            let bgCtx = this.bgLayer.getContext('2d');
-            let map = new Map();
-            let terrainObjects = new TerrainFactory(bgCtx, terrainTextures);
-            this.terrain = new Terrain(bgCtx, map, terrainObjects);
+        let textures = Sprite.textures();
+        let obsticles = Sprite.obsticles();
 
-            let player = new Player('red');
-            let sequence = new Sequence();
+        new ContentLoader()
+            .load(textures)
+            .load(obsticles)
+            .complete(() => {
+                let bgCtx = this.bgLayer.getContext('2d');
+                let map = new Map();
+                let terrainObjects = new TerrainObjectsFactory(bgCtx, textures, obsticles);
+                this.terrain = new Terrain(bgCtx, map, terrainObjects);
 
-            let units = new UnitFactory(this.gameCtx, player, sequence);
-            let buildings = new BuildingFactory(this.gameCtx, player, sequence);
+                let player = new Player('red');
+                let sequence = new Sequence();
 
-            this.objects.add(units.baseUnit(new Point2d(50, 50)));
-            this.objects.add(units.baseUnit(new Point2d(100, 100)));
-            this.objects.add(buildings.baseBuilding(new Point2d(216, 217)));
+                let units = new UnitFactory(this.gameCtx, player, sequence);
+                let buildings = new BuildingFactory(this.gameCtx, player, sequence);
 
-            let toolsCtx = this.mapProjectionLayer.getContext('2d');
-            this.mapProjection = new MapProjection(this.objects, map, toolsCtx, Point2d.zero(), new Size(this.rightPanel.clientWidth, this.rightPanel.clientWidth));
+                this.objects.add(units.baseUnit(new Point2d(50, 50)));
+                this.objects.add(units.baseUnit(new Point2d(100, 100)));
+                this.objects.add(buildings.baseBuilding(new Point2d(216, 217)));
 
-            // Start the game loop
-            this.update();
-        };
+                let toolsCtx = this.mapProjectionLayer.getContext('2d');
+                this.mapProjection = new MapProjection(this.objects, map, toolsCtx, Point2d.zero(), new Size(this.rightPanel.clientWidth, this.rightPanel.clientWidth));
+
+                // Start the game loop
+                this.update();
+            });
+
+        // let terrainTextures = new Image();
+        // terrainTextures.src = 'sprites/textures.jpg';
+        // terrainTextures.onload = () => {
+        //     let bgCtx = this.bgLayer.getContext('2d');
+        //     let map = new Map();
+        //     let terrainObjects = new TerrainFactory(bgCtx, terrainTextures);
+        //     this.terrain = new Terrain(bgCtx, map, terrainObjects);
+
+        //     let player = new Player('red');
+        //     let sequence = new Sequence();
+
+        //     let units = new UnitFactory(this.gameCtx, player, sequence);
+        //     let buildings = new BuildingFactory(this.gameCtx, player, sequence);
+
+        //     this.objects.add(units.baseUnit(new Point2d(50, 50)));
+        //     this.objects.add(units.baseUnit(new Point2d(100, 100)));
+        //     this.objects.add(buildings.baseBuilding(new Point2d(216, 217)));
+
+        //     let toolsCtx = this.mapProjectionLayer.getContext('2d');
+        //     this.mapProjection = new MapProjection(this.objects, map, toolsCtx, Point2d.zero(), new Size(this.rightPanel.clientWidth, this.rightPanel.clientWidth));
+
+        //     // Start the game loop
+        //     this.update();
+        // };
     };
 
     private update = () => {
