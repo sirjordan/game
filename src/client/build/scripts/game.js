@@ -509,17 +509,17 @@ define("map/map", ["require", "exports", "common/size", "settings"], function (r
     var Map = /** @class */ (function () {
         function Map() {
             this.textures = [
-                [1, 1, 2, 1, 2, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 2, 1, 3],
-                [1, 1, 2, 1, 2, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 2, 1, 3],
-                [2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 2, 1, 3],
-                [1, 1, 1, 1, 2, 1, 1, 2, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 2, 1, 1],
-                [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 1, 1, 3],
-                [1, 1, 2, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 3, 2, 1, 1, 1, 1, 2, 1, 3],
-                [1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 3, 2, 3, 1, 1, 2, 1, 1, 2, 1, 3],
-                [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 1, 1, 1, 1, 1, 2, 1, 1],
-                [1, 2, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 3, 1, 3, 1, 1, 1, 2, 1, 3],
-                [2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 3, 1, 1, 1, 1, 1, 2, 1, 1],
-                [1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 2, 1, 2, 3, 2, 1, 1, 1, 1, 1, 1, 3],
+                [1, 1, 1, 1, 1, 1, 1, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 2, 1, 3],
+                [1, 1, 1, 1, 1, 1, 1, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 2, 1, 3],
+                [1, 1, 1, 1, 1, 1, 1, 1, 8, 4, 4, 4, 4, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 2, 1, 3],
+                [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 2, 1, 1],
+                [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 4, 4, 4, 4, 4, 4, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 1, 1, 3],
+                [5, 5, 5, 5, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 2, 4, 4, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 3, 2, 1, 1, 1, 1, 2, 1, 3],
+                [1, 1, 1, 1, 1, 5, 5, 5, 5, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 3, 2, 3, 1, 1, 2, 1, 1, 2, 1, 3],
+                [1, 1, 1, 1, 1, 1, 1, 1, 3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 1, 1, 1, 1, 1, 2, 1, 1],
+                [1, 1, 1, 1, 1, 1, 1, 1, 3, 1, 1, 1, 2, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 3, 1, 3, 1, 1, 1, 2, 1, 3],
+                [1, 1, 1, 1, 1, 1, 1, 1, 3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 3, 1, 1, 1, 1, 1, 2, 1, 1],
+                [1, 1, 1, 1, 1, 1, 2, 1, 3, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 2, 1, 2, 3, 2, 1, 1, 1, 1, 1, 1, 3],
                 [1, 1, 1, 3, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 2, 1, 1, 1, 3, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 2, 1, 2, 1, 1, 1, 1, 3, 1, 2, 1, 3],
                 [1, 1, 2, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 1, 1, 1, 1, 1, 2, 1, 1],
                 [1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 3, 2, 2, 1, 1, 1, 1, 1, 2, 1, 3],
@@ -596,7 +596,7 @@ define("assets/sprite", ["require", "exports", "common/size", "settings"], funct
             this.src = src;
         }
         Sprite.textures = function () {
-            return new Sprite(Settings.SPRTIES_LOCATION + '/' + 'textures.jpg', new Size(100, 100));
+            return new Sprite(Settings.SPRTIES_LOCATION + '/' + 'textures.png', new Size(100, 100));
         };
         Sprite.obsticles = function () {
             return new Sprite(Settings.SPRTIES_LOCATION + '/' + 'obsticles.png', new Size(100, 100));
@@ -647,7 +647,7 @@ define("map/staticMapSlice", ["require", "exports", "gameObjects/rect", "common/
             var spriteCols = sprite.size().width / sprite.sliceSize().width;
             var spriteRows = sprite.size().height / sprite.sliceSize().height;
             var textureRow = Math.ceil(id / spriteCols) - 1;
-            var textureCol = id % spriteCols;
+            var textureCol = (id % spriteCols) - 1;
             if (textureRow > spriteRows - 1 || textureCol > spriteCols - 1)
                 throw new Error('Requested slice number [' + id + '] on [' + textureRow + ', ' + textureCol + '] does not exists.');
             return new Point2d(textureCol * sprite.sliceSize().width, textureRow * sprite.sliceSize().height);
@@ -933,25 +933,6 @@ define("game", ["require", "exports", "gameObjects/objects", "gameObjects/unitFa
                 // Start the game loop
                 _this.update();
             });
-            // let terrainTextures = new Image();
-            // terrainTextures.src = 'sprites/textures.jpg';
-            // terrainTextures.onload = () => {
-            //     let bgCtx = this.bgLayer.getContext('2d');
-            //     let map = new Map();
-            //     let terrainObjects = new TerrainFactory(bgCtx, terrainTextures);
-            //     this.terrain = new Terrain(bgCtx, map, terrainObjects);
-            //     let player = new Player('red');
-            //     let sequence = new Sequence();
-            //     let units = new UnitFactory(this.gameCtx, player, sequence);
-            //     let buildings = new BuildingFactory(this.gameCtx, player, sequence);
-            //     this.objects.add(units.baseUnit(new Point2d(50, 50)));
-            //     this.objects.add(units.baseUnit(new Point2d(100, 100)));
-            //     this.objects.add(buildings.baseBuilding(new Point2d(216, 217)));
-            //     let toolsCtx = this.mapProjectionLayer.getContext('2d');
-            //     this.mapProjection = new MapProjection(this.objects, map, toolsCtx, Point2d.zero(), new Size(this.rightPanel.clientWidth, this.rightPanel.clientWidth));
-            //     // Start the game loop
-            //     this.update();
-            // };
         };
         ;
         Game.prototype.keyPress = function (ev) {

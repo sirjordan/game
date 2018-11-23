@@ -34,7 +34,7 @@ class StaticMapSlice extends Rect {
         let spriteRows = sprite.size().height / sprite.sliceSize().height;
 
         let textureRow = Math.ceil(id / spriteCols) - 1;
-        let textureCol = id % spriteCols;
+        let textureCol = (id % spriteCols) - 1;
 
         if (textureRow > spriteRows - 1 || textureCol > spriteCols - 1)
             throw new Error('Requested slice number [' + id + '] on [' + textureRow + ', ' + textureCol + '] does not exists.');

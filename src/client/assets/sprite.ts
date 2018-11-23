@@ -15,7 +15,7 @@ class Sprite implements IContentLoad {
     }
 
     static textures(): Sprite {
-        return new Sprite(Settings.SPRTIES_LOCATION + '/' + 'textures.jpg', new Size(100, 100));
+        return new Sprite(Settings.SPRTIES_LOCATION + '/' + 'textures.png', new Size(100, 100));
     }
 
     static obsticles(): Sprite {
